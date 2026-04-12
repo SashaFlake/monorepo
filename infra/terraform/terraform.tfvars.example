@@ -1,0 +1,17 @@
+master_ip            = "1.2.3.4"
+worker_ip            = "1.2.3.5"
+master_private_ip    = "10.0.0.1"
+ssh_user             = "ubuntu"
+ssh_private_key_path = "~/.ssh/id_rsa"
+
+app_image_tag        = "latest"
+app_image_repository = "ghcr.io/sashaflake/auth-service"
+app_hostname         = "auth.example.com"
+grafana_hostname     = "grafana.example.com"
+letsencrypt_email    = "admin@example.com"
+cors_allowed_hosts   = "https://app.example.com"
+namespace            = "auth"
+
+# Secrets — pass via env, never commit:
+# export TF_VAR_jwt_secret=$(openssl rand -base64 32)
+# export TF_VAR_grafana_admin_password="your-password"

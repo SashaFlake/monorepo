@@ -1,0 +1,9 @@
+auth-service deployed!
+
+{{- if .Values.ingress.enabled }}
+URL: http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/graphql
+GraphQL Playground: http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/graphiql
+{{- else }}
+kubectl port-forward svc/{{ include "auth-service.fullname" . }} 8080:8080
+URL: http://localhost:8080/graphql
+{{- end }}

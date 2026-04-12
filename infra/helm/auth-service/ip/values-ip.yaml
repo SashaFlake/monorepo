@@ -1,0 +1,11 @@
+ingress:
+  enabled: false
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30081
+
+env:
+  STORAGE_IN_MEMORY: "false"
+  CORS_ALLOWED_HOSTS: "*"

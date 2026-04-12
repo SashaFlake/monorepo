@@ -1,0 +1,55 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sashaflake/auth-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: auth.example.com
+  tls: false
+
+env:
+  JWT_SECRET: "change-me"
+  JWT_ISSUER: "auth-service"
+  JWT_AUDIENCE: "auth-service-users"
+  STORAGE_BACKEND: "dragonfly"
+  DRAGONFLY_HOST: '{{ include "auth-service.fullname" . }}-dragonfly-master'
+  DRAGONFLY_PORT: "6379"
+  STORAGE_IN_MEMORY: "false"
+  CORS_ALLOWED_HOSTS: "http://localhost:3000"
+
+dragonfly:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 15s
+  path: /metrics
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
