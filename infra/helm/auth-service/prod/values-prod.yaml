@@ -1,0 +1,21 @@
+replicaCount: 2
+
+ingress:
+  enabled: true
+  tls: true
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+
+serviceMonitor:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
