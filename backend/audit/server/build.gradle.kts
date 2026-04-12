@@ -1,12 +1,11 @@
 plugins {
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.1.2"
+    id("io.ktor.plugin") version "3.4.1"
     id("org.jlleitschuh.gradle.ktlint")
     id("org.jetbrains.kotlinx.kover")
 }
 
 application {
-    // Замени __SERVICE__ на имя сервиса
     mainClass.set("com.sashaflake.ApplicationKt")
 }
 

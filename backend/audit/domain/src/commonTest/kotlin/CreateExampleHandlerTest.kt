@@ -1,9 +1,9 @@
-import __PACKAGE__.command.CreateExampleCommand
-import __PACKAGE__.command.CreateExampleHandler
-import __PACKAGE__.model.Example
-import __PACKAGE__.model.ExampleId
-import __PACKAGE__.port.ExampleRepository
-import __PACKAGE__.port.IdGenerator
+import audit.command.CreateExampleCommand
+import audit.command.CreateExampleHandler
+import audit.model.Example
+import audit.model.ExampleId
+import audit.port.ExampleRepository
+import audit.port.IdGenerator
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery

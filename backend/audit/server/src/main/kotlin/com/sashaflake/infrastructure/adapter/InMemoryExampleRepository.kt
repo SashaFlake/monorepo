@@ -1,8 +1,8 @@
 package com.sashaflake.infrastructure.adapter
 
-import __PACKAGE__.model.Example
-import __PACKAGE__.model.ExampleId
-import __PACKAGE__.port.ExampleRepository
+import audit.model.Example
+import audit.model.ExampleId
+import audit.port.ExampleRepository
 import java.util.concurrent.ConcurrentHashMap
 
 // Заглушка для тестов / локальной разработки.

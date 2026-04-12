@@ -1,8 +1,8 @@
 package com.sashaflake.infrastructure.di
 
-import __PACKAGE__.command.CreateExampleHandler
-import __PACKAGE__.port.ExampleRepository
-import __PACKAGE__.port.IdGenerator
+import audit.command.CreateExampleHandler
+import audit.port.ExampleRepository
+import audit.port.IdGenerator
 import com.sashaflake.infrastructure.adapter.InMemoryExampleRepository
 import com.sashaflake.infrastructure.adapter.UuidIdGenerator
 import com.sashaflake.infrastructure.metrics.ServiceMetrics
