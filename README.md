@@ -6,6 +6,77 @@
 ---
 
 <details>
+<summary><strong>Сервисы и взаимодействие</strong></summary>
+
+```mermaid
+flowchart TD
+    ExternalSystem(["External System\nERP / ITSM"])
+    Device(["Android Device\n+ Agent"])
+    Operator(["Operator\nAdmin UI"])
+    ExtServices(["External Services\nVPN / Proxy / NAC"])
+
+    subgraph Platform
+        GW["API Gateway"]
+        Auth["Auth Service"]
+
+        subgraph Core["MDM Core Service"]
+            Enroll["Enrollment"]
+            Cmd["Command Queue"]
+            Policy["Policy"]
+            DevReg["Device Registry"]
+        end
+
+        Compliance["Compliance Service"]
+        Audit["Audit Service"]
+        Bus[["Event Bus"]]
+    end
+
+    ExternalSystem -->|"device.provisioned"| Bus
+    Bus -->|"device.provisioned"| Enroll
+
+    Device -->|"POST /enroll"| GW
+    Device -->|"POST /heartbeat"| GW
+    Device -->|"POST /commands/:id/ack"| GW
+    Device <-->|"WebSocket\ncommand delivery"| GW
+
+    Operator -->|"HTTP"| GW
+    GW -->|"verify token"| Auth
+    GW -->|"route"| Core
+    GW -->|"route"| Compliance
+
+    Enroll -->|"create"| DevReg
+    Enroll -->|"enqueue APPLY_POLICY"| Cmd
+    Policy -->|"enqueue APPLY_POLICY on update"| Cmd
+    Cmd -->|"deliver"| Device
+    Cmd -->|"update status"| DevReg
+
+    Compliance -->|"read"| DevReg
+    Compliance -->|"read"| Policy
+    ExtServices -->|"GET /compliance"| Compliance
+
+    Core -->|"events"| Bus
+    Bus -->|"all events"| Audit
+
+    Operator <-->|"SSE\nreal-time updates"| GW
+```
+
+### Описание сервисов
+
+| Сервис | Ответственность |
+|---|---|
+| **API Gateway** | Единая точка входа. Роутинг, auth middleware, WebSocket и SSE транспорт |
+| **Auth Service** | JWT для операторов, service token для внешних систем, device certificate при enrollment |
+| **MDM Core** | Device Registry, Enrollment, Command Queue, Policy — всё про жизнь устройства |
+| **Compliance Service** | Read-only фасад для внешних систем. Вычисляет доверие на основе данных Core |
+| **Audit Service** | Подписывается на все события через Event Bus. Append-only хранилище |
+| **Event Bus** | Декаплинг внешних интеграций и внутренних событий |
+| **Admin UI** | Real-time dashboard. Local-first: читает из локального стора, синхронизируется через SSE |
+
+</details>
+
+---
+
+<details>
 <summary><strong>Доменная модель</strong></summary>
 
 ## Компоненты
@@ -89,62 +160,12 @@ QUEUED → DELIVERED → ACKED
 | `status` | `success` / `failed` |
 | `payload` | JSON-детали события |
 
----
-
-## Связи между компонентами
-
-```
-                  ┌───────────────┐
-                  │  Enrollment  │
-                  └──────┬──────┘
-                         │ создаёт Device
-                         │ инициирует Command(APPLY_POLICY)
-                         ↓
-┌─────────┐      ┌───────────────┐      ┌──────────┐
-│ Policy  │────▶│    Device    │◄────│  Command  │
-└─────────┘      └───────┬───────┘      └──────────┘
- знает что         │ факты          порождает и
- применять        ↓ о состоянии     доставляет
-                  ┌───────────────┐
-                  │  Compliance  │
-                  └───────┬───────┘
-                         │ ответ наружу
-                         ↓
-                  внешние системы
-
-         ╔═══════════════════════════╗
-                  Audit Log
-          (слушает всех, пишет всё)
-         ╚═══════════════════════════╝
-```
-
 </details>
 
 ---
 
 <details>
-<summary><strong>Архитектура и сценарии</strong></summary>
-
-## Обзор системы
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Platform Layer                        │
-│          API Gateway · Auth · Event Bus · Audit          │
-├──────────────────────┬──────────────────────────────────┤
-│     MDM Core Service │   Compliance Query API           │
-│  enrollment, commands│   /devices/{id}/compliance       │
-│  policy, heartbeat   │   для внешних систем (VPN, proxy) │
-├──────────────────────┴──────────────────────────────────┤
-│              PostgreSQL  ·  NATS JetStream               │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Тип устройств:** корпоративные Android-устройства (телефоны, планшеты, терминалы).  
-**UI:** real-time dashboard через SSE; агент ↔ сервер через WebSocket.  
-**Local-first:** UI читает из локального стора (IndexedDB/Dexie.js), синхронизируется при reconnect.
-
----
+<summary><strong>Сценарии</strong></summary>
 
 ## MVP-сценарии
 
@@ -237,7 +258,7 @@ Authorization: Bearer <service-token>
 
 ### Сценарий 5 — Remote Commands
 
-Оператор через Admin UI (или API) отправляет команду на устройство — см. таблицу выше.
+Оператор через Admin UI (или API) отправляет команду на устройство — см. таблицу в доменной модели.
 
 ```
 POST /api/v1/devices/{device_id}/commands
