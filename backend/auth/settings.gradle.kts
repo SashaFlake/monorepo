@@ -1,4 +1,4 @@
-rootProject.name = "engineer-challenge"
+rootProject.name = "auth"
 
 pluginManagement {
     repositories {
