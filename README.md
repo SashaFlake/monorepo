@@ -3,27 +3,6 @@
 Корпоративная платформа управления устройствами (Mobile Device Management).  
 Цель: устройство проходит enrollment, система контролирует его состояние и сообщает внешним системам, имеет ли оно доступ к внутренним ресурсам.
 
-## Структура репозитория
-
-```
-├── auth/        # Auth service (Kotlin/Ktor)
-├── backend/     # MDM core service
-├── frontend/    # Admin dashboard (React, local-first)
-├── infra/       # Helm, Terraform, Docker Compose
-└── template/    # Service scaffold template
-```
-
-## Быстрый старт
-
-```bash
-# Локальная разработка
-docker-compose -f infra/docker-compose.yaml up
-
-# Deploy
-cd infra/terraform
-terraform init && terraform apply
-```
-
 ---
 
 <details>
