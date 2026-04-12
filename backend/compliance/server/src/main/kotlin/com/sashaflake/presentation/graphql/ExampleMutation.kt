@@ -1,12 +1,11 @@
 package com.sashaflake.presentation.graphql
 
-import __PACKAGE__.command.CreateExampleCommand
-import __PACKAGE__.command.CreateExampleHandler
+import compliance.command.CreateExampleCommand
+import compliance.command.CreateExampleHandler
 import com.expediagroup.graphql.server.operations.Mutation
 import com.sashaflake.infrastructure.metrics.ServiceMetrics
 import org.koin.core.annotation.Single
 
-// Замени Example на имя своей сущности
 @Single
 class ExampleMutation(
     private val createExampleHandler: CreateExampleHandler,

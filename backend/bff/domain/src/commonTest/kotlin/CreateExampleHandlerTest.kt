@@ -1,9 +1,9 @@
-import __PACKAGE__.command.CreateExampleCommand
-import __PACKAGE__.command.CreateExampleHandler
-import __PACKAGE__.model.Example
-import __PACKAGE__.model.ExampleId
-import __PACKAGE__.port.ExampleRepository
-import __PACKAGE__.port.IdGenerator
+import bff.command.CreateExampleCommand
+import bff.command.CreateExampleHandler
+import bff.model.Example
+import bff.model.ExampleId
+import bff.port.ExampleRepository
+import bff.port.IdGenerator
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -26,7 +26,5 @@ class CreateExampleHandlerTest : FunSpec({
 
             result.isRight() shouldBe true
         }
-
-        // TODO: добавить тесты на ошибки
     }
 })
