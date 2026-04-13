@@ -24,6 +24,7 @@ flowchart TD
             Cmd["Command Queue"]
             Policy["Policy"]
             DevReg["Device Registry"]
+            TrustStore["Trust Anchor Store"]
         end
 
         Compliance["Compliance Service"]
@@ -35,7 +36,8 @@ flowchart TD
     ExternalSystem -->|"devices.provisioned"| Bus
     Bus -->|"devices.provisioned"| Enroll
 
-    Device -->|"POST /device/enroll"| GW
+    Device -->|"POST /device/attestation/nonce"| GW
+    Device -->|"POST /device/enroll + attestation"| GW
     Device -->|"POST /device/heartbeat"| GW
     Device -->|"POST /device/commands/:id/ack"| GW
     Device <-->|"SSE\ncommand delivery"| GW
@@ -45,6 +47,7 @@ flowchart TD
     GW -->|"route"| Core
     GW -->|"route"| Compliance
 
+    Enroll -->|"verify cert chain"| TrustStore
     Enroll -->|"create"| DevReg
     Enroll -->|"enqueue APPLY_POLICY"| Cmd
     Policy -->|"enqueue APPLY_POLICY on update"| Cmd
@@ -69,6 +72,7 @@ flowchart TD
 | **API Gateway** | Единая точка входа. Роутинг, auth middleware, SSE транспорт |
 | **Auth Service** | JWT для операторов, service token для внешних систем, device certificate при enrollment |
 | **MDM Core** | Device Registry, Enrollment, Command Queue, Policy — всё про жизнь устройства |
+| **Trust Anchor Store** | Хранилище корневых сертификатов производителей. Используется при верификации attestation |
 | **Compliance Service** | Read-only фасад для внешних систем. Вычисляет доверие на основе данных Core |
 | **Audit Service** | Подписывается на все события через Kafka. Append-only хранилище |
 | **Kafka** | Персистентная шина событий. Декаплинг сервисов, гарантия доставки, replay |
@@ -117,13 +121,15 @@ WebSocket не используется: команды однонаправле
 
 ### Offline-доставка команд
 
-Команды персистируются в Command Queue немедленно. Доставка — при подключении устройства через SSE-стрим. Если устройство долго offline — push-уведомление через Notification Service (FCM/APNs, за скоупом MVP).
+Команды персистируются в Command Queue (Postgres) немедленно. Доставка — при подключении устройства через SSE-стрим. Если устройство долго offline — push-уведомление через Notification Service (FCM/APNs, за скоупом MVP).
 
 ```
 QUEUED → [устройство подключилось] → DELIVERED → [ack получен] → ACKED
                                           ↓
                                         FAILED → RETRYING → EXPIRED
 ```
+
+При каждом SSE-подключении сначала отдаются все `QUEUED` команды из таблицы, затем live-стрим. `Last-Event-ID` — подсказка, не источник истины. Command Queue всегда авторитетна.
 
 ---
 
@@ -168,12 +174,88 @@ Kafka — единственная шина для всего асинхронн
 | Оператор | REST | `GET` | `/admin/devices` | Список устройств |
 | Оператор | REST | `POST` | `/admin/devices/{id}/commands` | Отправить команду |
 | Оператор | SSE | `GET` | `/admin/events` | Реал-тайм обновления UI |
-| Устройство | REST | `POST` | `/device/enroll` | Enrollment |
+| Устройство | REST | `POST` | `/device/attestation/nonce` | Получить nonce для attestation |
+| Устройство | REST | `POST` | `/device/enroll` | Enrollment с attestation |
 | Устройство | REST | `POST` | `/device/heartbeat` | Heartbeat, sync check |
 | Устройство | REST | `POST` | `/device/commands/{id}/ack` | Подтверждение команды |
 | Устройство | SSE | `GET` | `/device/commands/stream` | Получение команд |
 | Внешние системы | REST | `GET` | `/external/devices/{id}/compliance` | Compliance check |
 | ERP / ITSM | Kafka | — | `devices.provisioned` | Pre-staging устройства |
+
+</details>
+
+---
+
+<details>
+<summary><strong>Безопасность</strong></summary>
+
+## Device Attestation
+
+Проблема enrollment без attestation: любой, знающий `serial + enrollment_token`, может зарегистрировать произвольное устройство под чужим серийником.
+
+**Решение — офлайн аппаратная аттестация (Android Keystore)**
+
+Используется криптографическое доказательство от защищённого элемента самого устройства. Производитель (Samsung Knox, Zebra и др.) прошивает ключи при производстве. Не требует внешних сервисов, работает в изолированных сетях.
+
+### Enrollment становится двухшаговым
+
+```
+Шаг 1 — запрос nonce:
+  Устройство  →  POST /device/attestation/nonce  { serial }
+  MDM Core    ←  { nonce }  (одноразовый, TTL ограничен, привязан к serial)
+
+Шаг 2 — enrollment с аттестацией:
+  Устройство подписывает nonce ключом из Android Keystore
+  Устройство  →  POST /device/enroll  {
+                   serial,
+                   enrollment_token,
+                   attestation: { cert_chain, signed_nonce }
+                 }
+
+  MDM Core верифицирует:
+    1. cert_chain ведёт к доверенному корневому сертификату (Trust Anchor Store)
+    2. signed_nonce валиден для этого serial
+    3. nonce ранее не использовался (защита от replay)
+    4. enrollment_token совпадает
+        ↓
+  Создаётся device_id, выдаётся device certificate
+```
+
+### Trust Anchor Store
+
+Хранилище корневых сертификатов производителей внутри платформы. Верификация цепочки происходит локально — без обращения к внешним сервисам.
+
+**Операционное требование:** при смене корневого сертификата производителем Trust Anchor Store должен быть обновлён вручную командой infra. Это процесс, не автоматика.
+
+### Nonce реестр
+
+MDM Core хранит выданные nonce с TTL. Каждый nonce одноразовый: после использования немедленно инвалидируется. Истёкшие nonce удаляются по TTL.
+
+---
+
+## SSE изоляция по device_id
+
+`device_id` в SSE-сессии берётся **только из верифицированного device certificate** — никогда из query-параметров или тела запроса. Устройство физически не может подписаться на команды другого устройства.
+
+---
+
+## Rate Limiting
+
+Первый барьер — nginx Ingress (защита от DDoS на уровне IP).  
+Второй барьер — application middleware (защита от злоупотреблений конкретного устройства, лимит по `device_id` из сертификата).
+
+`/device/enroll` и `/device/attestation/nonce` лимитируются жёстче остальных эндпоинтов.
+
+---
+
+## Backlog (за скоупом MVP)
+
+| Пункт | Приоритет |
+|---|---|
+| Kafka ACL — каждый сервис читает только свои топики | High |
+| Ротация и отзыв service token для `/external/*` | High |
+| mTLS между внутренними сервисами | Medium |
+| Circuit breaker на межсервисных вызовах | Medium |
 
 </details>
 
@@ -203,7 +285,7 @@ UNKNOWN → PENDING_ENROLLMENT → ENROLLING → ENROLLED
 
 ### Enrollment
 
-Одноразовый процесс принятия устройства в систему. Проверяет, что устройство **ожидается** (pre-staged) и токен валиден, создаёт идентификатор устройства и выдаёт credentials. По завершении автоматически инициирует первую команду `APPLY_POLICY`.
+Одноразовый процесс принятия устройства в систему. Верифицирует аттестацию устройства через Trust Anchor Store, проверяет что устройство **ожидается** (pre-staged) и токен валиден, создаёт идентификатор устройства и выдаёт credentials. По завершении автоматически инициирует первую команду `APPLY_POLICY`.
 
 ---
 
@@ -294,18 +376,28 @@ QUEUED → DELIVERED → ACKED
 
 ---
 
-### Сценарий 2 — Enrollment
+### Сценарий 2 — Enrollment (с аттестацией)
 
 Устройство на точке использования инициирует enrollment (агент установлен в factory/MDM-режиме).
 
 ```
-Устройство  →  POST /device/enroll  { serial, enrollment_token, device_info }
+Устройство  →  POST /device/attestation/nonce  { serial }
+MDM Core    ←  { nonce }  (одноразовый, TTL = 5 мин)
+
+Устройство подписывает nonce ключом из Android Keystore
+
+Устройство  →  POST /device/enroll  {
+                 serial, enrollment_token,
+                 attestation: { cert_chain, signed_nonce }
+               }
                        ↓
+             Верификация cert_chain через Trust Anchor Store
+             Проверка signed_nonce (валиден + не использован ранее)
+             Проверка enrollment_token
              Проверка: serial существует и статус PENDING_ENROLLMENT
-             Проверка: enrollment_token валиден и не истёк
                        ↓
              Создаётся device_id (UUID)
-             Выдаётся device certificate (для последующих запросов)
+             Выдаётся device certificate
              Статус → ENROLLING
                        ↓
 Устройство  ←  { device_id, certificate, sse_endpoint, policy_version: 0 }
