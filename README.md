@@ -28,15 +28,16 @@ flowchart TD
 
         Compliance["Compliance Service"]
         Audit["Audit Service"]
-        Bus[["Event Bus"]]
+        Notification["Notification Service\n(future)"]
+        Bus[["Kafka"]]
     end
 
-    ExternalSystem -->|"device.provisioned"| Bus
-    Bus -->|"device.provisioned"| Enroll
+    ExternalSystem -->|"devices.provisioned"| Bus
+    Bus -->|"devices.provisioned"| Enroll
 
-    Device -->|"POST /enroll"| GW
-    Device -->|"POST /heartbeat"| GW
-    Device -->|"POST /commands/:id/ack"| GW
+    Device -->|"POST /device/enroll"| GW
+    Device -->|"POST /device/heartbeat"| GW
+    Device -->|"POST /device/commands/:id/ack"| GW
     Device <-->|"SSE\ncommand delivery"| GW
 
     Operator -->|"HTTP"| GW
@@ -54,8 +55,9 @@ flowchart TD
     Compliance -->|"read"| Policy
     ExtServices -->|"GET /compliance"| Compliance
 
-    Core -->|"events"| Bus
-    Bus -->|"all events"| Audit
+    Core -->|"mdm.events.*"| Bus
+    Bus -->|"mdm.events.*"| Audit
+    Bus -->|"mdm.events.device.offline"| Notification
 
     Operator <-->|"SSE\nreal-time updates"| GW
 ```
@@ -68,8 +70,9 @@ flowchart TD
 | **Auth Service** | JWT для операторов, service token для внешних систем, device certificate при enrollment |
 | **MDM Core** | Device Registry, Enrollment, Command Queue, Policy — всё про жизнь устройства |
 | **Compliance Service** | Read-only фасад для внешних систем. Вычисляет доверие на основе данных Core |
-| **Audit Service** | Подписывается на все события через Event Bus. Append-only хранилище |
-| **Event Bus** | Декаплинг внешних интеграций и внутренних событий |
+| **Audit Service** | Подписывается на все события через Kafka. Append-only хранилище |
+| **Kafka** | Персистентная шина событий. Декаплинг сервисов, гарантия доставки, replay |
+| **Notification Service** | (future) Подписывается на события, отправляет FCM/APNs push |
 | **Admin UI** | Real-time dashboard. Local-first: читает из локального стора, синхронизируется через SSE |
 
 </details>
@@ -114,7 +117,7 @@ WebSocket не используется: команды однонаправле
 
 ### Offline-доставка команд
 
-Команды персистируются в Command Queue немедленно. Доставка — при подключении устройства через SSE-стрим. Если устройство долго offline — push-уведомление (FCM/APNs, за скоупом MVP).
+Команды персистируются в Command Queue немедленно. Доставка — при подключении устройства через SSE-стрим. Если устройство долго offline — push-уведомление через Notification Service (FCM/APNs, за скоупом MVP).
 
 ```
 QUEUED → [устройство подключилось] → DELIVERED → [ack получен] → ACKED
@@ -137,6 +140,27 @@ EventPublisher (port)
 
 ---
 
+### Асинхронное межсервисное взаимодействие — Kafka
+
+Kafka — единственная шина для всего асинхронного взаимодействия: внешние интеграции, внутренние события, будущие сервисы.
+
+| Топик | Producer | Consumer(s) | Описание |
+|---|---|---|---|
+| `devices.provisioned` | ERP / ITSM | MDM Core | Устройство зарегистрировано в закупках |
+| `mdm.events.device.enrolled` | MDM Core | Audit, Notification (future) | Успешный enrollment |
+| `mdm.events.device.status_changed` | MDM Core | Audit, Notification (future) | Смена статуса устройства |
+| `mdm.events.device.offline` | MDM Core | Audit, Notification (future) | Устройство не выходило на связь > 5 мин |
+| `mdm.events.command.acked` | MDM Core | Audit | Команда подтверждена агентом |
+| `mdm.events.command.failed` | MDM Core | Audit, Notification (future) | Команда не выполнена |
+| `mdm.events.policy.updated` | MDM Core | Audit | Политика обновлена |
+
+**Соглашения:**
+- Топики платформы: `mdm.events.{domain}.{event}` — snake_case
+- Входящие из внешних систем: `{domain}.{event}` — формат на стороне источника
+- Все события содержат `event_id`, `timestamp`, `device_id`, `actor`
+
+---
+
 ## Эндпоинты
 
 | Клиент | Транспорт | Метод | Путь | Назначение |
@@ -149,7 +173,7 @@ EventPublisher (port)
 | Устройство | REST | `POST` | `/device/commands/{id}/ack` | Подтверждение команды |
 | Устройство | SSE | `GET` | `/device/commands/stream` | Получение команд |
 | Внешние системы | REST | `GET` | `/external/devices/{id}/compliance` | Compliance check |
-| ERP/ITSM | NATS | — | `devices.provisioned` | Pre-staging устройства |
+| ERP / ITSM | Kafka | — | `devices.provisioned` | Pre-staging устройства |
 
 </details>
 
@@ -251,7 +275,7 @@ QUEUED → DELIVERED → ACKED
 ### Сценарий 1 — Device Pre-staging (внешнее событие)
 
 Закупки приобретают новое устройство и регистрируют его во внешней системе (ERP, ITSM и т.п.).  
-Наша система получает событие через **Message Bus** (NATS topic `devices.provisioned`).  
+Наша система получает событие через **Kafka** (topic `devices.provisioned`).  
 Формат интеграции — за скоупом этой системы; на входе ожидается:
 
 ```json
@@ -287,7 +311,8 @@ QUEUED → DELIVERED → ACKED
 Устройство  ←  { device_id, certificate, sse_endpoint, policy_version: 0 }
 ```
 
-После успешного ответа система автоматически ставит в очередь команду `APPLY_POLICY`.
+После успешного ответа система автоматически ставит в очередь команду `APPLY_POLICY`  
+и публикует событие `mdm.events.device.enrolled` в Kafka.
 
 ---
 
@@ -303,7 +328,7 @@ Command Queue  →  APPLY_POLICY { policy_id, payload: { ... } }
 Устройство  →  POST /device/commands/{command_id}/ack  { status: "success" | "failed", error? }
                        ↓
              Статус устройства → ENROLLED (compliant) или NON_COMPLIANT
-             Запись в Audit Log
+             Публикуется mdm.events.command.acked → Audit
 ```
 
 **Команды персистентны** — если устройство offline, команда остаётся в очереди до получения ack или истечения TTL.
@@ -359,6 +384,7 @@ POST /admin/devices/{device_id}/commands
           Если policy_version устарела → возвращается { action: "sync_policy" }
                 ↓
           Если нет heartbeat > 5 минут → статус OFFLINE
+          Публикуется mdm.events.device.offline → Audit + Notification (future)
           SSE event → UI обновляется без перезагрузки
 ```
 
@@ -371,6 +397,6 @@ POST /admin/devices/{device_id}/commands
 - Логика внешней системы provisioning (ERP/ITSM) — только входящий event
 - BYOD / личные устройства сотрудников
 - Геолокация и геофенсинг
-- Push-уведомления (FCM/APNs) для offline-устройств
+- Notification Service (FCM/APNs push для offline-устройств)
 
 </details>
