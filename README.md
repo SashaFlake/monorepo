@@ -16,8 +16,7 @@ flowchart TD
     ExtServices(["External Services\nVPN / Proxy / NAC"])
 
     subgraph Platform
-        GW["API Gateway"]
-        Auth["Auth Service"]
+        GW["API Gateway\n+ Auth Middleware"]
 
         subgraph Core["MDM Core Service"]
             Enroll["Enrollment"]
@@ -33,7 +32,7 @@ flowchart TD
         Bus[["Kafka"]]
     end
 
-    ExternalSystem -->|"devices.provisioned"| Bus
+    ExternalSystem -->|"событие: devices.provisioned"| Bus
     Bus -->|"devices.provisioned"| Enroll
 
     Device -->|"POST /device/attestation/nonce"| GW
@@ -42,8 +41,7 @@ flowchart TD
     Device -->|"POST /device/commands/:id/ack"| GW
     Device <-->|"SSE\ncommand delivery"| GW
 
-    Operator -->|"HTTP"| GW
-    GW -->|"verify token"| Auth
+    Operator -->|"HTTP + JWT"| GW
     GW -->|"route"| Core
     GW -->|"route"| Compliance
 
@@ -69,8 +67,7 @@ flowchart TD
 
 | Сервис | Ответственность |
 |---|---|
-| **API Gateway** | Единая точка входа. Роутинг, auth middleware, SSE транспорт |
-| **Auth Service** | JWT для операторов, service token для внешних систем, device certificate при enrollment |
+| **API Gateway** | Единая точка входа. Роутинг, auth middleware (JWT / device cert / service token), SSE транспорт |
 | **MDM Core** | Device Registry, Enrollment, Command Queue, Policy — всё про жизнь устройства |
 | **Trust Anchor Store** | Хранилище корневых сертификатов производителей. Используется при верификации attestation |
 | **Compliance Service** | Read-only фасад для внешних систем. Вычисляет доверие на основе данных Core |
@@ -102,12 +99,12 @@ nginx.ingress.kubernetes.io/proxy-buffering: "off"
 
 ### Изоляция клиентов — URL-префиксы
 
-Один порт, разные префиксы. Изоляция через middleware (разные стратегии аутентификации).
+Один порт, разные префиксы. Изоляция через middleware в API Gateway (разные стратегии аутентификации).
 
 | Префикс | Клиент | Auth |
 |---|---|---|
-| `/admin/*` | Оператор | JWT (Bearer token) |
-| `/device/*` | Android Agent | Device certificate / enrollment token |
+| `/admin/*` | Оператор | JWT (Bearer token) — админы авторизованы внешне |
+| `/device/*` | Android Agent | Device certificate (post-enrollment) / enrollment token (pre-enrollment) |
 | `/external/*` | Внешние системы | Service token |
 
 ---
