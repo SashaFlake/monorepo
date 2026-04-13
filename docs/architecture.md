@@ -36,10 +36,7 @@ flowchart TD
     Bus -->|"devices.provisioned"| Enroll
 
     Device -->|"POST /device/attestation/nonce"| GW
-    Device -->|"POST /device/enroll + attestation"| GW
-    Device -->|"POST /device/heartbeat"| GW
-    Device -->|"POST /device/commands/:id/ack"| GW
-    Device <-->|"SSE command delivery"| GW
+
 
     Operator -->|"HTTP + JWT"| GW
     ExtServices -->|"GET /external/devices/:id/compliance"| GW
@@ -48,7 +45,8 @@ flowchart TD
     Enroll -->|"create"| DevReg
     Enroll -->|"enqueue APPLY_POLICY"| Cmd
     Policy -->|"enqueue APPLY_POLICY on update"| Cmd
-    Cmd -->|"deliver"| Device
+    Cmd -->|"deliver"| GW
+    GW -->|"deliver"| Device
     Cmd -->|"update status"| DevReg
 
     Core -->|"mdm.events.*"| Bus
