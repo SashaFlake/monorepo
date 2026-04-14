@@ -474,10 +474,7 @@ POST /admin/devices/{device_id}/commands
 
 ## Что вне скоупа MVP
 
-- Интеграция с реальным Android MDM Agent (используется симулятор агента)
-- Apple iOS / Windows устройства
 - Логика внешней системы provisioning (ERP/ITSM) — только входящий event
-- BYOD / личные устройства сотрудников
 - Геолокация и геофенсинг
 - Notification Service (FCM/APNs push для offline-устройств)
 
