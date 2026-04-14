@@ -37,7 +37,8 @@ flowchart TD
     %% Command delivery
     Operator -->|"send command"| GW
     GW -->|"/admin/*"| Core
-    Core -->|"SSE command delivery"| Device
+    Core -->|"SSE command delivery"| GW
+    GW -->|"SSE command delivery"| Device
     Device -->|"ACK"| GW
 
     %% External trust check
@@ -177,7 +178,7 @@ flowchart TD
     GW -->|"/admin/*"| Core
     Core -->|"publish device_id"| Redis
     Redis -->|"push"| CDS
-    CDS -->|"SSE delivery"| Device
+    CDS -->|"SSE delivery"| GW --> |"SSE delivery" |Device
     Device -->|"ACK"| GW -->|"ack"| Core
 
     %% Priority commands (WIPE/LOCK)
