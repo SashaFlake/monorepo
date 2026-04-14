@@ -17,44 +17,39 @@
 
 ```mermaid
 flowchart TD
-    Device([\"Android Device\\n+ Agent\"])
-    Operator([\"Operator\\nAdmin UI\"])
-    ExtSys([\"External Systems\\nVPN / Proxy / NAC\"])
-    ExtERP([\"ERP / ITSM\"])
+    Device([Android Device + Agent])
+    Operator([Operator Admin UI])
+    ExtSys([External Systems VPN/Proxy/NAC])
+    ExtERP([ERP / ITSM])
 
     subgraph Platform
-        GW[\"API Gateway\\nAuth + Routing\"]
-        Core[\"MDM Core\"]
-        Audit[\"Audit Service\"]
-        Notification[\"Notification Service\\n(future)\"]
-        Bus[[\"Kafka\"]]
+        GW[API Gateway\nAuth + Routing]
+        Core[MDM Core]
+        Audit[Audit Service]
+        Notification[Notification Service]
+        Bus[[Kafka]]
     end
 
-    %% Enrollment
-    Device -->|\"enroll + attestation\"| GW
-    GW -->|\"/device/*\"| Core
+    Device -->|enroll + attestation| GW
+    GW -->|/device/*| Core
 
-    %% Command delivery
-    Operator -->|\"send command\"| GW
-    GW -->|\"/admin/*\"| Core
-    Core -->|\"SSE command delivery\"| GW
-    GW -->|\"SSE command delivery\"| Device
-    Device -->|\"ACK\"| GW
+    Operator -->|send command| GW
+    GW -->|/admin/*| Core
+    Core -->|SSE command delivery| GW
+    GW -->|SSE command delivery| Device
+    Device -->|ACK| GW
 
-    %% External trust check
-    ExtSys -->|\"compliance check\"| GW
-    GW -->|\"/external/*\"| Core
+    ExtSys -->|compliance check| GW
+    GW -->|/external/*| Core
 
-    %% Async provisioning
-    ExtERP -->|\"devices.provisioned\"| Bus
+    ExtERP -->|devices.provisioned| Bus
     Bus --> Core
 
-    %% Events
-    Core -->|\"mdm.events.*\"| Bus
+    Core -->|mdm.events.*| Bus
     Bus --> Audit
     Bus --> Notification
 
-    Operator <-->|\"SSE realtime\"| GW
+    Operator <-->|SSE realtime| GW
 ```
 
 ---
@@ -143,57 +138,53 @@ MVP рассчитан на один корпоративный инстал с 
 
 ```mermaid
 flowchart TD
-    Device([\"Android Device\\n+ Agent\"])
-    Operator([\"Operator\\nAdmin UI\"])
-    ExtSys([\"External Systems\\nVPN / Proxy / NAC\"])
-    ExtERP([\"ERP / ITSM\"])
+    Device([Android Device + Agent])
+    Operator([Operator Admin UI])
+    ExtSys([External Systems VPN/NAC])
+    ExtERP([ERP / ITSM])
 
     subgraph Platform
-        GW[\"API Gateway\\nAuth + Routing\\nRate Limiting\"]
+        GW[API Gateway\nAuth + Routing\nRate Limiting]
 
-        subgraph Write [\"Write Side\"]
-            Core[\"MDM Core\\nDomain Logic\\n- stateless -\"]
+        subgraph Write [Write Side]
+            Core[MDM Core\nDomain Logic\nstateless]
         end
 
-        subgraph Delivery [\"Command Delivery\"]
-            Redis[[\"Redis\\npub/sub\"]]
-            CDS[\"Command Delivery\\nService\\n100k SSE conns\"]
+        subgraph Delivery [Command Delivery]
+            Redis[[Redis pub/sub]]
+            CDS[Command Delivery Service\n100k SSE conns]
         end
 
-        subgraph ReadSide [\"Read Side\"]
-            CS[\"Compliance\\nService\\nread model\"]
+        subgraph ReadSide [Read Side]
+            CS[Compliance Service\nread model]
         end
 
-        Audit[\"Audit Service\"]
-        Notification[\"Notification Service\"]
-        Bus[[\"Kafka\"]]
+        Audit[Audit Service]
+        Notification[Notification Service]
+        Bus[[Kafka]]
     end
 
-    %% External → Gateway
-    Device -->|\"enroll + attestation\"| GW
-    Device -->|\"ACK\"| GW
-    Operator -->|\"send command\"| GW
-    ExtSys -->|\"compliance check\"| GW
-    ExtERP -->|\"devices.provisioned\"| Bus
+    Device -->|enroll + attestation| GW
+    Device -->|ACK| GW
+    Operator -->|send command| GW
+    ExtSys -->|compliance check| GW
+    ExtERP -->|devices.provisioned| Bus
 
-    %% Gateway → Internal
-    GW -->|\"/device/*\"| Core
-    GW -->|\"/admin/*\"| Core
-    GW -->|\"/external/*\"| CS
-    GW <-->|\"SSE realtime\"| Operator
-    GW -->|\"ack\"| Core
+    GW -->|/device/*| Core
+    GW -->|/admin/*| Core
+    GW -->|/external/*| CS
+    GW -->|ack| Core
+    Operator <-->|SSE realtime| GW
 
-    %% Command flow
-    Core -->|\"publish device_id\"| Redis
-    Core -->|\"publish priority channel\"| Redis
-    Redis -->|\"push\"| CDS
-    CDS -->|\"SSE delivery\"| Device
+    Core -->|publish device_id| Redis
+    Core -->|publish priority channel| Redis
+    Redis -->|push| CDS
+    CDS -->|SSE delivery| Device
 
-    %% Events
-    Core -->|\"mdm.events.*\"| Bus
+    Core -->|mdm.events.*| Bus
     Bus --> Audit
     Bus --> Notification
-    Bus -->|\"mdm.events.*\"| CS
+    Bus -->|mdm.events.*| CS
     Bus --> Core
 ```
 
