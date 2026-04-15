@@ -28,3 +28,8 @@ export abstract class AggregateRoot<TProps extends { id: EntityId }> {
     return this.id === other.id;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Entity — alias for AggregateRoot (for tests and domain model consumers)
+// ---------------------------------------------------------------------------
+export abstract class Entity<TProps extends { id: EntityId }> extends AggregateRoot<TProps> {}
