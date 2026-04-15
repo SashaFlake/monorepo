@@ -1,10 +1,7 @@
-import type { EntityId } from '../model/index.js';
+import type { EntityId } from '../model/entity.js';
 import type { Result } from '../result.js';
-import type { DomainError } from '../error/index.js';
+import type { DomainError } from '../error/domain-error.js';
 
-/**
- * Generic repository port — implemented in infrastructure layer.
- */
 export interface Repository<T> {
   findById(id: EntityId): Promise<Result<T | null, DomainError>>;
   save(entity: T): Promise<Result<void, DomainError>>;
