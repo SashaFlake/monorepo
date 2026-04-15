@@ -11,6 +11,7 @@ import {
 } from './helpers/index.js';
 import type { TestPrismaContext } from './helpers/index.js';
 import { PrismaDeviceRepository } from '@infrastructure/persistence/prisma/repositories/device.repository.js';
+import { DeviceMapper } from '@infrastructure/persistence/prisma/mappers/device.mapper.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -27,6 +28,8 @@ const makeDevice = () => {
     osVersion:    '14.0',
   });
 };
+
+const toRow = (d: Device) => DeviceMapper.toPersistence(d);
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -112,22 +115,31 @@ describe('PrismaDeviceRepository', () => {
 
   describe('findByGroupId', () => {
     it('возвращает устройства группы', async () => {
-      const groupId = newEntityId();
+      const now = new Date();
 
-      // Сохраняем groupId напрямую в БД (обходим FK на DeviceGroup)
+      // Сначала создаём группу, чтобы удовлетворить FK
+      const group = await ctx.prisma.deviceGroup.create({
+        data: {
+          id:        newEntityId(),
+          name:      'Test Group',
+          createdAt: now,
+          updatedAt: now,
+        },
+      });
+
       const d1 = makeDevice();
       const d2 = makeDevice();
       const d3 = makeDevice(); // другая группа
 
       await ctx.prisma.device.createMany({
         data: [
-          { ...toRow(d1), groupId },
-          { ...toRow(d2), groupId },
+          { ...toRow(d1), groupId: group.id },
+          { ...toRow(d2), groupId: group.id },
           { ...toRow(d3) },
         ],
       });
 
-      const result = await repo.findByGroupId(groupId);
+      const result = await repo.findByGroupId(group.id);
       expect(result.isOk()).toBe(true);
       const ids = result._unsafeUnwrap().map(d => d.id);
       expect(ids).toContain(d1.id);
@@ -147,9 +159,3 @@ describe('PrismaDeviceRepository', () => {
     });
   });
 });
-
-// ---------------------------------------------------------------------------
-// Util: преобразовать Device в плоский объект для createMany
-// ---------------------------------------------------------------------------
-import { DeviceMapper } from '@infrastructure/persistence/prisma/mappers/device.mapper.js';
-const toRow = (d: Device) => DeviceMapper.toPersistence(d);
