@@ -7,9 +7,124 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Add your models here
-// model ExampleEntity {
-//   id        String   @id @default(uuid())
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
+// ---------------------------------------------------------------------------
+// Policy
+// ---------------------------------------------------------------------------
+model Policy {
+  id        String   @id
+  name      String
+  status    String   // draft | active | archived
+  version   Int
+  rules     Json
+  createdAt DateTime
+  updatedAt DateTime
+
+  groups    DeviceGroup[]
+
+  @@map("policies")
+}
+
+// ---------------------------------------------------------------------------
+// DeviceGroup
+// ---------------------------------------------------------------------------
+model DeviceGroup {
+  id          String  @id
+  name        String
+  description String?
+  policyId    String?
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  policy  Policy?  @relation(fields: [policyId], references: [id])
+  devices Device[]
+
+  @@map("device_groups")
+}
+
+// ---------------------------------------------------------------------------
+// Token
+// ---------------------------------------------------------------------------
+model Token {
+  id         String    @id
+  value      String    @unique
+  purpose    String    // enrollment | push | api | reset
+  status     String    // active | used | revoked | expired
+  issuedToId String?   // deviceId — nullable until device is created
+  usedAt     DateTime?
+  revokedAt  DateTime?
+  issuedAt   DateTime
+  expiresAt  DateTime
+  updatedAt  DateTime
+
+  enrollment Enrollment?
+
+  @@map("tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Device
+// ---------------------------------------------------------------------------
+model Device {
+  id           String    @id
+  serialNumber String    @unique
+  udid         String    @unique
+  platform     String    // android | ios | macos | windows
+  model        String
+  osVersion    String
+  status       String    // pending | enrolled | unenrolled | quarantined | wiped | retired
+  groupId      String?
+  lastSeenAt   DateTime?
+  enrolledAt   DateTime?
+  createdAt    DateTime
+  updatedAt    DateTime
+
+  group        DeviceGroup?  @relation(fields: [groupId], references: [id])
+  enrollment   Enrollment?
+  certificates Certificate[]
+
+  @@map("devices")
+}
+
+// ---------------------------------------------------------------------------
+// Enrollment
+// ---------------------------------------------------------------------------
+model Enrollment {
+  id            String    @id
+  deviceId      String?   @unique  // null until enrollment completes
+  tokenId       String    @unique  // one token per enrollment
+  platform      String
+  status        String    // initiated | completed | failed | revoked | expired
+  failureReason String?
+  initiatedAt   DateTime
+  completedAt   DateTime?
+  expiresAt     DateTime
+  updatedAt     DateTime
+
+  device Device?  @relation(fields: [deviceId], references: [id])
+  token  Token    @relation(fields: [tokenId], references: [id])
+
+  @@map("enrollments")
+}
+
+// ---------------------------------------------------------------------------
+// Certificate
+// ---------------------------------------------------------------------------
+model Certificate {
+  id           String    @id
+  deviceId     String?   // null for CA / push / scep certs
+  type         String    // device | user | ca | scep | push
+  subject      String    // DN, e.g. "CN=device-001,O=Acme"
+  issuer       String
+  fingerprint  String    @unique  // SHA-256 hex
+  serialNumber String            // certificate serial (hex)
+  pemEncoded   String            // PEM public cert, no private key
+  status       String    // active | revoked | expired
+  issuedAt     DateTime
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  updatedAt    DateTime
+
+  device Device? @relation(fields: [deviceId], references: [id])
+
+  @@map("certificates")
+}
