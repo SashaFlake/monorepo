@@ -59,7 +59,7 @@ describe('PrismaDeviceRepository', () => {
   describe('save / findById', () => {
     it('сохраняет устройство и находит его по id', async () => {
       const device = makeDevice();
-      await repo.save(device);
+      await repo.addDevice(device);
 
       const result = await repo.findById(device.id);
       expect(result.isOk()).toBe(true);

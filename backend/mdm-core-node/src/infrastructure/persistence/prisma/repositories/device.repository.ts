@@ -18,6 +18,10 @@ export class PrismaDeviceRepository implements DeviceRepositoryPort {
     @inject(PRISMA_CLIENT) private readonly prisma: PrismaClient,
   ) {}
 
+  async addDevice(device:Device): Promise<Result<Device, DomainError>> {
+    return await this.save(device)
+  }
+
   async findById(id: EntityId): Promise<Result<Device | null, DomainError>> {
     try {
       const row = await this.prisma.device.findUnique({ where: { id } });
@@ -54,15 +58,15 @@ export class PrismaDeviceRepository implements DeviceRepositoryPort {
     }
   }
 
-  async save(device: Device): Promise<Result<void, DomainError>> {
+  async save(device: Device): Promise<Result<Device, DomainError>> {
     try {
       const data = DeviceMapper.toPersistence(device);
-      await this.prisma.device.upsert({
+      const saved = await this.prisma.device.upsert({
         where:  { id: data.id },
         create: data,
         update: data,
       });
-      return ok(undefined);
+      return ok(DeviceMapper.toDomain(saved));
     } catch (e) {
       return err(domainError('REPOSITORY_ERROR', 'Failed to save device', { cause: e }));
     }

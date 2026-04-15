@@ -8,6 +8,7 @@ export interface DeviceRepositoryPort extends Repository<Device> {
   findBySerialNumber(serialNumber: DeviceSerialNumber): Promise<Result<Device | null, DomainError>>;
   findByUdid(udid: Udid): Promise<Result<Device | null, DomainError>>;
   findByGroupId(groupId: string): Promise<Result<Device[], DomainError>>;
+  addDevice(device: Device): Promise<Result<Device, DomainError>>
 }
 
 export const DEVICE_REPOSITORY = Symbol('DeviceRepositoryPort');
