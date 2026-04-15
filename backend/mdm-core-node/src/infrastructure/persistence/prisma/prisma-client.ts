@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { injectable } from 'tsyringe';
 
+export const PRISMA_CLIENT = Symbol('PrismaClient');
+
 let instance: PrismaClient | null = null;
 
 @injectable()
