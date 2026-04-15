@@ -32,4 +32,8 @@ export abstract class AggregateRoot<TProps extends { id: EntityId }> {
 // ---------------------------------------------------------------------------
 // Entity — alias for AggregateRoot (for tests and domain model consumers)
 // ---------------------------------------------------------------------------
-export abstract class Entity<TProps extends { id: EntityId }> extends AggregateRoot<TProps> {}
+export abstract class Entity<TProps extends { id: EntityId }> extends AggregateRoot<TProps> {
+  protected constructor(props: TProps) {
+    super(props);
+  }
+}
