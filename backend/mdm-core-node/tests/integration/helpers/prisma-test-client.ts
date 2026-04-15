@@ -1,6 +1,6 @@
 /**
  * Создаёт PrismaClient подключённый к тестовому контейнеру
- * и применяет миграции через `prisma migrate deploy`.
+ * и применяет схему через `prisma db push` (не требует migrations/).
  *
  * Использование в beforeAll/afterAll:
  *
@@ -16,8 +16,8 @@ export interface TestPrismaContext {
 }
 
 export async function createTestPrisma(databaseUrl: string): Promise<TestPrismaContext> {
-  // Применяем миграции к свежей БД
-  execSync('pnpm prisma migrate deploy', {
+  // db push применяет схему напрямую — не требует migrations/
+  execSync('pnpm prisma db push --skip-generate --accept-data-loss', {
     env:   { ...process.env, DATABASE_URL: databaseUrl },
     stdio: 'pipe',
   });
