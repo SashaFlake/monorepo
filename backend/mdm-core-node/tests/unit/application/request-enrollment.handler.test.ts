@@ -1,9 +1,9 @@
 /**
  * Unit-тесты RequestEnrollmentHandler.
  *
- * Все зависимости заменены ви (vi.fn / vi.spyOn) — никакой БД не нужно.
+ * Все зависимости заменены vi (vi.fn / vi.spyOn) — никакой БД не нужно.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ok, err } from 'neverthrow';
 import { RequestEnrollmentHandler } from '../../../src/application/command-handler/enrollment/request-enrollment.handler.js';
 import { requestEnrollment } from '../../../src/application/command-handler/enrollment/request-enrollment.command.js';
@@ -42,28 +42,26 @@ const FAKE_NONCE = 'aabbccddeeff00112233445566778899aabbccddeeff0011223344556677
 // ---------------------------------------------------------------------------
 const makeDeviceRepo = (device: ReturnType<typeof makePendingDevice> | null = null) =>
   ({
-    findById:         vi.fn().mockResolvedValue(ok(device)),
+    findById:           vi.fn().mockResolvedValue(ok(device)),
     findBySerialNumber: vi.fn(),
-    findByUdid:       vi.fn(),
-    findByGroupId:    vi.fn(),
-    save:             vi.fn().mockResolvedValue(ok(undefined)),
-    delete:           vi.fn(),
+    findByUdid:         vi.fn(),
+    findByGroupId:      vi.fn(),
+    save:               vi.fn().mockResolvedValue(ok(undefined)),
+    delete:             vi.fn(),
   } satisfies Partial<DeviceRepositoryPort> as unknown as DeviceRepositoryPort);
 
 const makeTokenRepo = (token: Token | null = null) =>
   ({
-    findByValue:        vi.fn().mockResolvedValue(ok(token)),
-    findByIssuedToId:   vi.fn(),
+    findByValue:         vi.fn().mockResolvedValue(ok(token)),
+    findByIssuedToId:    vi.fn(),
     findActiveByPurpose: vi.fn(),
-    save:               vi.fn().mockResolvedValue(ok(undefined)),
-    findById:           vi.fn(),
-    delete:             vi.fn(),
+    save:                vi.fn().mockResolvedValue(ok(undefined)),
+    findById:            vi.fn(),
+    delete:              vi.fn(),
   } satisfies Partial<TokenRepositoryPort> as unknown as TokenRepositoryPort);
 
 const makeNonceGen = (nonce: string = FAKE_NONCE) =>
-  ({
-    generate: vi.fn().mockResolvedValue(ok(nonce)),
-  } satisfies NonceGeneratorPort);
+  ({ generate: vi.fn().mockResolvedValue(ok(nonce)) } satisfies NonceGeneratorPort);
 
 // ---------------------------------------------------------------------------
 // Тесты
@@ -89,28 +87,27 @@ describe('RequestEnrollmentHandler', () => {
       const { nonce, expiresAt } = result._unsafeUnwrap();
       expect(nonce).toBe(FAKE_NONCE);
       expect(expiresAt).toBeInstanceOf(Date);
-      // nonce действителен 5 минут
       expect(expiresAt.getTime()).toBeGreaterThan(Date.now() + 4 * 60 * 1000);
     });
 
     it('сохраняет nonce как Token с issuedToId = deviceId', async () => {
-      const device = makePendingDevice();
-      const token  = makeEnrollmentToken(device.id);
+      const device    = makePendingDevice();
+      const token     = makeEnrollmentToken(device.id);
       const tokenRepo = makeTokenRepo(token);
 
-      const handler = new RequestEnrollmentHandler(
+      await new RequestEnrollmentHandler(
         makeDeviceRepo(device),
         tokenRepo,
         makeNonceGen(),
-      );
+      ).execute(requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue));
 
-      await handler.execute(
-        requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue),
-      );
-
-      // save должен быль вызван для nonce-токена
       expect(tokenRepo.save).toHaveBeenCalledOnce();
-      const savedToken: Token = (tokenRepo.save as ReturnType<typeof vi.fn>).mock.calls[0][0];
+
+      const saveMock = tokenRepo.save as ReturnType<typeof vi.fn>;
+      const firstCall = saveMock.mock.calls[0];
+      // Убеждаемся, что вызов существует (выше уже проверено toHaveBeenCalledOnce)
+      expect(firstCall).toBeDefined();
+      const savedToken = firstCall![0] as Token;
       expect(savedToken.value).toBe(FAKE_NONCE);
       expect(savedToken.issuedToId).toBe(device.id);
     });
@@ -119,34 +116,26 @@ describe('RequestEnrollmentHandler', () => {
   describe('Ошибки: невалидный токен', () => {
     it('возвращает TOKEN_NOT_FOUND если токен не найден', async () => {
       const device = makePendingDevice();
-      const handler = new RequestEnrollmentHandler(
+      const result = await new RequestEnrollmentHandler(
         makeDeviceRepo(device),
-        makeTokenRepo(null),   // ← токена нет
+        makeTokenRepo(null),
         makeNonceGen(),
-      );
+      ).execute(requestEnrollment(device.id, 'WRONG-TOKEN' as TokenValue));
 
-      const result = await handler.execute(
-        requestEnrollment(device.id, 'WRONG-TOKEN' as TokenValue),
-      );
-      expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().code).toBe('TOKEN_NOT_FOUND');
     });
 
     it('возвращает TOKEN_NOT_ACTIVE если токен уже использован', async () => {
-      const device = makePendingDevice();
+      const device    = makePendingDevice();
       const usedToken = makeEnrollmentToken(device.id);
-      usedToken.consume(); // сделаем used
+      usedToken.consume();
 
-      const handler = new RequestEnrollmentHandler(
+      const result = await new RequestEnrollmentHandler(
         makeDeviceRepo(device),
         makeTokenRepo(usedToken),
         makeNonceGen(),
-      );
+      ).execute(requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue));
 
-      const result = await handler.execute(
-        requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue),
-      );
-      expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().code).toBe('TOKEN_NOT_ACTIVE');
     });
 
@@ -154,52 +143,40 @@ describe('RequestEnrollmentHandler', () => {
       const device   = makePendingDevice();
       const apiToken = Token.issue({ value: 'API-KEY-001' as TokenValue, purpose: 'api' });
 
-      const handler = new RequestEnrollmentHandler(
+      const result = await new RequestEnrollmentHandler(
         makeDeviceRepo(device),
         makeTokenRepo(apiToken),
         makeNonceGen(),
-      );
+      ).execute(requestEnrollment(device.id, 'API-KEY-001' as TokenValue));
 
-      const result = await handler.execute(
-        requestEnrollment(device.id, 'API-KEY-001' as TokenValue),
-      );
-      expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().code).toBe('TOKEN_WRONG_PURPOSE');
     });
   });
 
   describe('Ошибки: устройство недоступно или не pending', () => {
     it('возвращает DEVICE_NOT_FOUND', async () => {
-      const token = makeEnrollmentToken();
-      const handler = new RequestEnrollmentHandler(
-        makeDeviceRepo(null),   // ← устройства нет
+      const token  = makeEnrollmentToken();
+      const result = await new RequestEnrollmentHandler(
+        makeDeviceRepo(null),
         makeTokenRepo(token),
         makeNonceGen(),
-      );
+      ).execute(requestEnrollment(newEntityId(), 'INVITE-TOKEN-001' as TokenValue));
 
-      const result = await handler.execute(
-        requestEnrollment(newEntityId(), 'INVITE-TOKEN-001' as TokenValue),
-      );
-      expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().code).toBe('DEVICE_NOT_FOUND');
     });
 
     it('возвращает DEVICE_INVALID_STATE если устройство уже enrolled', async () => {
       const device = makePendingDevice();
       device.beginEnrollment();
-      device.completeEnrollment(); // статус enrolled
+      device.completeEnrollment();
       const token  = makeEnrollmentToken(device.id);
 
-      const handler = new RequestEnrollmentHandler(
+      const result = await new RequestEnrollmentHandler(
         makeDeviceRepo(device),
         makeTokenRepo(token),
         makeNonceGen(),
-      );
+      ).execute(requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue));
 
-      const result = await handler.execute(
-        requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue),
-      );
-      expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().code).toBe('DEVICE_INVALID_STATE');
     });
   });
@@ -208,22 +185,13 @@ describe('RequestEnrollmentHandler', () => {
     it('пробрасывает ошибку NonceGenerator', async () => {
       const device = makePendingDevice();
       const token  = makeEnrollmentToken(device.id);
-      const failingNonceGen: NonceGeneratorPort = {
-        generate: vi.fn().mockResolvedValue(
-          err(domainError('NONCE_GENERATION_FAILED', 'RNG error')),
-        ),
-      };
 
-      const handler = new RequestEnrollmentHandler(
+      const result = await new RequestEnrollmentHandler(
         makeDeviceRepo(device),
         makeTokenRepo(token),
-        failingNonceGen,
-      );
+        { generate: vi.fn().mockResolvedValue(err(domainError('NONCE_GENERATION_FAILED', 'RNG error'))) },
+      ).execute(requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue));
 
-      const result = await handler.execute(
-        requestEnrollment(device.id, 'INVITE-TOKEN-001' as TokenValue),
-      );
-      expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().code).toBe('NONCE_GENERATION_FAILED');
     });
   });
