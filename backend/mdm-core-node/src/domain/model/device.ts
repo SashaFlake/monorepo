@@ -104,14 +104,6 @@ export class Device extends AggregateRoot<DeviceProps> {
     return ok(undefined);
   }
 
-  quarantine(): Result<void, DomainError> {
-    if (!['enrolled'].includes(this.props.status))
-      return err(domainError('DEVICE_CANNOT_BE_QUARANTINED', 'Only enrolled devices can be quarantined', { status: this.props.status }));
-    (this.props as { status: DeviceStatus }).status = 'quarantined';
-    this.props.updatedAt = new Date();
-    return ok(undefined);
-  }
-
   assignGroup(groupId: EntityId): Result<void, DomainError> {
     if (this.props.status === 'retired' || this.props.status === 'wiped')
       return err(domainError('DEVICE_INACTIVE', 'Cannot assign group to inactive device', { status: this.props.status }));

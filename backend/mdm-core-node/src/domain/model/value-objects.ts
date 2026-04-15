@@ -38,7 +38,7 @@ export const Udid = {
 // ---------------------------------------------------------------------------
 // Platform
 // ---------------------------------------------------------------------------
-export const PLATFORMS = ['ios', 'macos', 'android', 'windows', 'linux'] as const;
+export const PLATFORMS = ['android'] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
 // ---------------------------------------------------------------------------

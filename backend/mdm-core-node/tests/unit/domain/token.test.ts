@@ -11,7 +11,7 @@ import { newEntityId } from '../../../src/domain/model/entity.js';
 const makeVal = (len = 48) => TokenValue.create('x'.repeat(len))._unsafeUnwrap();
 
 const makeEnrollmentToken = (ttlSeconds?: number) =>
-  Token.issue({ value: makeVal(), purpose: 'enrollment', ttlSeconds });
+  Token.issue({ value: makeVal(), purpose: 'enrollment', ...(ttlSeconds !== undefined && { ttlSeconds }) });
 
 const makeApiToken = () =>
   Token.issue({ value: makeVal(), purpose: 'api' });

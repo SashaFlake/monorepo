@@ -121,22 +121,6 @@ describe('Enrollment устройства', () => {
     expect(device.status).toBe('unenrolled');
   });
 
-  it('enrolled-устройство можно quarantine при нарушении политик', () => {
-    // Сценарий: политики не применились — устройство карантинируется
-    const device = makeDevice();
-    device.enroll();
-    const result = device.quarantine();
-    expect(result.isOk()).toBe(true);
-    expect(device.status).toBe('quarantined');
-  });
-
-  it('pending-устройство нельзя quarantine', () => {
-    const device = makeDevice();
-    const result = device.quarantine();
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().code).toBe('DEVICE_CANNOT_BE_QUARANTINED');
-  });
-
   // Событие по сценарию: enrollment — триггер для применения политик
   it('enroll() эмитирует DeviceEnrolledEvent', () => {
     const device = makeDevice();
