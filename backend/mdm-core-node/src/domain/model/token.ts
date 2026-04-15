@@ -20,15 +20,28 @@ export type TokenPurpose = (typeof TOKEN_PURPOSES)[number];
 export const TOKEN_STATUSES = ['active', 'used', 'revoked', 'expired'] as const;
 export type TokenStatus = (typeof TOKEN_STATUSES)[number];
 
+/**
+ * Default TTLs in seconds by purpose.
+ * enrollment: 72h (день упаковка, день доставка, день на активацию — sysdes-interview.md)
+ * api:        365 days
+ * push/reset: 1h
+ */
+const DEFAULT_TTL: Record<TokenPurpose, number> = {
+  enrollment: 72 * 3600,
+  api:        365 * 24 * 3600,
+  push:       3600,
+  reset:      3600,
+};
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 export interface TokenProps {
   readonly id: EntityId;
-  value: TokenValue;               // hashed before persistence
+  value: TokenValue;
   purpose: TokenPurpose;
   status: TokenStatus;
-  issuedToId: EntityId | null;     // user or device it was issued to
+  issuedToId: EntityId | null;
   usedAt: Date | null;
   revokedAt: Date | null;
   readonly issuedAt: Date;
@@ -46,10 +59,11 @@ export class Token extends AggregateRoot<TokenProps> {
     value: TokenValue;
     purpose: TokenPurpose;
     issuedToId?: EntityId;
+    /** Override default TTL (seconds). Default depends on purpose. */
     ttlSeconds?: number;
   }): Token {
     const now = new Date();
-    const ttl = params.ttlSeconds ?? (params.purpose === 'api' ? 365 * 24 * 3600 : 3600);
+    const ttl = params.ttlSeconds ?? DEFAULT_TTL[params.purpose];
     return new Token({
       id: newEntityId(),
       value: params.value,

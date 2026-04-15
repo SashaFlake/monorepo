@@ -1,14 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import type { EntityId } from '../model/entity.js';
+import type { EntityId } from '../shared-types.js';
 
-export interface DomainEvent {
-  readonly eventId: string;
-  readonly eventType: string;
-  readonly occurredAt: Date;
-  readonly aggregateId: EntityId;
-}
+// Re-export so existing imports from this file keep working
+export type { DomainEvent } from '../shared-types.js';
 
-export abstract class BaseDomainEvent implements DomainEvent {
+export abstract class BaseDomainEvent {
   readonly eventId: string;
   readonly occurredAt: Date;
   constructor(

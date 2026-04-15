@@ -1,17 +1,11 @@
-import { randomUUID } from 'node:crypto';
+import type { DomainEvent } from '../shared-types.js';
+export type { EntityId } from '../shared-types.js';
+export { newEntityId, entityId } from '../shared-types.js';
+import type { EntityId } from '../shared-types.js';
 
 // ---------------------------------------------------------------------------
-// Branded EntityId
+// AggregateRoot — domain event collector
 // ---------------------------------------------------------------------------
-export type EntityId = string & { readonly _brand: 'EntityId' };
-export const newEntityId = (): EntityId => randomUUID() as EntityId;
-export const entityId   = (value: string): EntityId => value as EntityId;
-
-// ---------------------------------------------------------------------------
-// Domain event collector (Aggregate root)
-// ---------------------------------------------------------------------------
-import type { DomainEvent } from '../event/domain-event.js';
-
 export abstract class AggregateRoot<TProps extends { id: EntityId }> {
   protected readonly props: TProps;
   private readonly _events: DomainEvent[] = [];
