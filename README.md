@@ -26,7 +26,6 @@ flowchart TD
             TrustStore["Trust Anchor Store"]
         end
 
-        Compliance["Compliance Service"]
         Audit["Audit Service"]
         Notification["Notification Service\n(future)"]
         Bus[["Kafka"]]
@@ -42,8 +41,8 @@ flowchart TD
     Device <-->|"SSE\ncommand delivery"| GW
 
     Operator -->|"HTTP + JWT"| GW
+    ExtServices -->|"GET /external/devices/:id/compliance"| GW
     GW -->|"route"| Core
-    GW -->|"route"| Compliance
 
     Enroll -->|"verify cert chain"| TrustStore
     Enroll -->|"create"| DevReg
@@ -51,10 +50,6 @@ flowchart TD
     Policy -->|"enqueue APPLY_POLICY on update"| Cmd
     Cmd -->|"deliver"| Device
     Cmd -->|"update status"| DevReg
-
-    Compliance -->|"read"| DevReg
-    Compliance -->|"read"| Policy
-    ExtServices -->|"GET /compliance"| Compliance
 
     Core -->|"mdm.events.*"| Bus
     Bus -->|"mdm.events.*"| Audit
@@ -68,9 +63,8 @@ flowchart TD
 | Сервис | Ответственность |
 |---|---|
 | **API Gateway** | Единая точка входа. Роутинг, auth middleware (JWT / device cert / service token), SSE транспорт |
-| **MDM Core** | Device Registry, Enrollment, Command Queue, Policy — всё про жизнь устройства |
+| **MDM Core** | Device Registry, Enrollment, Command Queue, Policy, Compliance — всё про жизнь устройства |
 | **Trust Anchor Store** | Хранилище корневых сертификатов производителей. Используется при верификации attestation |
-| **Compliance Service** | Read-only фасад для внешних систем. Вычисляет доверие на основе данных Core |
 | **Audit Service** | Подписывается на все события через Kafka. Append-only хранилище |
 | **Kafka** | Персистентная шина событий. Декаплинг сервисов, гарантия доставки, replay |
 | **Notification Service** | (future) Подписывается на события, отправляет FCM/APNs push |
@@ -176,7 +170,7 @@ Kafka — единственная шина для всего асинхронн
 | Устройство | REST | `POST` | `/device/heartbeat` | Heartbeat, sync check |
 | Устройство | REST | `POST` | `/device/commands/{id}/ack` | Подтверждение команды |
 | Устройство | SSE | `GET` | `/device/commands/stream` | Получение команд |
-| Внешние системы | REST | `GET` | `/external/devices/{id}/compliance` | Compliance check |
+| Внешние системы | REST | `GET` | `/external/devices/{id}/compliance` | Compliance check (MDM Core) |
 | ERP / ITSM | Kafka | — | `devices.provisioned` | Pre-staging устройства |
 
 </details>
@@ -323,7 +317,8 @@ QUEUED → DELIVERED → ACKED
 Отвечает на один вопрос: **можно ли доверять этому устройству сейчас?**  
 Агрегирует факты из Device и Policy: enrolled? политика актуальна? last_seen свежий?  
 Выдаёт единый ответ наружу — без деталей внутренней кухни.  
-Не хранит своё состояние — вычисляет на основе данных других доменов.
+Не хранит своё состояние — вычисляет на основе данных других доменов.  
+Реализован как read-only application service внутри MDM Core.
 
 ---
 
@@ -443,9 +438,7 @@ Authorization: Bearer <service-token>
 ```
 
 На основе этого ответа внешняя система принимает решение о допуске к внутренним ресурсам.  
-Эндпоинт read-only, не требует агента, доступен внутри периметра.
-
-> 🔐 Подробнее: [`docs/compliance-api.md`](docs/compliance-api.md) *(coming soon)*
+Эндпоинт read-only реализован внутри MDM Core, не требует агента и доступен внутри периметра.
 
 ---
 
@@ -481,10 +474,7 @@ POST /admin/devices/{device_id}/commands
 
 ## Что вне скоупа MVP
 
-- Интеграция с реальным Android MDM Agent (используется симулятор агента)
-- Apple iOS / Windows устройства
 - Логика внешней системы provisioning (ERP/ITSM) — только входящий event
-- BYOD / личные устройства сотрудников
 - Геолокация и геофенсинг
 - Notification Service (FCM/APNs push для offline-устройств)
 
