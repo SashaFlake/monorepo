@@ -1,4 +1,4 @@
-import { AggregateRoot, newEntityId, entityId } from './entity.js';
+import { AggregateRoot, newEntityId } from './entity.js';
 import type { EntityId } from './entity.js';
 import type { DeviceSerialNumber, Platform, Udid } from './value-objects.js';
 import type { DomainError } from '../error/domain-error.js';
@@ -9,18 +9,20 @@ import {
   DeviceEnrolledEvent,
   DeviceUnenrolledEvent,
   DeviceGroupAssignedEvent,
+  DeviceEnrollmentStartedEvent,
 } from '../event/device-events.js';
 
 // ---------------------------------------------------------------------------
 // Device status
 // ---------------------------------------------------------------------------
 export const DEVICE_STATUSES = [
-  'pending',      // registered, awaiting enrollment
-  'enrolled',     // enrolled and active
-  'unenrolled',   // gracefully unenrolled
-  'quarantined',  // policy violation
-  'wiped',        // factory-reset triggered
-  'retired',      // permanently decommissioned
+  'pending',      // зарегистрировано, ожидает enrollment
+  'enrolling',    // подтверждён сертификат, применяются политики
+  'enrolled',     // enrolled и активен
+  'unenrolled',   // грациозно unenrolled
+  'quarantined',  // нарушение политики
+  'wiped',        // запущен factory-reset
+  'retired',      // окончательно списано
 ] as const;
 export type DeviceStatus = (typeof DEVICE_STATUSES)[number];
 
@@ -83,6 +85,49 @@ export class Device extends AggregateRoot<DeviceProps> {
   get updatedAt(): Date                  { return this.props.updatedAt; }
 
   // --- Behaviour ---
+
+  /**
+   * Шаг 1: сертификат устройства подтверждён (signed nonce проверен).
+   * Переводит устройство в состояние `enrolling`.
+   * В этом состоянии применяются политики безопасности.
+   */
+  beginEnrollment(): Result<void, DomainError> {
+    if (this.props.status !== 'pending')
+      return err(domainError(
+        'DEVICE_INVALID_STATE',
+        'beginEnrollment requires status pending',
+        { status: this.props.status },
+      ));
+    const now = new Date();
+    (this.props as { status: DeviceStatus }).status = 'enrolling';
+    this.props.updatedAt = now;
+    this.addEvent(new DeviceEnrollmentStartedEvent(this.id, now));
+    return ok(undefined);
+  }
+
+  /**
+   * Шаг 2: политики применены — устройство полностью зарегистрировано.
+   * Переводит устройство в `enrolled`.
+   */
+  completeEnrollment(): Result<void, DomainError> {
+    if (this.props.status !== 'enrolling')
+      return err(domainError(
+        'DEVICE_INVALID_STATE',
+        'completeEnrollment requires status enrolling',
+        { status: this.props.status },
+      ));
+    const now = new Date();
+    (this.props as { status: DeviceStatus }).status = 'enrolled';
+    (this.props as { enrolledAt: Date | null }).enrolledAt = now;
+    this.props.updatedAt = now;
+    this.addEvent(new DeviceEnrolledEvent(this.id, now));
+    return ok(undefined);
+  }
+
+  /**
+   * @deprecated Используйте beginEnrollment() + completeEnrollment().
+   * Оставлен для обратной совместимости интеграционных тестов.
+   */
   enroll(): Result<void, DomainError> {
     if (this.props.status !== 'pending')
       return err(domainError('DEVICE_ALREADY_ENROLLED', 'Device is not in pending state', { status: this.props.status }));
@@ -107,7 +152,7 @@ export class Device extends AggregateRoot<DeviceProps> {
   assignGroup(groupId: EntityId): Result<void, DomainError> {
     if (this.props.status === 'retired' || this.props.status === 'wiped')
       return err(domainError('DEVICE_INACTIVE', 'Cannot assign group to inactive device', { status: this.props.status }));
-    this.props.groupId  = groupId;
+    this.props.groupId   = groupId;
     this.props.updatedAt = new Date();
     this.addEvent(new DeviceGroupAssignedEvent(this.id, groupId, new Date()));
     return ok(undefined);

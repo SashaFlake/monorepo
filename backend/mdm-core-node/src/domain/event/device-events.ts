@@ -1,24 +1,34 @@
-import { BaseDomainEvent } from './domain-event.js';
 import type { EntityId } from '../model/entity.js';
+import { DomainEvent } from './domain-event.js';
 
-export class DeviceEnrolledEvent extends BaseDomainEvent {
-  constructor(aggregateId: EntityId, occurredAt?: Date) {
-    super('device.enrolled', aggregateId, occurredAt);
+export class DeviceEnrolledEvent extends DomainEvent {
+  readonly eventType = 'device.enrolled' as const;
+  constructor(aggregateId: EntityId, readonly occurredAt: Date) {
+    super(aggregateId);
   }
 }
 
-export class DeviceUnenrolledEvent extends BaseDomainEvent {
-  constructor(aggregateId: EntityId, occurredAt?: Date) {
-    super('device.unenrolled', aggregateId, occurredAt);
+export class DeviceEnrollmentStartedEvent extends DomainEvent {
+  readonly eventType = 'device.enrollment_started' as const;
+  constructor(aggregateId: EntityId, readonly occurredAt: Date) {
+    super(aggregateId);
   }
 }
 
-export class DeviceGroupAssignedEvent extends BaseDomainEvent {
+export class DeviceUnenrolledEvent extends DomainEvent {
+  readonly eventType = 'device.unenrolled' as const;
+  constructor(aggregateId: EntityId, readonly occurredAt: Date) {
+    super(aggregateId);
+  }
+}
+
+export class DeviceGroupAssignedEvent extends DomainEvent {
+  readonly eventType = 'device.group_assigned' as const;
   constructor(
     aggregateId: EntityId,
     readonly groupId: EntityId,
-    occurredAt?: Date,
+    readonly occurredAt: Date,
   ) {
-    super('device.group_assigned', aggregateId, occurredAt);
+    super(aggregateId);
   }
 }
