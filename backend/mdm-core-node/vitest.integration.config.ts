@@ -6,10 +6,9 @@ export default defineConfig({
     globals:     true,
     environment: 'node',
     include:     ['tests/integration/**/*.test.ts'],
-    // Testcontainers поднимает Docker — даём достаточно времени
+    setupFiles:  ['./tests/integration/helpers/setup.ts'],
     testTimeout:  60_000,
     hookTimeout:  60_000,
-    // Интеграционные тесты гоняем последовательно чтобы не конфликтовали контейнеры
     pool:        'forks',
     poolOptions: { forks: { singleFork: true } },
     typecheck: {
