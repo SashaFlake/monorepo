@@ -7,7 +7,7 @@ import type { EntityId } from '../shared-types.js';
 // AggregateRoot — domain event collector
 // ---------------------------------------------------------------------------
 export abstract class AggregateRoot<TProps extends { id: EntityId }> {
-  protected readonly props: TProps;
+  readonly props: TProps;
   private readonly _events: DomainEvent[] = [];
 
   constructor(props: TProps) {
