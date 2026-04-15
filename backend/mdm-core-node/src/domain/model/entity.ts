@@ -10,7 +10,7 @@ export abstract class AggregateRoot<TProps extends { id: EntityId }> {
   protected readonly props: TProps;
   private readonly _events: DomainEvent[] = [];
 
-  protected constructor(props: TProps) {
+  constructor(props: TProps) {
     this.props = props;
   }
 
@@ -33,7 +33,7 @@ export abstract class AggregateRoot<TProps extends { id: EntityId }> {
 // Entity — alias for AggregateRoot (for tests and domain model consumers)
 // ---------------------------------------------------------------------------
 export abstract class Entity<TProps extends { id: EntityId }> extends AggregateRoot<TProps> {
-  protected constructor(props: TProps) {
+  constructor(props: TProps) {
     super(props);
   }
 }
