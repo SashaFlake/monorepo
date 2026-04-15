@@ -1,0 +1,46 @@
+# =============================================================================
+# docker-compose.override.yml — DEV overrides (auto-loaded by Docker Compose)
+# - мounts source code for hot-reload
+# - запускает приложение через `tsx watch` вместо скомпилированного dist
+# - добавляет pgAdmin для удобной работы с БД
+# Применяется автоматически поверх docker-compose.yml при локальной разработке.
+# В CI/production использовать только docker-compose.yml:
+#   docker compose -f docker-compose.yml up -d
+# =============================================================================
+
+services:
+
+  app:
+    build:
+      target: development          # используем dev-stage из Dockerfile
+    command: pnpm dev
+    volumes:
+      - .:/app                     # hot-reload: монтируем весь проект
+      - /app/node_modules          # анонимный том — не перекрываем node_modules хоста
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+
+  # ---------------------------------------------------------------------------
+  # pgAdmin 4 — GUI для PostgreSQL (только dev)
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mdm-core-pgadmin
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL:    ${PGADMIN_EMAIL:-admin@local.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - mdm-net
+
+volumes:
+  pgadmin-data:
