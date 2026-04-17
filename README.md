@@ -24,6 +24,7 @@ flowchart TD
             Policy["Policy"]
             DevReg["Device Registry"]
             TrustStore["Trust Anchor Store"]
+            DevGroup["Device Groups"]
         end
 
         Audit["Audit Service"]
@@ -36,9 +37,8 @@ flowchart TD
 
     Device -->|"POST /device/attestation/nonce"| GW
     Device -->|"POST /device/enroll + attestation"| GW
-    Device -->|"POST /device/heartbeat"| GW
+    Device -->|"GET /device/commands/pending"| GW
     Device -->|"POST /device/commands/:id/ack"| GW
-    Device <-->|"SSE\ncommand delivery"| GW
 
     Operator -->|"HTTP + JWT"| GW
     ExtServices -->|"GET /external/devices/:id/compliance"| GW
@@ -48,27 +48,26 @@ flowchart TD
     Enroll -->|"create"| DevReg
     Enroll -->|"enqueue APPLY_POLICY"| Cmd
     Policy -->|"enqueue APPLY_POLICY on update"| Cmd
-    Cmd -->|"deliver"| Device
-    Cmd -->|"update status"| DevReg
+    DevGroup -->|"poll_interval per group"| DevReg
 
     Core -->|"mdm.events.*"| Bus
     Bus -->|"mdm.events.*"| Audit
     Bus -->|"mdm.events.device.offline"| Notification
 
-    Operator <-->|"SSE\nreal-time updates"| GW
+    Operator <-->|"SSE\nreal-time dashboard"| GW
 ```
 
 ### Описание сервисов
 
 | Сервис | Ответственность |
 |---|---|
-| **API Gateway** | Единая точка входа. Роутинг, auth middleware (JWT / device cert / service token), SSE транспорт |
-| **MDM Core** | Device Registry, Enrollment, Command Queue, Policy, Compliance — всё про жизнь устройства |
+| **API Gateway** | Единая точка входа. Роутинг, auth middleware (JWT / device cert / service token), SSE транспорт для Admin UI |
+| **MDM Core** | Device Registry, Enrollment, Command Queue, Policy, DeviceGroup, Compliance — всё про жизнь устройства |
 | **Trust Anchor Store** | Хранилище корневых сертификатов производителей. Используется при верификации attestation |
 | **Audit Service** | Подписывается на все события через Kafka. Append-only хранилище |
 | **Kafka** | Персистентная шина событий. Декаплинг сервисов, гарантия доставки, replay |
-| **Notification Service** | (future) Подписывается на события, отправляет FCM/APNs push |
-| **Admin UI** | Real-time dashboard. Local-first: читает из локального стора, синхронизируется через SSE |
+| **Notification Service** | (future) Подписывается на события, уведомляет о долго offline устройствах |
+| **Admin UI** | Real-time dashboard оператора. Получает обновления через SSE |
 
 </details>
 
@@ -82,12 +81,6 @@ flowchart TD
 ### Gateway — Kubernetes Ingress
 
 Единая точка входа — nginx Ingress в Kubernetes. Отдельного Gateway-сервиса нет.
-
-Аннотации для долгоживущих SSE-соединений:
-```yaml
-nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-nginx.ingress.kubernetes.io/proxy-buffering: "off"
-```
 
 ---
 
@@ -103,50 +96,61 @@ nginx.ingress.kubernetes.io/proxy-buffering: "off"
 
 ---
 
-### Push-транспорт — SSE
+### Доставка команд — Poll
 
-SSE (Server-Sent Events) — единственный push-транспорт для всех клиентов.  
-WebSocket не используется: команды однонаправлены (сервер → устройство), ACK отправляется отдельным REST-запросом.
+Устройства получают команды через периодический poll: `GET /device/commands/pending`.  
+SSE и WebSocket для устройств не используются.
 
----
+**Почему не SSE:**
+- Постоянное соединение держит радиомодуль активным — расходует батарею
+- При краже устройство уже вне сети — SSE всё равно разорвано, WIPE ждёт в очереди
+- 300k постоянных соединений требуют отдельного CDS и Redis pub/sub — сложность без реальной выгоды
+- Compliance Service блокирует доступ к ресурсам немедленно — задержка в пределах poll_interval приемлема
 
-### Offline-доставка команд
-
-Команды персистируются в Command Queue (Postgres) немедленно. Доставка — при подключении устройства через SSE-стрим. Если устройство долго offline — push-уведомление через Notification Service (FCM/APNs, за скоупом MVP).
-
-```
-QUEUED → [устройство подключилось] → DELIVERED → [ack получен] → ACKED
-                                          ↓
-                                        FAILED → RETRYING → EXPIRED
-```
-
-При каждом SSE-подключении сначала отдаются все `QUEUED` команды из таблицы, затем live-стрим. `Last-Event-ID` — подсказка, не источник истины. Command Queue всегда авторитетна.
+SSE используется только для **Admin UI** (единицы операторов, не сотни тысяч устройств).
 
 ---
 
-### SSE state — in-memory → Redis
+### DeviceGroup и настраиваемый poll_interval
 
-MVP использует in-memory хранилище активных SSE-соединений.  
-Production-цель — Redis pub/sub. Изоляция через порт `EventPublisher`:
+Каждое устройство принадлежит группе. Группа определяет интервал между poll-запросами.
+
+| Группа | Пример устройств | poll_interval |
+|---|---|---|
+| `critical` | POS-терминалы | 1 мин |
+| `standard` | Сканеры склада | 5 мин |
+| `low_power` | Редко активные | 15 мин |
+
+Интервал — бизнес-параметр, настраивается без деплоя. Устройство получает актуальный `poll_interval` в теле каждого ответа на poll.
+
+**Heartbeat отдельным эндпоинтом не нужен** — `last_seen_at` обновляется при каждом poll.
+
+**Нагрузка:** 300k устройств, интервал 5 мин → ~1000 RPS на `/device/commands/pending`. Stateless Core с индексом по `device_id` — управляемо.
+
+---
+
+### Доставка offline-команд
+
+Команды персистируются в Command Queue (Postgres) немедленно. Устройство забирает их при следующем poll.
 
 ```
-EventPublisher (port)
-  ├── InMemoryEventPublisher   ← MVP
-  └── RedisEventPublisher      ← production
+QUEUED → [устройство сделало poll] → DELIVERED → [ack получен] → ACKED
+                                           ↓
+                                         FAILED → RETRYING → EXPIRED
 ```
 
 ---
 
 ### Асинхронное межсервисное взаимодействие — Kafka
 
-Kafka — единственная шина для всего асинхронного взаимодействия: внешние интеграции, внутренние события, будущие сервисы.
+Kafka — единственная шина для всего асинхронного взаимодействия.
 
 | Топик | Producer | Consumer(s) | Описание |
 |---|---|---|---|
 | `devices.provisioned` | ERP / ITSM | MDM Core | Устройство зарегистрировано в закупках |
 | `mdm.events.device.enrolled` | MDM Core | Audit, Notification (future) | Успешный enrollment |
 | `mdm.events.device.status_changed` | MDM Core | Audit, Notification (future) | Смена статуса устройства |
-| `mdm.events.device.offline` | MDM Core | Audit, Notification (future) | Устройство не выходило на связь > 5 мин |
+| `mdm.events.device.offline` | MDM Core | Audit, Notification (future) | Устройство не выходило на связь > N×poll_interval |
 | `mdm.events.command.acked` | MDM Core | Audit | Команда подтверждена агентом |
 | `mdm.events.command.failed` | MDM Core | Audit, Notification (future) | Команда не выполнена |
 | `mdm.events.policy.updated` | MDM Core | Audit | Политика обновлена |
@@ -160,18 +164,17 @@ Kafka — единственная шина для всего асинхронн
 
 ## Эндпоинты
 
-| Клиент | Транспорт | Метод | Путь | Назначение |
-|---|---|---|---|---|
-| Оператор | REST | `GET` | `/admin/devices` | Список устройств |
-| Оператор | REST | `POST` | `/admin/devices/{id}/commands` | Отправить команду |
-| Оператор | SSE | `GET` | `/admin/events` | Реал-тайм обновления UI |
-| Устройство | REST | `POST` | `/device/attestation/nonce` | Получить nonce для attestation |
-| Устройство | REST | `POST` | `/device/enroll` | Enrollment с attestation |
-| Устройство | REST | `POST` | `/device/heartbeat` | Heartbeat, sync check |
-| Устройство | REST | `POST` | `/device/commands/{id}/ack` | Подтверждение команды |
-| Устройство | SSE | `GET` | `/device/commands/stream` | Получение команд |
-| Внешние системы | REST | `GET` | `/external/devices/{id}/compliance` | Compliance check (MDM Core) |
-| ERP / ITSM | Kafka | — | `devices.provisioned` | Pre-staging устройства |
+| Клиент | Метод | Путь | Назначение |
+|---|---|---|---|
+| Оператор | `GET` | `/admin/devices` | Список устройств |
+| Оператор | `POST` | `/admin/devices/{id}/commands` | Отправить команду |
+| Оператор | `GET` (SSE) | `/admin/events` | Реал-тайм обновления UI |
+| Устройство | `POST` | `/device/attestation/nonce` | Получить nonce для attestation |
+| Устройство | `POST` | `/device/enroll` | Enrollment с attestation |
+| Устройство | `GET` | `/device/commands/pending` | Poll команд + обновление last_seen_at |
+| Устройство | `POST` | `/device/commands/{id}/ack` | Подтверждение команды |
+| Внешние системы | `GET` | `/external/devices/{id}/compliance` | Compliance check |
+| ERP / ITSM | Kafka | `devices.provisioned` | Pre-staging устройства |
 
 </details>
 
@@ -216,17 +219,11 @@ Kafka — единственная шина для всего асинхронн
 
 Хранилище корневых сертификатов производителей внутри платформы. Верификация цепочки происходит локально — без обращения к внешним сервисам.
 
-**Операционное требование:** при смене корневого сертификата производителем Trust Anchor Store должен быть обновлён вручную командой infra. Это процесс, не автоматика.
+**Операционное требование:** при смене корневого сертификата производителем Trust Anchor Store должен быть обновлён вручную командой infra.
 
 ### Nonce реестр
 
-MDM Core хранит выданные nonce с TTL. Каждый nonce одноразовый: после использования немедленно инвалидируется. Истёкшие nonce удаляются по TTL.
-
----
-
-## SSE изоляция по device_id
-
-`device_id` в SSE-сессии берётся **только из верифицированного device certificate** — никогда из query-параметров или тела запроса. Устройство физически не может подписаться на команды другого устройства.
+MDM Core хранит выданные nonce с TTL. Каждый nonce одноразовый: после использования немедленно инвалидируется.
 
 ---
 
@@ -274,6 +271,13 @@ UNKNOWN → PENDING_ENROLLMENT → ENROLLING → ENROLLED
 
 ---
 
+### DeviceGroup
+
+Группа устройств с общими операционными параметрами. Определяет `poll_interval` — как часто агент запрашивает очередь команд.  
+Интервал настраивается без деплоя. Устройство получает актуальный `poll_interval` в каждом ответе на poll.
+
+---
+
 ### Enrollment
 
 Одноразовый процесс принятия устройства в систему. Верифицирует аттестацию устройства через Trust Anchor Store, проверяет что устройство **ожидается** (pre-staged) и токен валиден, создаёт идентификатор устройства и выдаёт credentials. По завершении автоматически инициирует первую команду `APPLY_POLICY`.
@@ -305,9 +309,9 @@ UNKNOWN → PENDING_ENROLLMENT → ENROLLING → ENROLLED
 
 **Жизненный цикл команды:**
 ```
-QUEUED → DELIVERED → ACKED
-             ↓
-           FAILED → RETRYING → EXPIRED
+QUEUED → [poll] → DELIVERED → [ack] → ACKED
+                      ↓
+                    FAILED → RETRYING → EXPIRED
 ```
 
 ---
@@ -364,8 +368,6 @@ QUEUED → DELIVERED → ACKED
 После получения события система создаёт запись устройства со статусом `PENDING_ENROLLMENT`  
 и генерирует одноразовый **enrollment token**, привязанный к серийному номеру.
 
-> ⚙️ Интеграция описана в [`docs/integration-provisioning.md`](docs/integration-provisioning.md) *(coming soon)*
-
 ---
 
 ### Сценарий 2 — Enrollment (с аттестацией)
@@ -392,7 +394,7 @@ MDM Core    ←  { nonce }  (одноразовый, TTL = 5 мин)
              Выдаётся device certificate
              Статус → ENROLLING
                        ↓
-Устройство  ←  { device_id, certificate, sse_endpoint, policy_version: 0 }
+Устройство  ←  { device_id, certificate, poll_interval: 300 }
 ```
 
 После успешного ответа система автоматически ставит в очередь команду `APPLY_POLICY`  
@@ -405,7 +407,9 @@ MDM Core    ←  { nonce }  (одноразовый, TTL = 5 мин)
 ```
 Command Queue  →  APPLY_POLICY { policy_id, payload: { ... } }
                        ↓
-Устройство получает команду через SSE-стрим (или при следующем heartbeat если offline)
+Устройство забирает команду при следующем poll
+GET /device/commands/pending
+← { commands: [...], poll_interval: 300 }
                        ↓
 Агент применяет политику (пароль, шифрование, запрет приложений и т.п.)
                        ↓
@@ -432,7 +436,7 @@ Authorization: Bearer <service-token>
   "device_id": "...",
   "enrolled": true,
   "compliant": true,
-  "last_seen": "2026-04-12T20:00:00Z",
+  "last_seen": "2026-04-15T08:00:00Z",
   "policy_version": 3
 }
 ```
@@ -442,32 +446,35 @@ Authorization: Bearer <service-token>
 
 ---
 
-### Сценарий 5 — Remote Commands
+### Сценарий 5 — Remote Commands (WIPE / LOCK)
 
-Оператор через Admin UI (или API) отправляет команду на устройство — см. таблицу в доменной модели.
+Оператор через Admin UI отправляет команду на устройство.
 
 ```
 POST /admin/devices/{device_id}/commands
-{ "type": "LOCK", "initiated_by": "admin@corp.com" }
+{ "type": "WIPE", "initiated_by": "admin@corp.com" }
 
 ← 202 Accepted  { "command_id": "...", "status": "queued" }
 ```
 
-Команда доставляется через SSE-стрим (если устройство online) или при следующем heartbeat.
+Команда кладётся в очередь (QUEUED).  
+Compliance Service **немедленно** отражает новый статус устройства — VPN/NAC перестаёт пускать его в сеть ещё до того, как агент сделает следующий poll.  
+При следующем poll агент заберёт команду и выполнит физическую блокировку/сброс.
 
 ---
 
-### Сценарий 6 — Heartbeat и обнаружение offline
+### Сценарий 6 — Poll и обнаружение offline
 
 ```
-Агент  →  POST /device/heartbeat  { device_id, battery, os_version, policy_version }
+Агент  →  GET /device/commands/pending
                 ↓
-          Обновляется last_seen, статус ONLINE
-          Если policy_version устарела → возвращается { action: "sync_policy" }
+          Обновляется last_seen_at
+          Если команды есть — возвращаются в ответе
+          Если policy_version устарела — возвращается команда APPLY_POLICY
                 ↓
-          Если нет heartbeat > 5 минут → статус OFFLINE
+          Если нет poll > N×poll_interval → статус OFFLINE
           Публикуется mdm.events.device.offline → Audit + Notification (future)
-          SSE event → UI обновляется без перезагрузки
+          SSE event → Admin UI обновляется без перезагрузки
 ```
 
 ---
@@ -476,6 +483,6 @@ POST /admin/devices/{device_id}/commands
 
 - Логика внешней системы provisioning (ERP/ITSM) — только входящий event
 - Геолокация и геофенсинг
-- Notification Service (FCM/APNs push для offline-устройств)
+- Notification Service (уведомления для offline-устройств)
 
 </details>
