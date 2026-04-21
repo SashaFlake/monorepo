@@ -3,12 +3,16 @@ package com.sashaflake.infrastructure.actor
 import com.sashaflake.circuitbreaker.model.CallResult
 import com.sashaflake.circuitbreaker.model.CircuitBreaker
 import com.sashaflake.circuitbreaker.model.CircuitBreakerConfig
+import com.sashaflake.circuitbreaker.model.CircuitBreakerEffect
+import com.sashaflake.circuitbreaker.model.CircuitBreakerEffect.Log
+import com.sashaflake.circuitbreaker.model.CircuitBreakerMessage
 import com.sashaflake.circuitbreaker.model.CircuitBreakerId
-import com.sashaflake.circuitbreaker.model.CircuitBreakerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.channels.consumeAsFlow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 
@@ -17,54 +21,54 @@ private val log = LoggerFactory.getLogger("CircuitBreakerActor")
 /**
  * Запускает актор для одного Circuit Breaker и возвращает его канал.
  *
- * Всё состояние [CircuitBreaker] живёт исключительно внутри корутины актора —
- * никаких мьютексов, никакого shared mutable state снаружи.
+ * Архитектура (Elm-style):
+ *   Message → reduce() [pure] → (State, List<Effect>) → interpret() [IO]
+ *
+ * - Никакого var, никакого for-loop
+ * - reduce() — чистая функция, тестируется без корутин
+ * - interpret() — единственное место с реальным IO
  */
-@Suppress("OPT_IN_USAGE") // actor{} — experimental API, но стабилен на практике
+@Suppress("OPT_IN_USAGE")
 fun CoroutineScope.circuitBreakerActor(
     id: CircuitBreakerId,
     config: CircuitBreakerConfig = CircuitBreakerConfig(),
 ): SendChannel<CircuitBreakerMessage> = actor {
-    var cb = CircuitBreaker(id = id, config = config)
-
-    for (msg in channel) {
-        when (msg) {
-            // ------------------------------------------------------------------
-            // Execute: клиент хочет выполнить вызов
-            // ------------------------------------------------------------------
-            is CircuitBreakerMessage.Execute -> {
-                if (!cb.isCallAllowed()) {
-                    log.warn("[{}] OPEN — rejecting call", id.value)
-                    msg.reply.complete(CallResult.Rejected)
-                    continue
-                }
-
-                val result = runCatching { msg.block() }.fold(
-                    onSuccess = { CallResult.Success },
-                    onFailure = { CallResult.Failure(it) },
-                )
-
-                cb = cb.recordResult(result)
-                log.info("[{}] state={} failures={}", id.value, cb.state, cb.failureCount)
-
-                // Если только что открылись — взводим таймер сброса
-                if (cb.state == CircuitBreakerState.OPEN) {
-                    launch {
-                        delay(config.resetTimeout)
-                        channel.send(CircuitBreakerMessage.TryReset)
-                    }
-                }
-
-                msg.reply.complete(result)
-            }
-
-            // ------------------------------------------------------------------
-            // TryReset: таймер истёк, переводим OPEN → HALF_OPEN
-            // ------------------------------------------------------------------
-            CircuitBreakerMessage.TryReset -> {
-                cb = cb.tryReset()
-                log.info("[{}] reset → state={}", id.value, cb.state)
-            }
+    channel
+        .consumeAsFlow()
+        .runningFold(CircuitBreaker(id = id, config = config)) { cb, msg ->
+            val (next, effects) = cb.reduce(msg)
+            effects.forEach { interpret(it, channel, this@actor) }
+            next
         }
+        .collect {}
+}
+
+/**
+ * Интерпретатор эффектов — единственное место, где происходит IO.
+ * Чистый when по sealed interface: компилятор гарантирует полноту.
+ */
+private suspend fun interpret(
+    effect: CircuitBreakerEffect,
+    channel: SendChannel<CircuitBreakerMessage>,
+    scope: CoroutineScope,
+): Unit = when (effect) {
+    is CircuitBreakerEffect.RunBlock -> {
+        val result = runCatching { effect.block() }.fold(
+            onSuccess = { CallResult.Success },
+            onFailure = { CallResult.Failure(it) },
+        )
+        channel.send(CircuitBreakerMessage.BlockResult(result, effect.reply))
     }
+
+    is CircuitBreakerEffect.CompleteReply ->
+        effect.reply.complete(effect.result)
+
+    is CircuitBreakerEffect.ScheduleReset ->
+        scope.launch {
+            delay(effect.delay)
+            channel.send(CircuitBreakerMessage.TryReset)
+        }.let {}
+
+    is Log.Info -> log.info("[{}] {}", effect.id.value, effect.message)
+    is Log.Warn -> log.warn("[{}] {}", effect.id.value, effect.message)
 }

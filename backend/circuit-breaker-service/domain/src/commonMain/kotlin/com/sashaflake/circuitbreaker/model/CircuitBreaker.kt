@@ -1,5 +1,7 @@
 package com.sashaflake.circuitbreaker.model
 
+import kotlin.time.Duration
+
 /**
  * Aggregate root — состояние Circuit Breaker.
  * Чистая доменная модель без side-effects: все переходы — чистые функции.
@@ -14,7 +16,7 @@ data class CircuitBreaker(
     /** Можно ли пропустить вызов прямо сейчас? */
     fun isCallAllowed(): Boolean = when (state) {
         CircuitBreakerState.CLOSED -> true
-        CircuitBreakerState.HALF_OPEN -> true   // один пробный вызов
+        CircuitBreakerState.HALF_OPEN -> true
         CircuitBreakerState.OPEN -> false
     }
 
@@ -35,17 +37,55 @@ data class CircuitBreaker(
         else -> this
     }
 
+    /**
+     * Чистый reducer: (State, Message) -> Pair<State, List<Effect>>.
+     *
+     * Не знает ни о корутинах, ни об IO — только о доменной логике.
+     * Тестируется без всяких моков и suspend.
+     */
+    fun reduce(message: CircuitBreakerMessage): Pair<CircuitBreaker, List<CircuitBreakerEffect>> =
+        when (message) {
+            is CircuitBreakerMessage.Execute -> {
+                if (!isCallAllowed()) {
+                    this to listOf(
+                        CircuitBreakerEffect.CompleteReply(message.reply, CallResult.Rejected),
+                        CircuitBreakerEffect.Log.Warn(id, "OPEN — rejecting call"),
+                    )
+                } else {
+                    val effects = mutableListOf<CircuitBreakerEffect>(
+                        CircuitBreakerEffect.RunBlock(message.block, message.reply),
+                    )
+                    this to effects
+                }
+            }
+
+            is CircuitBreakerMessage.BlockResult -> {
+                val next = recordResult(message.result)
+                val effects = mutableListOf<CircuitBreakerEffect>(
+                    CircuitBreakerEffect.Log.Info(id, "state=${next.state} failures=${next.failureCount}"),
+                    CircuitBreakerEffect.CompleteReply(message.reply, message.result),
+                )
+                if (next.state == CircuitBreakerState.OPEN) {
+                    effects += CircuitBreakerEffect.ScheduleReset(config.resetTimeout)
+                }
+                next to effects
+            }
+
+            CircuitBreakerMessage.TryReset -> {
+                val next = tryReset()
+                next to listOf(
+                    CircuitBreakerEffect.Log.Info(id, "reset → state=${next.state}"),
+                )
+            }
+        }
+
     // -------------------------------------------------------------------
 
     private fun onSuccess(): CircuitBreaker = when (state) {
         CircuitBreakerState.HALF_OPEN -> {
             val newSuccessCount = successCount + 1
             if (newSuccessCount >= config.successThreshold) {
-                copy(
-                    state = CircuitBreakerState.CLOSED,
-                    failureCount = 0,
-                    successCount = 0,
-                )
+                copy(state = CircuitBreakerState.CLOSED, failureCount = 0, successCount = 0)
             } else {
                 copy(successCount = newSuccessCount)
             }
@@ -58,11 +98,7 @@ data class CircuitBreaker(
         CircuitBreakerState.CLOSED, CircuitBreakerState.HALF_OPEN -> {
             val newFailureCount = failureCount + 1
             if (newFailureCount >= config.failureThreshold) {
-                copy(
-                    state = CircuitBreakerState.OPEN,
-                    failureCount = newFailureCount,
-                    successCount = 0,
-                )
+                copy(state = CircuitBreakerState.OPEN, failureCount = newFailureCount, successCount = 0)
             } else {
                 copy(failureCount = newFailureCount, state = CircuitBreakerState.CLOSED)
             }
