@@ -19,11 +19,11 @@ private val log = LoggerFactory.getLogger("CircuitBreakerActor")
 /**
  * Запускает актор для одного Circuit Breaker и возвращает его канал.
  *
- * Архитектура (Elm-style):
- *   Message → reduce() [pure] → (State, List<Effect>) → interpret() [IO]
+ * Архитектура (Elm Architecture):
+ *   Message -> reduce() -> (State, List<Effect>) -> interpret()
  *
  * - Никакого var, никакого for-loop
- * - tailrec гарантирует отсутствие стекового оверфлоу (компилятор разворачивает в обычный цикл)
+ * - tail-recursive loop: компилятор разворачивает в обычный цикл, стек не растёт
  * - reduce() — чистая функция, тестируется без корутин
  * - interpret() — единственное место с реальным IO
  */
@@ -45,30 +45,34 @@ fun CoroutineScope.circuitBreakerActor(
 
 /**
  * Интерпретатор эффектов — единственное место, где происходит IO.
- * Чистый when по sealed interface: компилятор гарантирует полноту.
+ *
+ * when как statement (без =): нет проблемы с несовпадением типов ветвей,
+ * при этом exhaustiveness по sealed interface всё равно гарантируется компилятором.
  */
 private suspend fun interpret(
     effect: CircuitBreakerEffect,
     channel: SendChannel<CircuitBreakerMessage>,
     scope: CoroutineScope,
-): Unit = when (effect) {
-    is CircuitBreakerEffect.RunBlock -> {
-        val result = runCatching { effect.block() }.fold(
-            onSuccess = { CallResult.Success },
-            onFailure = { CallResult.Failure(it) },
-        )
-        channel.send(CircuitBreakerMessage.BlockResult(result, effect.reply))
+) {
+    when (effect) {
+        is CircuitBreakerEffect.RunBlock -> {
+            val result = runCatching { effect.block() }.fold(
+                onSuccess = { CallResult.Success },
+                onFailure = { CallResult.Failure(it) },
+            )
+            channel.send(CircuitBreakerMessage.BlockResult(result, effect.reply))
+        }
+
+        is CircuitBreakerEffect.CompleteReply ->
+            effect.reply.complete(effect.result)
+
+        is CircuitBreakerEffect.ScheduleReset ->
+            scope.launch {
+                delay(effect.delay)
+                channel.send(CircuitBreakerMessage.TryReset)
+            }
+
+        is Log.Info -> log.info("[{}] {}", effect.id.value, effect.message)
+        is Log.Warn -> log.warn("[{}] {}", effect.id.value, effect.message)
     }
-
-    is CircuitBreakerEffect.CompleteReply ->
-        effect.reply.complete(effect.result)
-
-    is CircuitBreakerEffect.ScheduleReset ->
-        scope.launch {
-            delay(effect.delay)
-            channel.send(CircuitBreakerMessage.TryReset)
-        }.let {}
-
-    is Log.Info -> log.info("[{}] {}", effect.id.value, effect.message)
-    is Log.Warn -> log.warn("[{}] {}", effect.id.value, effect.message)
 }
