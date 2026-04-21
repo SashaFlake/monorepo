@@ -12,6 +12,7 @@ application {
 dependencies {
     val ktorVersion: String by project
     val koinVersion: String by project
+    val coroutinesVersion: String by project
 
     implementation(project(":domain"))
 
@@ -25,7 +26,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:${project.properties["logbackVersion"]}")
     implementation("io.insert-koin:koin-ktor:$koinVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")

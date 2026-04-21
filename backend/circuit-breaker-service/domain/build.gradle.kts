@@ -9,7 +9,9 @@ kotlin {
 
     sourceSets {
         commonMain {
-            dependencies {}
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.properties["coroutinesVersion"]}")
+            }
         }
         commonTest {
             dependencies {
