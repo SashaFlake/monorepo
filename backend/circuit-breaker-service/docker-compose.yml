@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  eventstore:
+    image: eventstore/eventstore:latest
+    environment:
+      EVENTSTORE_CLUSTER_SIZE: 1
+      EVENTSTORE_RUN_PROJECTIONS: All
+      EVENTSTORE_START_STANDARD_PROJECTIONS: "true"
+      EVENTSTORE_INSECURE: "true"
+      EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP: "true"
+    ports:
+      - "1113:1113"
+      - "2113:2113"
+    volumes:
+      - eventstoredb-data:/var/lib/eventstore
+      - eventstoredb-logs:/var/log/eventstore
+
+volumes:
+  eventstoredb-data:
+  eventstoredb-logs:

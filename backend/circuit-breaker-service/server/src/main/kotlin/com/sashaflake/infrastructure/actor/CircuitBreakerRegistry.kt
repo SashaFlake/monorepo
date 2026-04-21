@@ -1,5 +1,6 @@
 package com.sashaflake.infrastructure.actor
 
+import com.sashaflake.circuitbreaker.application.port.EventStore
 import com.sashaflake.circuitbreaker.model.CircuitBreakerConfig
 import com.sashaflake.circuitbreaker.model.CircuitBreakerId
 import com.sashaflake.circuitbreaker.model.CircuitBreakerMessage
@@ -22,6 +23,7 @@ import kotlinx.coroutines.sync.withLock
  */
 class CircuitBreakerRegistry(
     private val defaultConfig: CircuitBreakerConfig = CircuitBreakerConfig(),
+    private val eventStore: EventStore,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mutex = Mutex()
@@ -36,7 +38,7 @@ class CircuitBreakerRegistry(
         config: CircuitBreakerConfig = defaultConfig,
     ): SendChannel<CircuitBreakerMessage> = mutex.withLock {
         actors.getOrPut(id) {
-            scope.circuitBreakerActor(id, config)
+            scope.circuitBreakerActor(id, config, eventStore)
         }
     }
 }

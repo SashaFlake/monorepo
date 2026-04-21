@@ -13,6 +13,7 @@ dependencies {
     val ktorVersion: String by project
     val koinVersion: String by project
     val coroutinesVersion: String by project
+    val eventStoreDbVersion: String by project
 
     implementation(project(":domain"))
 
@@ -27,6 +28,7 @@ dependencies {
     implementation("io.insert-koin:koin-ktor:$koinVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    implementation("com.eventstore:db-client-java:$eventStoreDbVersion")
 
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
