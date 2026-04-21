@@ -1,5 +1,6 @@
 package com.sashaflake.infrastructure.actor
 
+import com.sashaflake.circuitbreaker.application.port.EventStore
 import com.sashaflake.circuitbreaker.model.CallResult
 import com.sashaflake.circuitbreaker.model.CircuitBreaker
 import com.sashaflake.circuitbreaker.model.CircuitBreakerConfig
@@ -19,39 +20,45 @@ private val log = LoggerFactory.getLogger("CircuitBreakerActor")
 /**
  * Запускает актор для одного Circuit Breaker и возвращает его канал.
  *
- * Архитектура (Elm Architecture):
- *   Message -> reduce() -> (State, List<Effect>) -> interpret()
+ * Архитектура (Elm Architecture + Event Sourcing):
+ *   Message -> reduce() -> (State, List<Effect>, List<Event>)
+ *           -> interpret() [IO: persist events, run blocks, schedule timers]
  *
- * - Никакого var, никакого for-loop
- * - tail-recursive loop: компилятор разворачивает в обычный цикл, стек не растёт
- * - reduce() — чистая функция, тестируется без корутин
- * - interpret() — единственное место с реальным IO
+ * Восстановление после рестарта:
+ *   eventStore.loadAll(id) -> events.fold(initial) { cb, e -> cb.apply(e) }
  */
 @Suppress("OPT_IN_USAGE")
 fun CoroutineScope.circuitBreakerActor(
     id: CircuitBreakerId,
     config: CircuitBreakerConfig = CircuitBreakerConfig(),
+    eventStore: EventStore,
 ): SendChannel<CircuitBreakerMessage> = actor {
+
+    // Восстанавливаем состояние из истории событий
+    val initial = eventStore
+        .loadAll(id)
+        .fold(CircuitBreaker(id = id, config = config)) { cb, event -> cb.apply(event) }
 
     tailrec suspend fun loop(cb: CircuitBreaker) {
         val msg = channel.receiveCatching().getOrNull() ?: return
-        val (next, effects) = cb.reduce(msg)
-        effects.forEach { interpret(it, channel, this@actor) }
+        val (next, effects, events) = cb.reduce(msg)
+        if (events.isNotEmpty()) {
+            interpret(CircuitBreakerEffect.StoreEvents(events), channel, eventStore, this@actor)
+        }
+        effects.forEach { interpret(it, channel, eventStore, this@actor) }
         loop(next)
     }
 
-    loop(CircuitBreaker(id = id, config = config))
+    loop(initial)
 }
 
 /**
  * Интерпретатор эффектов — единственное место, где происходит IO.
- *
- * when как statement (без =): нет проблемы с несовпадением типов ветвей,
- * при этом exhaustiveness по sealed interface всё равно гарантируется компилятором.
  */
 private suspend fun interpret(
     effect: CircuitBreakerEffect,
     channel: SendChannel<CircuitBreakerMessage>,
+    eventStore: EventStore,
     scope: CoroutineScope,
 ) {
     when (effect) {
@@ -71,6 +78,9 @@ private suspend fun interpret(
                 delay(effect.delay)
                 channel.send(CircuitBreakerMessage.TryReset)
             }
+
+        is CircuitBreakerEffect.StoreEvents ->
+            eventStore.append(effect.events)
 
         is Log.Info -> log.info("[{}] {}", effect.id.value, effect.message)
         is Log.Warn -> log.warn("[{}] {}", effect.id.value, effect.message)

@@ -28,6 +28,9 @@ sealed interface CircuitBreakerEffect {
     /** Запланировать переход OPEN → HALF_OPEN через [delay]. */
     data class ScheduleReset(val delay: Duration) : CircuitBreakerEffect
 
+    /** Сохранить события в EventStore. */
+    data class StoreEvents(val events: List<CircuitBreakerEvent>) : CircuitBreakerEffect
+
     /** Залогировать сообщение. */
     sealed interface Log : CircuitBreakerEffect {
         val id: CircuitBreakerId
