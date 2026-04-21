@@ -10,9 +10,7 @@ import com.sashaflake.circuitbreaker.model.CircuitBreakerId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.channels.consumeAsFlow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 
@@ -25,6 +23,7 @@ private val log = LoggerFactory.getLogger("CircuitBreakerActor")
  *   Message → reduce() [pure] → (State, List<Effect>) → interpret() [IO]
  *
  * - Никакого var, никакого for-loop
+ * - tailrec гарантирует отсутствие стекового оверфлоу (компилятор разворачивает в обычный цикл)
  * - reduce() — чистая функция, тестируется без корутин
  * - interpret() — единственное место с реальным IO
  */
@@ -33,14 +32,15 @@ fun CoroutineScope.circuitBreakerActor(
     id: CircuitBreakerId,
     config: CircuitBreakerConfig = CircuitBreakerConfig(),
 ): SendChannel<CircuitBreakerMessage> = actor {
-    channel
-        .consumeAsFlow()
-        .runningFold(CircuitBreaker(id = id, config = config)) { cb, msg ->
-            val (next, effects) = cb.reduce(msg)
-            effects.forEach { interpret(it, channel, this@actor) }
-            next
-        }
-        .collect {}
+
+    tailrec suspend fun loop(cb: CircuitBreaker) {
+        val msg = channel.receiveCatching().getOrNull() ?: return
+        val (next, effects) = cb.reduce(msg)
+        effects.forEach { interpret(it, channel, this@actor) }
+        loop(next)
+    }
+
+    loop(CircuitBreaker(id = id, config = config))
 }
 
 /**
