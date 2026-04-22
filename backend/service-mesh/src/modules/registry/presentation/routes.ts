@@ -22,6 +22,11 @@ const RegisterInstanceBody = z.object({
 const ServiceIdParam   = z.object({ serviceId:  z.string().uuid() })
 const InstanceIdParam  = z.object({ instanceId: z.string().uuid() })
 
+const ListServicesQuery = z.object({
+  name:   z.string().optional(),
+  labels: z.string().optional(), // "key1=val1,key2=val2"
+})
+
 // ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
@@ -32,7 +37,7 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
 
   // ── Services ──────────────────────────────────────────────────────────────
 
-  // POST /services — создать сервис
+  // POST /services — upsert: вернёт существующий или создаст новый
   app.post('/services', async (req, reply) => {
     const parsed = CreateServiceBody.safeParse(req.body)
     if (!parsed.success) {
@@ -43,9 +48,23 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
     return reply.status(201).send(result.value)
   })
 
-  // GET /services — список всех сервисов
-  app.get('/services', async (_req, reply) => {
-    return reply.send(registry.listServices())
+  // GET /services?name=foo&labels=env=prod,version=1.0
+  app.get('/services', async (req, reply) => {
+    const query = ListServicesQuery.safeParse(req.query)
+    if (!query.success) return reply.status(400).send({ error: 'VALIDATION_ERROR' })
+
+    const filter: { name?: string; labels?: Record<string, string> } = {}
+    if (query.data.name) filter.name = query.data.name
+    if (query.data.labels) {
+      filter.labels = Object.fromEntries(
+        query.data.labels.split(',').map(pair => {
+          const [k, ...rest] = pair.split('=')
+          return [k.trim(), rest.join('=').trim()]
+        })
+      )
+    }
+
+    return reply.send(registry.listServices(filter))
   })
 
   // GET /services/:serviceId
@@ -58,7 +77,7 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
     return reply.send(result.value)
   })
 
-  // DELETE /services/:serviceId — вывести сервис из обращения (+ все его инстансы)
+  // DELETE /services/:serviceId
   app.delete('/services/:serviceId', async (req, reply) => {
     const params = ServiceIdParam.safeParse(req.params)
     if (!params.success) return reply.status(400).send({ error: 'VALIDATION_ERROR' })
@@ -70,7 +89,7 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
 
   // ── Instances ─────────────────────────────────────────────────────────────
 
-  // POST /instances — зарегистрировать инстанс
+  // POST /instances
   app.post('/instances', async (req, reply) => {
     const parsed = RegisterInstanceBody.safeParse(req.body)
     if (!parsed.success) {
@@ -91,7 +110,7 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
     return reply.status(204).send()
   })
 
-  // DELETE /instances/:instanceId — дерегистрировать инстанс
+  // DELETE /instances/:instanceId
   app.delete('/instances/:instanceId', async (req, reply) => {
     const params = InstanceIdParam.safeParse(req.params)
     if (!params.success) return reply.status(400).send({ error: 'VALIDATION_ERROR' })

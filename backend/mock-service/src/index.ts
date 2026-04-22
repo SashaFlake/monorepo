@@ -2,7 +2,7 @@ import Fastify from 'fastify'
 
 const app = Fastify({ logger: true })
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ── Config ───────────────────────────────────────────────────────────────────
 const PORT         = Number(process.env.PORT          ?? 3001)
 const HOST         = process.env.HOST                 ?? '0.0.0.0'
 const SERVICE_NAME = process.env.SERVICE_NAME         ?? 'mock-service'
@@ -12,7 +12,7 @@ const HEARTBEAT_MS = Number(process.env.HEARTBEAT_MS  ?? 10_000)
 const ENV_LABEL    = process.env.ENV_LABEL            ?? 'dev'
 const VERSION      = process.env.VERSION              ?? '0.1.0'
 
-// ── Business endpoint ─────────────────────────────────────────────────────────
+// ── Business endpoint ────────────────────────────────────────────────────────
 app.get('/hello-world', async () => ({
   message: 'Hello, World!',
   service: SERVICE_NAME,
@@ -23,30 +23,47 @@ app.get('/health', async () => ({ status: 'ok' }))
 
 // ── Mesh registration ─────────────────────────────────────────────────────────
 //
-// Модель: Service создаётся один раз, Instance — при каждом старте.
-// При старте:
-//   1. POST /services        — создать сервис (или использовать существующий если уже есть)
-//   2. POST /instances       — зарегистрировать этот инстанс
-// При остановке:
-//   3. DELETE /instances/:id — дерегистрировать инстанс
+// Стратегия — upsert:
+//   1. GET /services?name=<name>&labels=env=<env>,version=<ver>
+//      — ищем свой сервис по name+labels
+//   2. Если нашли — переиспользуем его ID
+//      Если нет — POST /services (создать)
+//   3. POST /instances — зарегистрировать этот конкретный инстанс
 //
-// В реальном деплое Service создаётся пайплайном один раз.
-// Здесь для простоты mock создаёт его сам при каждом старте.
+// При остановке: DELETE /instances/:id
+// Сервис НЕ удаляется при остановке инстанса.
+
+type ServiceView = { id: string; name: string }
+type InstanceView = { id: string }
 
 let serviceId:  string | null = null
 let instanceId: string | null = null
 
 async function ensureService(): Promise<string> {
+  const labels = { env: ENV_LABEL, version: VERSION }
+  const labelQuery = Object.entries(labels).map(([k, v]) => `${k}=${v}`).join(',')
+
+  // сначала ищем существующий
+  const searchRes = await fetch(
+    `${REGISTRY_URL}/api/v1/services?name=${encodeURIComponent(SERVICE_NAME)}&labels=${encodeURIComponent(labelQuery)}`
+  )
+  if (searchRes.ok) {
+    const found = await searchRes.json() as ServiceView[]
+    if (found.length > 0) {
+      app.log.info({ serviceId: found[0].id }, 'Found existing service, reusing')
+      return found[0].id
+    }
+  }
+
+  // не нашли — создаём
   const res = await fetch(`${REGISTRY_URL}/api/v1/services`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name:   SERVICE_NAME,
-      labels: { env: ENV_LABEL, version: VERSION },
-    }),
+    body: JSON.stringify({ name: SERVICE_NAME, labels }),
   })
   if (!res.ok) throw new Error(`Create service failed: ${res.status} ${await res.text()}`)
-  const data = await res.json() as { id: string }
+  const data = await res.json() as ServiceView
+  app.log.info({ serviceId: data.id }, 'Created new service')
   return data.id
 }
 
@@ -62,7 +79,7 @@ async function registerInstance(svcId: string): Promise<string> {
     }),
   })
   if (!res.ok) throw new Error(`Register instance failed: ${res.status} ${await res.text()}`)
-  const data = await res.json() as { id: string }
+  const data = await res.json() as InstanceView
   return data.id
 }
 
@@ -84,7 +101,7 @@ async function deregister(): Promise<void> {
   app.log.info({ instanceId }, 'Instance deregistered')
 }
 
-// ── Startup ───────────────────────────────────────────────────────────────────
+// ── Startup ──────────────────────────────────────────────────────────────────
 await app.listen({ port: PORT, host: HOST })
 
 for (let attempt = 1; attempt <= 10; attempt++) {

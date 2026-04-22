@@ -34,6 +34,18 @@ export type RegisterInstanceInput = {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Совпадают ли два набора labels полностью (key+value). */
+const labelsMatch = (a: Labels, b: Labels): boolean => {
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  if (aKeys.length !== bKeys.length) return false
+  return aKeys.every(k => a[k] === b[k])
+}
+
+// ---------------------------------------------------------------------------
 // RegistryService
 // ---------------------------------------------------------------------------
 
@@ -45,12 +57,26 @@ export class RegistryService {
 
   // ── Services ──────────────────────────────────────────────────────────────
 
+  /**
+   * Upsert: если сервис с таким name+labels уже есть — вернуть его.
+   * Иначе создать новый.
+   * Это предотвращает задвоение при повторных деплоях.
+   */
   createService(input: CreateServiceInput): Result<ServiceView, RegistryError> {
+    const labels = input.labels ?? {}
+
+    // ищем существующий по name + labels
+    for (const svc of this.services.values()) {
+      if (svc.name === input.name && labelsMatch(svc.labels, labels)) {
+        return ok(toServiceView(svc, this.instancesOf(svc.id), this.ttlMs))
+      }
+    }
+
     const id  = serviceId(randomUUID())
     const svc: Service = {
       id,
       name:         input.name,
-      labels:       input.labels ?? {},
+      labels,
       registeredAt: new Date(),
     }
     this.services.set(id, svc)
@@ -62,7 +88,6 @@ export class RegistryService {
     if (!this.services.has(sid)) {
       return err(registryError('SERVICE_NOT_FOUND', `Service ${id} not found`))
     }
-    // удаляем все инстансы этого сервиса
     for (const [iid, instance] of this.instances.entries()) {
       if (instance.serviceId === sid) this.instances.delete(iid)
     }
@@ -77,10 +102,24 @@ export class RegistryService {
     return ok(toServiceView(svc, this.instancesOf(sid), this.ttlMs))
   }
 
-  listServices(): ServiceView[] {
-    return [...this.services.values()].map(svc =>
-      toServiceView(svc, this.instancesOf(svc.id), this.ttlMs)
-    )
+  /**
+   * Список всех сервисов, с фильтрацией по name и/или labels.
+   * Используется mock-service для поиска своего сервиса при старте.
+   */
+  listServices(filter?: { name?: string; labels?: Labels }): ServiceView[] {
+    let list = [...this.services.values()]
+
+    if (filter?.name) {
+      list = list.filter(s => s.name === filter.name)
+    }
+    if (filter?.labels && Object.keys(filter.labels).length > 0) {
+      list = list.filter(s => {
+        const fl = filter.labels!
+        return Object.keys(fl).every(k => s.labels[k] === fl[k])
+      })
+    }
+
+    return list.map(svc => toServiceView(svc, this.instancesOf(svc.id), this.ttlMs))
   }
 
   // ── Instances ─────────────────────────────────────────────────────────────
@@ -145,7 +184,7 @@ export class RegistryService {
     return [...this.instances.values()]
   }
 
-  // ── Private ───────────────────────────────────────────────────────────────
+  // ── Private ────────────────────────────────────────────────────────────────
 
   private instancesOf(sid: ServiceId): Instance[] {
     return [...this.instances.values()].filter(i => i.serviceId === sid)
