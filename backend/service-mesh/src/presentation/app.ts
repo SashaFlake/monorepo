@@ -31,11 +31,9 @@ export async function buildApp() {
   )
   healthChecker.start()
 
-  // GC: удаляем инстансы без heartbeat каждые 10 секунд
-  setInterval(() => {
-    const removed = registry.purgeExpired()
-    if (removed > 0) app.log.info({ removed }, 'Purged expired instances')
-  }, 10_000)
+  // GC намеренно убран — инстансы живут до явного DELETE.
+  // TTL влияет только на статус (passing → warning → critical),
+  // но не удаляет запись из registry.
 
   await app.register(registryRoutes, { prefix: '/api/v1', registry })
 

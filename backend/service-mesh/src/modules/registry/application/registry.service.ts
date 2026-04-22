@@ -87,14 +87,17 @@ export class RegistryService {
     }
   }
 
-  // ── Deregister ────────────────────────────────────────────────────────────
+  // ── Deregister (явное действие) ───────────────────────────────────────────────
+  //
+  // Единственный способ удалить инстанс — автоматического удаления по TTL нет.
+  // Инстанс без heartbeat переходит в warning/critical, но остаётся виден в мониторинге.
+  // Удаление = грасефул шатдаун или явный шаг пайплайна деплоя.
 
   deregister(id: string): Result<void, RegistryError> {
     const iid = instanceId(id)
     for (const [svcName, instances] of this.store.entries()) {
       if (instances.has(iid)) {
         instances.delete(iid)
-        // Удаляем пустую запись сервиса чтобы listServices не возвращал его с []
         if (instances.size === 0) this.store.delete(svcName)
         return ok(undefined)
       }
@@ -129,23 +132,5 @@ export class RegistryService {
       all.push(...instances.values())
     }
     return all
-  }
-
-  // ── GC ────────────────────────────────────────────────────────────────────
-
-  purgeExpired(): number {
-    let removed = 0
-    const deadline = Date.now() - this.ttlMs
-    for (const [svcName, instances] of this.store.entries()) {
-      for (const [id, instance] of instances.entries()) {
-        if (instance.lastHeartbeatAt.getTime() < deadline) {
-          instances.delete(id)
-          removed++
-        }
-      }
-      // Удаляем пустую запись сервиса — иначе listServices вернёт его с []
-      if (instances.size === 0) this.store.delete(svcName)
-    }
-    return removed
   }
 }
