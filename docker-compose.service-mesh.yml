@@ -3,7 +3,7 @@
 
 services:
 
-  # ─── Registry backend ───────────────────────────────────────────────────────
+  # ─── Registry backend ──────────────────────────────────────────────────────────
   registry:
     build:
       context: ./backend/service-mesh
@@ -27,12 +27,12 @@ services:
     networks:
       - sm-net
 
-  # ─── Mock service ────────────────────────────────────────────────────────────
-  mock-service:
+  # ─── Mock service — инстанс 1 ────────────────────────────────────────────────
+  mock-service-1:
     build:
       context: ./backend/mock-service
       dockerfile: Dockerfile
-    container_name: sm-mock
+    container_name: sm-mock-1
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -40,17 +40,42 @@ services:
       PORT: 3001
       HOST: 0.0.0.0
       SERVICE_NAME: mock-service
-      # Имя хоста, которое registry отдаст клиентам для обращения к сервису
-      SERVICE_HOST: sm-mock
+      SERVICE_HOST: sm-mock-1
       REGISTRY_URL: http://sm-registry:4000
       HEARTBEAT_MS: 10000
+      ENV_LABEL: dev
+      VERSION: 0.1.0
     depends_on:
       registry:
         condition: service_healthy
     networks:
       - sm-net
 
-  # ─── UI frontend ────────────────────────────────────────────────────────────
+  # ─── Mock service — инстанс 2 ────────────────────────────────────────────────
+  mock-service-2:
+    build:
+      context: ./backend/mock-service
+      dockerfile: Dockerfile
+    container_name: sm-mock-2
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      HOST: 0.0.0.0
+      SERVICE_NAME: mock-service
+      SERVICE_HOST: sm-mock-2
+      REGISTRY_URL: http://sm-registry:4000
+      HEARTBEAT_MS: 10000
+      ENV_LABEL: dev
+      VERSION: 0.1.0
+    depends_on:
+      registry:
+        condition: service_healthy
+    networks:
+      - sm-net
+
+  # ─── UI frontend ──────────────────────────────────────────────────────────────
   ui:
     build:
       context: ./frontend/service-mesh
