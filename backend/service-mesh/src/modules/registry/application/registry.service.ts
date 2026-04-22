@@ -1,44 +1,101 @@
 import { ok, err, type Result } from 'neverthrow'
 import { randomUUID } from 'node:crypto'
 import {
-  type ServiceName,
+  type ServiceId,
   type InstanceId,
-  type ServiceInstance,
-  type ServiceInstanceView,
+  type Service,
+  type Instance,
+  type ServiceView,
+  type InstanceView,
   type HealthCheckResult,
-  serviceName,
+  type Labels,
+  serviceId,
   instanceId,
-  toView,
+  toServiceView,
+  toInstanceView,
 } from '../domain/model.js'
 import { registryError, type RegistryError } from '../domain/errors.js'
 
-export type RegisterInput = {
-  serviceName: string
-  host:        string
-  port:        number
-  healthPath?: string
-  metadata?:   Record<string, string>
+// ---------------------------------------------------------------------------
+// Input types
+// ---------------------------------------------------------------------------
+
+export type CreateServiceInput = {
+  name:    string
+  labels?: Labels
 }
 
-export type RegisterOutput = {
-  instanceId: InstanceId
+export type RegisterInstanceInput = {
+  serviceId:  string
+  host:       string
+  port:       number
+  healthPath?: string
+  metadata?:  Record<string, string>
 }
+
+// ---------------------------------------------------------------------------
+// RegistryService
+// ---------------------------------------------------------------------------
 
 export class RegistryService {
-  private readonly store = new Map<ServiceName, Map<InstanceId, ServiceInstance>>()
+  private readonly services  = new Map<ServiceId, Service>()
+  private readonly instances = new Map<InstanceId, Instance>()
 
   constructor(private readonly ttlMs: number) {}
 
-  // ── Register ──────────────────────────────────────────────────────────────
+  // ── Services ──────────────────────────────────────────────────────────────
 
-  register(input: RegisterInput): Result<RegisterOutput, RegistryError> {
-    const svcName = serviceName(input.serviceName)
-    const id      = instanceId(randomUUID())
-    const now     = new Date()
-
-    const instance: ServiceInstance = {
+  createService(input: CreateServiceInput): Result<ServiceView, RegistryError> {
+    const id  = serviceId(randomUUID())
+    const svc: Service = {
       id,
-      serviceName:     svcName,
+      name:         input.name,
+      labels:       input.labels ?? {},
+      registeredAt: new Date(),
+    }
+    this.services.set(id, svc)
+    return ok(toServiceView(svc, [], this.ttlMs))
+  }
+
+  deleteService(id: string): Result<void, RegistryError> {
+    const sid = serviceId(id)
+    if (!this.services.has(sid)) {
+      return err(registryError('SERVICE_NOT_FOUND', `Service ${id} not found`))
+    }
+    // удаляем все инстансы этого сервиса
+    for (const [iid, instance] of this.instances.entries()) {
+      if (instance.serviceId === sid) this.instances.delete(iid)
+    }
+    this.services.delete(sid)
+    return ok(undefined)
+  }
+
+  getService(id: string): Result<ServiceView, RegistryError> {
+    const sid = serviceId(id)
+    const svc = this.services.get(sid)
+    if (!svc) return err(registryError('SERVICE_NOT_FOUND', `Service ${id} not found`))
+    return ok(toServiceView(svc, this.instancesOf(sid), this.ttlMs))
+  }
+
+  listServices(): ServiceView[] {
+    return [...this.services.values()].map(svc =>
+      toServiceView(svc, this.instancesOf(svc.id), this.ttlMs)
+    )
+  }
+
+  // ── Instances ─────────────────────────────────────────────────────────────
+
+  registerInstance(input: RegisterInstanceInput): Result<InstanceView, RegistryError> {
+    const sid = serviceId(input.serviceId)
+    if (!this.services.has(sid)) {
+      return err(registryError('SERVICE_NOT_FOUND', `Service ${input.serviceId} not found`))
+    }
+
+    const id  = instanceId(randomUUID())
+    const now = new Date()
+    const instance: Instance = {
+      id,
+      serviceId:       sid,
       host:            input.host,
       port:            input.port,
       healthPath:      input.healthPath ?? '/health',
@@ -47,90 +104,50 @@ export class RegistryService {
       lastHeartbeatAt: now,
       lastHealthCheck: null,
     }
-
-    if (!this.store.has(svcName)) this.store.set(svcName, new Map())
-    this.store.get(svcName)!.set(id, instance)
-
-    return ok({ instanceId: id })
+    this.instances.set(id, instance)
+    return ok(toInstanceView(instance, this.ttlMs))
   }
-
-  // ── Heartbeat ─────────────────────────────────────────────────────────────
 
   heartbeat(id: string): Result<void, RegistryError> {
     const iid = instanceId(id)
-    for (const instances of this.store.values()) {
-      const instance = instances.get(iid)
-      if (instance) {
-        instances.set(iid, { ...instance, lastHeartbeatAt: new Date() })
-        return ok(undefined)
-      }
+    const instance = this.instances.get(iid)
+    if (!instance) {
+      return err(registryError('INSTANCE_NOT_FOUND', `Instance ${id} not found`))
     }
-    return err(registryError('INSTANCE_NOT_FOUND', `Instance ${id} not found`))
+    this.instances.set(iid, { ...instance, lastHeartbeatAt: new Date() })
+    return ok(undefined)
   }
 
-  // ── Record health check result (вызывается из ActiveHealthChecker) ────────
+  deregisterInstance(id: string): Result<void, RegistryError> {
+    const iid = instanceId(id)
+    if (!this.instances.has(iid)) {
+      return err(registryError('INSTANCE_NOT_FOUND', `Instance ${id} not found`))
+    }
+    this.instances.delete(iid)
+    return ok(undefined)
+  }
 
   recordHealthCheck(
     id: string,
     result: Omit<HealthCheckResult, 'checkedAt'>,
   ): void {
     const iid = instanceId(id)
-    for (const instances of this.store.values()) {
-      const instance = instances.get(iid)
-      if (instance) {
-        instances.set(iid, {
-          ...instance,
-          lastHealthCheck: { ...result, checkedAt: new Date() },
-        })
-        return
-      }
+    const instance = this.instances.get(iid)
+    if (instance) {
+      this.instances.set(iid, {
+        ...instance,
+        lastHealthCheck: { ...result, checkedAt: new Date() },
+      })
     }
   }
 
-  // ── Deregister (явное действие) ───────────────────────────────────────────────
-  //
-  // Единственный способ удалить инстанс — автоматического удаления по TTL нет.
-  // Инстанс без heartbeat переходит в warning/critical, но остаётся виден в мониторинге.
-  // Удаление = грасефул шатдаун или явный шаг пайплайна деплоя.
-
-  deregister(id: string): Result<void, RegistryError> {
-    const iid = instanceId(id)
-    for (const [svcName, instances] of this.store.entries()) {
-      if (instances.has(iid)) {
-        instances.delete(iid)
-        if (instances.size === 0) this.store.delete(svcName)
-        return ok(undefined)
-      }
-    }
-    return err(registryError('INSTANCE_NOT_FOUND', `Instance ${id} not found`))
+  getAllInstances(): Instance[] {
+    return [...this.instances.values()]
   }
 
-  // ── Lookup ────────────────────────────────────────────────────────────────
+  // ── Private ───────────────────────────────────────────────────────────────
 
-  getService(name: string): Result<ServiceInstanceView[], RegistryError> {
-    const svcName   = serviceName(name)
-    const instances = this.store.get(svcName)
-    if (!instances || instances.size === 0) {
-      return err(registryError('SERVICE_NOT_FOUND', `Service "${name}" not found`))
-    }
-    return ok([...instances.values()].map(i => toView(i, this.ttlMs)))
-  }
-
-  listServices(): Record<string, ServiceInstanceView[]> {
-    const result: Record<string, ServiceInstanceView[]> = {}
-    for (const [name, instances] of this.store.entries()) {
-      result[name] = [...instances.values()].map(i => toView(i, this.ttlMs))
-    }
-    return result
-  }
-
-  // ── getAllInstances — нужен health checker-у ───────────────────────────────
-
-  getAllInstances(): ServiceInstance[] {
-    const all: ServiceInstance[] = []
-    for (const instances of this.store.values()) {
-      all.push(...instances.values())
-    }
-    return all
+  private instancesOf(sid: ServiceId): Instance[] {
+    return [...this.instances.values()].filter(i => i.serviceId === sid)
   }
 }

@@ -4,7 +4,7 @@ import { Activity, Server, Cpu, AlertTriangle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Card, CardHeader, CardTitle, CardValue } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { registryApi, registryKeys, type ServicesMap, type InstanceStatus } from '@/lib/api'
+import { registryApi, registryKeys, type InstanceStatus } from '@/lib/api'
 
 export const Route = createFileRoute('/')({ component: DashboardPage })
 
@@ -12,24 +12,6 @@ const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = 
   passing:  'success',
   warning:  'warning',
   critical: 'error',
-}
-
-// Агрегация статуса сервиса: worst-case по инстансам.
-// Пустой массив = нет живых инстансов → critical.
-function worstStatus(statuses: InstanceStatus[]): InstanceStatus {
-  if (statuses.length === 0)         return 'critical'
-  if (statuses.includes('critical')) return 'critical'
-  if (statuses.includes('warning'))  return 'warning'
-  return 'passing'
-}
-
-function deriveStats(data: ServicesMap) {
-  const services  = Object.keys(data)
-  const instances = Object.values(data).flat()
-  const passing   = instances.filter(i => i.status === 'passing').length
-  const warning   = instances.filter(i => i.status === 'warning').length
-  const critical  = instances.filter(i => i.status === 'critical').length
-  return { services, instances, passing, warning, critical }
 }
 
 export function DashboardPage() {
@@ -40,7 +22,11 @@ export function DashboardPage() {
     staleTime: 5_000,
   })
 
-  const stats = data ? deriveStats(data) : null
+  const services  = data ?? []
+  const instances = services.flatMap(s => s.instances)
+  const passing   = instances.filter(i => i.status === 'passing').length
+  const degraded  = instances.filter(i => i.status !== 'passing').length
+  const critical  = instances.filter(i => i.status === 'critical').length
 
   const updatedAt = dataUpdatedAt
     ? new Date(dataUpdatedAt).toLocaleTimeString()
@@ -54,66 +40,52 @@ export function DashboardPage() {
       />
       <main style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
 
-        {/* KPI row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--space-4)' }}>
           <Card>
-            <CardHeader>
-              <CardTitle>Services</CardTitle>
-              <Server size={16} style={{ color: 'var(--color-text-faint)' }} />
-            </CardHeader>
-            <CardValue>{isLoading ? '—' : (stats?.services.length ?? 0)}</CardValue>
+            <CardHeader><CardTitle>Services</CardTitle><Server size={16} style={{ color: 'var(--color-text-faint)' }} /></CardHeader>
+            <CardValue>{isLoading ? '—' : services.length}</CardValue>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>registered</p>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Instances</CardTitle>
-              <Cpu size={16} style={{ color: 'var(--color-text-faint)' }} />
-            </CardHeader>
-            <CardValue>{isLoading ? '—' : (stats?.instances.length ?? 0)}</CardValue>
+            <CardHeader><CardTitle>Instances</CardTitle><Cpu size={16} style={{ color: 'var(--color-text-faint)' }} /></CardHeader>
+            <CardValue>{isLoading ? '—' : instances.length}</CardValue>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>total</p>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Healthy</CardTitle>
-              <Activity size={16} style={{ color: 'var(--color-success)' }} />
-            </CardHeader>
-            <CardValue style={{ color: 'var(--color-success)' }}>
-              {isLoading ? '—' : (stats?.passing ?? 0)}
-            </CardValue>
+            <CardHeader><CardTitle>Healthy</CardTitle><Activity size={16} style={{ color: 'var(--color-success)' }} /></CardHeader>
+            <CardValue style={{ color: 'var(--color-success)' }}>{isLoading ? '—' : passing}</CardValue>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>passing</p>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>Degraded</CardTitle>
-              <AlertTriangle size={16} style={{ color: stats?.critical ? 'var(--color-error)' : 'var(--color-text-faint)' }} />
+              <AlertTriangle size={16} style={{ color: critical ? 'var(--color-error)' : 'var(--color-text-faint)' }} />
             </CardHeader>
-            <CardValue style={{ color: stats?.critical ? 'var(--color-error)' : stats?.warning ? 'var(--color-warning)' : undefined }}>
-              {isLoading ? '—' : ((stats?.critical ?? 0) + (stats?.warning ?? 0))}
+            <CardValue style={{ color: critical ? 'var(--color-error)' : degraded ? 'var(--color-warning)' : undefined }}>
+              {isLoading ? '—' : degraded}
             </CardValue>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>
-              {(stats?.critical ?? 0) > 0 ? `${stats!.critical} critical` : 'warning or critical'}
+              {critical > 0 ? `${critical} critical` : 'warning or critical'}
             </p>
           </Card>
         </div>
 
-        {/* Error state */}
         {isError && (
           <Card style={{ borderColor: 'var(--color-error)', color: 'var(--color-error)', fontSize: 'var(--text-sm)' }}>
             ⚠️ Cannot reach registry — is the backend running?
           </Card>
         )}
 
-        {/* Services table */}
         <Card style={{ padding: 0 }}>
           <div style={{ padding: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h2 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Services</h2>
             {isLoading && <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)' }}>loading…</span>}
           </div>
 
-          {!isLoading && !isError && (!data || Object.keys(data).length === 0) ? (
+          {!isLoading && !isError && services.length === 0 ? (
             <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>
               No services registered yet.
             </div>
@@ -121,7 +93,7 @@ export function DashboardPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  {['Name', 'Instances', 'Status'].map(h => (
+                  {['Name', 'Labels', 'Instances', 'Status'].map(h => (
                     <th key={h} style={{
                       padding: 'var(--space-2) var(--space-4)',
                       textAlign: 'left',
@@ -135,22 +107,33 @@ export function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {data && Object.entries(data).map(([name, instances], i, arr) => {
-                  const status = worstStatus(instances.map(i => i.status))
-                  return (
-                    <tr key={name} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--color-divider)' : 'none' }}>
-                      <td style={{ padding: 'var(--space-3) var(--space-4)', fontFamily: 'monospace', fontSize: 'var(--text-sm)' }}>
-                        {name}
-                      </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-4)', color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}>
-                        {instances.length}
-                      </td>
-                      <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
-                        <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>
-                      </td>
-                    </tr>
-                  )
-                })}
+                {services.map((svc, i) => (
+                  <tr key={svc.id} style={{ borderBottom: i < services.length - 1 ? '1px solid var(--color-divider)' : 'none' }}>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontFamily: 'monospace', fontSize: 'var(--text-sm)' }}>
+                      {svc.name}
+                    </td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
+                        {Object.entries(svc.labels).map(([k, v]) => (
+                          <span key={k} style={{
+                            fontSize: 'var(--text-xs)',
+                            fontFamily: 'monospace',
+                            background: 'var(--color-surface-offset)',
+                            padding: '2px 6px',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--color-text-muted)',
+                          }}>{k}={v}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                      {svc.instances.length}
+                    </td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                      <Badge variant={STATUS_VARIANT[svc.worstStatus]}>{svc.worstStatus}</Badge>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}

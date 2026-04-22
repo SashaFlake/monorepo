@@ -1,90 +1,123 @@
 // ---------------------------------------------------------------------------
 // Registry — Domain Model
+// Service и Instance — отдельные сущности.
+//
+// Service создаётся один раз (при деплое / вручную).
+// Instance регистрируется при старте пода и живёт до явного DELETE.
 // ---------------------------------------------------------------------------
 
-export type ServiceName = string & { readonly _brand: 'ServiceName' }
-export type InstanceId  = string & { readonly _brand: 'InstanceId' }
+export type ServiceId  = string & { readonly _brand: 'ServiceId' }
+export type InstanceId = string & { readonly _brand: 'InstanceId' }
 
-export const serviceName = (v: string): ServiceName => v as ServiceName
-export const instanceId  = (v: string): InstanceId  => v as InstanceId
+export const serviceId  = (v: string): ServiceId  => v as ServiceId
+export const instanceId = (v: string): InstanceId => v as InstanceId
+
+export type Labels = Record<string, string>
 
 export type InstanceStatus = 'passing' | 'warning' | 'critical'
 
-/**
- * Результат последней активной проверки health check.
- * null — проверка ещё не проводилась (инстанс только что зарегистрировался).
- */
+// ---------------------------------------------------------------------------
+// HealthCheckResult
+// ---------------------------------------------------------------------------
+
 export type HealthCheckResult = {
   readonly checkedAt:  Date
   readonly ok:         boolean
-  readonly statusCode: number | null   // null если сеть недоступна
+  readonly statusCode: number | null
   readonly latencyMs:  number
 }
 
-/**
- * Инстанс зарегистрированного сервиса.
- * Иммутабельный value object — обновление = новый объект.
- */
-export type ServiceInstance = {
+// ---------------------------------------------------------------------------
+// Service — корневая сущность
+// Описывает логический сервис: имя, labels, селекторы.
+// Не знает про конкретные хосты — это зона Instance.
+// ---------------------------------------------------------------------------
+
+export type Service = {
+  readonly id:           ServiceId
+  readonly name:         string
+  readonly labels:       Labels       // { env: 'prod', version: '2', team: 'payments' }
+  readonly registeredAt: Date
+}
+
+// ---------------------------------------------------------------------------
+// Instance — конкретный запущенный экземпляр сервиса
+// ---------------------------------------------------------------------------
+
+export type Instance = {
   readonly id:              InstanceId
-  readonly serviceName:     ServiceName
+  readonly serviceId:       ServiceId
   readonly host:            string
   readonly port:            number
-  readonly healthPath:      string          // по умолчанию /health
+  readonly healthPath:      string
   readonly metadata:        Record<string, string>
   readonly registeredAt:    Date
   readonly lastHeartbeatAt: Date
   readonly lastHealthCheck: HealthCheckResult | null
 }
 
-/**
- * Итоговый статус = worst(ttlStatus, healthCheckStatus).
- *
- * TTL:
- *   passing  → heartbeat < ttl/2 ago
- *   warning  → heartbeat < ttl ago
- *   critical → heartbeat >= ttl ago
- *
- * Health check:
- *   passing  → последняя проверка ok
- *   critical → последняя проверка !ok
- *   passing  → проверка ещё не проводилась (даём grace period)
- *
- * Итог: если хотя бы одно critical — critical.
- *        если хотя бы одно warning  — warning.
- *        иначе                      — passing.
- */
+// ---------------------------------------------------------------------------
+// Status derivation (TTL + health check → worst-case)
+// ---------------------------------------------------------------------------
+
 export const deriveStatus = (
-  instance: ServiceInstance,
+  instance: Instance,
   ttlMs: number,
 ): InstanceStatus => {
-  // TTL статус
   const elapsed = Date.now() - instance.lastHeartbeatAt.getTime()
   const ttlStatus: InstanceStatus =
     elapsed < ttlMs / 2 ? 'passing' :
     elapsed < ttlMs     ? 'warning' :
     'critical'
 
-  // Health check статус
   const hcStatus: InstanceStatus =
-    instance.lastHealthCheck === null ? 'passing' :   // grace period
+    instance.lastHealthCheck === null ? 'passing' :
     instance.lastHealthCheck.ok       ? 'passing' :
     'critical'
 
-  // Worst-case
   if (ttlStatus === 'critical' || hcStatus === 'critical') return 'critical'
   if (ttlStatus === 'warning')                             return 'warning'
   return 'passing'
 }
 
-export type ServiceInstanceView = ServiceInstance & {
+// ---------------------------------------------------------------------------
+// Views (то что отдаём наружу)
+// ---------------------------------------------------------------------------
+
+export type InstanceView = Instance & {
   readonly status: InstanceStatus
 }
 
-export const toView = (
-  instance: ServiceInstance,
+export type ServiceView = Service & {
+  readonly instances:     InstanceView[]
+  readonly worstStatus:   InstanceStatus
+}
+
+export const toInstanceView = (
+  instance: Instance,
   ttlMs: number,
-): ServiceInstanceView => ({
+): InstanceView => ({
   ...instance,
   status: deriveStatus(instance, ttlMs),
 })
+
+// worst-case статус по инстансам; нет инстансов = critical
+export const worstStatus = (statuses: InstanceStatus[]): InstanceStatus => {
+  if (statuses.length === 0)         return 'critical'
+  if (statuses.includes('critical')) return 'critical'
+  if (statuses.includes('warning'))  return 'warning'
+  return 'passing'
+}
+
+export const toServiceView = (
+  service: Service,
+  instances: Instance[],
+  ttlMs: number,
+): ServiceView => {
+  const views = instances.map(i => toInstanceView(i, ttlMs))
+  return {
+    ...service,
+    instances:   views,
+    worstStatus: worstStatus(views.map(v => v.status)),
+  }
+}

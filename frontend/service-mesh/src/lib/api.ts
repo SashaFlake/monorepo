@@ -1,39 +1,80 @@
 // ---------------------------------------------------------------------------
 // Registry API client
-// Все типы зеркалят backend/service-mesh domain/model.ts
+// Типы зеркалят backend domain/model.ts
 // ---------------------------------------------------------------------------
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
 
 export type InstanceStatus = 'passing' | 'warning' | 'critical'
+export type Labels = Record<string, string>
 
-export type ServiceInstance = {
+export type InstanceView = {
   id:              string
-  serviceName:     string
+  serviceId:       string
   host:            string
   port:            number
+  healthPath:      string
   metadata:        Record<string, string>
   registeredAt:    string
   lastHeartbeatAt: string
-  status:          InstanceStatus
+  lastHealthCheck: {
+    checkedAt:  string
+    ok:         boolean
+    statusCode: number | null
+    latencyMs:  number
+  } | null
+  status: InstanceStatus
 }
 
-// GET /api/v1/services
-// { [serviceName]: ServiceInstance[] }
-export type ServicesMap = Record<string, ServiceInstance[]>
+export type ServiceView = {
+  id:           string
+  name:         string
+  labels:       Labels
+  registeredAt: string
+  instances:    InstanceView[]
+  worstStatus:  InstanceStatus
+}
 
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`)
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, init)
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
   return res.json() as Promise<T>
 }
 
 export const registryApi = {
-  listServices: (): Promise<ServicesMap> =>
-    get<ServicesMap>('/api/v1/services'),
+  // Services
+  listServices: (): Promise<ServiceView[]> =>
+    apiFetch<ServiceView[]>('/api/v1/services'),
 
-  getService: (name: string): Promise<ServiceInstance[]> =>
-    get<ServiceInstance[]>(`/api/v1/services/${name}`),
+  getService: (id: string): Promise<ServiceView> =>
+    apiFetch<ServiceView>(`/api/v1/services/${id}`),
+
+  createService: (name: string, labels?: Labels): Promise<ServiceView> =>
+    apiFetch<ServiceView>('/api/v1/services', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, labels }),
+    }),
+
+  deleteService: (id: string): Promise<void> =>
+    apiFetch<void>(`/api/v1/services/${id}`, { method: 'DELETE' }),
+
+  // Instances
+  registerInstance: (input: {
+    serviceId: string
+    host: string
+    port: number
+    healthPath?: string
+    metadata?: Record<string, string>
+  }): Promise<InstanceView> =>
+    apiFetch<InstanceView>('/api/v1/instances', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+
+  deregisterInstance: (id: string): Promise<void> =>
+    apiFetch<void>(`/api/v1/instances/${id}`, { method: 'DELETE' }),
 }
 
 // ---------------------------------------------------------------------------
@@ -42,5 +83,5 @@ export const registryApi = {
 export const registryKeys = {
   all:     ['registry'] as const,
   list:    () => [...registryKeys.all, 'list'] as const,
-  service: (name: string) => [...registryKeys.all, 'service', name] as const,
+  service: (id: string) => [...registryKeys.all, 'service', id] as const,
 }
