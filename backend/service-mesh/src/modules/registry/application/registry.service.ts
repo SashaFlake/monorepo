@@ -5,20 +5,18 @@ import {
   type InstanceId,
   type ServiceInstance,
   type ServiceInstanceView,
+  type HealthCheckResult,
   serviceName,
   instanceId,
   toView,
 } from '../domain/model.js'
 import { registryError, type RegistryError } from '../domain/errors.js'
 
-// ---------------------------------------------------------------------------
-// DTOs (вход из presentation слоя)
-// ---------------------------------------------------------------------------
-
 export type RegisterInput = {
   serviceName: string
   host:        string
   port:        number
+  healthPath?: string
   metadata?:   Record<string, string>
 }
 
@@ -26,18 +24,12 @@ export type RegisterOutput = {
   instanceId: InstanceId
 }
 
-// ---------------------------------------------------------------------------
-// RegistryService — in-memory реализация
-// Позже: заменить store на репозиторий с портом + адаптером (Redis / Postgres)
-// ---------------------------------------------------------------------------
-
 export class RegistryService {
-  // Map<serviceName, Map<instanceId, instance>>
   private readonly store = new Map<ServiceName, Map<InstanceId, ServiceInstance>>()
 
   constructor(private readonly ttlMs: number) {}
 
-  // ── Register ─────────────────────────────────────────────────────────────
+  // ── Register ──────────────────────────────────────────────────────────────
 
   register(input: RegisterInput): Result<RegisterOutput, RegistryError> {
     const svcName = serviceName(input.serviceName)
@@ -49,15 +41,14 @@ export class RegistryService {
       serviceName:     svcName,
       host:            input.host,
       port:            input.port,
+      healthPath:      input.healthPath ?? '/health',
       metadata:        input.metadata ?? {},
       registeredAt:    now,
       lastHeartbeatAt: now,
+      lastHealthCheck: null,   // первая проверка придёт от health checker-а
     }
 
-    if (!this.store.has(svcName)) {
-      this.store.set(svcName, new Map())
-    }
-
+    if (!this.store.has(svcName)) this.store.set(svcName, new Map())
     this.store.get(svcName)!.set(id, instance)
 
     return ok({ instanceId: id })
@@ -67,7 +58,6 @@ export class RegistryService {
 
   heartbeat(id: string): Result<void, RegistryError> {
     const iid = instanceId(id)
-
     for (const instances of this.store.values()) {
       const instance = instances.get(iid)
       if (instance) {
@@ -75,22 +65,38 @@ export class RegistryService {
         return ok(undefined)
       }
     }
-
     return err(registryError('INSTANCE_NOT_FOUND', `Instance ${id} not found`))
+  }
+
+  // ── Record health check result (вызывается из ActiveHealthChecker) ────────
+
+  recordHealthCheck(
+    id: string,
+    result: Omit<HealthCheckResult, 'checkedAt'>,
+  ): void {
+    const iid = instanceId(id)
+    for (const instances of this.store.values()) {
+      const instance = instances.get(iid)
+      if (instance) {
+        instances.set(iid, {
+          ...instance,
+          lastHealthCheck: { ...result, checkedAt: new Date() },
+        })
+        return
+      }
+    }
   }
 
   // ── Deregister ────────────────────────────────────────────────────────────
 
   deregister(id: string): Result<void, RegistryError> {
     const iid = instanceId(id)
-
     for (const instances of this.store.values()) {
       if (instances.has(iid)) {
         instances.delete(iid)
         return ok(undefined)
       }
     }
-
     return err(registryError('INSTANCE_NOT_FOUND', `Instance ${id} not found`))
   }
 
@@ -99,33 +105,35 @@ export class RegistryService {
   getService(name: string): Result<ServiceInstanceView[], RegistryError> {
     const svcName   = serviceName(name)
     const instances = this.store.get(svcName)
-
     if (!instances || instances.size === 0) {
       return err(registryError('SERVICE_NOT_FOUND', `Service "${name}" not found`))
     }
-
-    const views = [...instances.values()].map((i) => toView(i, this.ttlMs))
-    return ok(views)
+    return ok([...instances.values()].map(i => toView(i, this.ttlMs)))
   }
-
-  // ── List all ──────────────────────────────────────────────────────────────
 
   listServices(): Record<string, ServiceInstanceView[]> {
     const result: Record<string, ServiceInstanceView[]> = {}
-
     for (const [name, instances] of this.store.entries()) {
-      result[name] = [...instances.values()].map((i) => toView(i, this.ttlMs))
+      result[name] = [...instances.values()].map(i => toView(i, this.ttlMs))
     }
-
     return result
   }
 
-  // ── GC: удалить критические инстансы ─────────────────────────────────────
+  // ── getAllInstances — нужен health checker-у ───────────────────────────────
+
+  getAllInstances(): ServiceInstance[] {
+    const all: ServiceInstance[] = []
+    for (const instances of this.store.values()) {
+      all.push(...instances.values())
+    }
+    return all
+  }
+
+  // ── GC ────────────────────────────────────────────────────────────────────
 
   purgeExpired(): number {
     let removed = 0
     const deadline = Date.now() - this.ttlMs
-
     for (const instances of this.store.values()) {
       for (const [id, instance] of instances.entries()) {
         if (instance.lastHeartbeatAt.getTime() < deadline) {
@@ -134,7 +142,6 @@ export class RegistryService {
         }
       }
     }
-
     return removed
   }
 }

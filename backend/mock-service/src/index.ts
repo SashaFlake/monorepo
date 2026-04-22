@@ -8,7 +8,7 @@ const HOST          = process.env.HOST                 ?? '0.0.0.0'
 const SERVICE_NAME  = process.env.SERVICE_NAME         ?? 'mock-service'
 const SERVICE_HOST  = process.env.SERVICE_HOST         ?? '127.0.0.1'
 const REGISTRY_URL  = process.env.REGISTRY_URL         ?? 'http://localhost:4000'
-const HEARTBEAT_MS  = Number(process.env.HEARTBEAT_MS  ?? 10_000)  // < TTL/2 (30s)
+const HEARTBEAT_MS  = Number(process.env.HEARTBEAT_MS  ?? 10_000)
 
 // ── Business endpoint ────────────────────────────────────────────────────────
 app.get('/hello-world', async () => ({
@@ -38,8 +38,9 @@ async function register(): Promise<void> {
     throw new Error(`Registry register failed: ${res.status} ${await res.text()}`)
   }
 
-  const data = await res.json() as { id: string }
-  instanceId = data.id
+  const data = await res.json() as { instanceId: string }
+  if (!data.instanceId) throw new Error('Registry did not return instanceId')
+  instanceId = data.instanceId
   app.log.info({ instanceId }, 'Registered in mesh')
 }
 
@@ -64,7 +65,6 @@ async function deregister(): Promise<void> {
 // ── Startup ──────────────────────────────────────────────────────────────────
 await app.listen({ port: PORT, host: HOST })
 
-// Пробуем зарегистрироваться, retry с backoff если registry ещё не готов
 for (let attempt = 1; attempt <= 10; attempt++) {
   try {
     await register()
@@ -75,7 +75,6 @@ for (let attempt = 1; attempt <= 10; attempt++) {
   }
 }
 
-// Heartbeat loop
 const heartbeatTimer = setInterval(heartbeat, HEARTBEAT_MS)
 
 // ── Graceful shutdown ────────────────────────────────────────────────────────

@@ -2,8 +2,9 @@ import Fastify from 'fastify'
 import cors     from '@fastify/cors'
 import sensible from '@fastify/sensible'
 import { env } from '../config/env.js'
-import { RegistryService } from '../modules/registry/application/registry.service.js'
-import { registryRoutes }  from '../modules/registry/presentation/routes.js'
+import { RegistryService }      from '../modules/registry/application/registry.service.js'
+import { ActiveHealthChecker }  from '../modules/registry/application/health-checker.js'
+import { registryRoutes }       from '../modules/registry/presentation/routes.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -18,22 +19,26 @@ export async function buildApp() {
   await app.register(cors,     { origin: true })
   await app.register(sensible)
 
-  // Composition root — создаём сервисы здесь
-  // Позже: вынести в container/index.ts как в mdm-core-node
   const registry = new RegistryService(env.INSTANCE_TTL_SECONDS * 1000)
 
-  // GC: чистим expired инстансы каждые 10 секунд
+  // Active health checker — registry сам проверяет каждый инстанс
+  // Интервал: 10 сек, таймаут на один запрос: 3 сек
+  const healthChecker = new ActiveHealthChecker(
+    registry,
+    10_000,
+    3_000,
+    app.log,
+  )
+  healthChecker.start()
+
+  // GC: удаляем инстансы без heartbeat каждые 10 секунд
   setInterval(() => {
     const removed = registry.purgeExpired()
-    if (removed > 0) {
-      app.log.info({ removed }, 'Purged expired instances')
-    }
+    if (removed > 0) app.log.info({ removed }, 'Purged expired instances')
   }, 10_000)
 
-  // Routes
   await app.register(registryRoutes, { prefix: '/api/v1', registry })
 
-  // Health
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
 
   return app
