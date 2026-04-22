@@ -24,9 +24,15 @@ export function Card({ children, style, className }: CardProps) {
   )
 }
 
-export function CardHeader({ children }: { children: ReactNode }) {
+export function CardHeader({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <div style={{ marginBottom: 'var(--space-3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{
+      marginBottom: 'var(--space-3)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...style,
+    }}>
       {children}
     </div>
   )
@@ -40,9 +46,9 @@ export function CardTitle({ children }: { children: ReactNode }) {
   )
 }
 
-export function CardValue({ children }: { children: ReactNode }) {
+export function CardValue({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <p style={{ fontSize: 'var(--text-xl)', fontWeight: 700, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
+    <p style={{ fontSize: 'var(--text-xl)', fontWeight: 700, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', ...style }}>
       {children}
     </p>
   )
