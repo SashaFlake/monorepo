@@ -27,13 +27,35 @@ services:
     networks:
       - sm-net
 
+  # ─── Mock service ────────────────────────────────────────────────────────────
+  mock-service:
+    build:
+      context: ./backend/mock-service
+      dockerfile: Dockerfile
+    container_name: sm-mock
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      HOST: 0.0.0.0
+      SERVICE_NAME: mock-service
+      # Имя хоста, которое registry отдаст клиентам для обращения к сервису
+      SERVICE_HOST: sm-mock
+      REGISTRY_URL: http://sm-registry:4000
+      HEARTBEAT_MS: 10000
+    depends_on:
+      registry:
+        condition: service_healthy
+    networks:
+      - sm-net
+
   # ─── UI frontend ────────────────────────────────────────────────────────────
   ui:
     build:
       context: ./frontend/service-mesh
       dockerfile: Dockerfile
       args:
-        # Браузер обращается к backend напрямую через порт хоста
         VITE_API_URL: http://localhost:4000
     container_name: sm-ui
     restart: unless-stopped
