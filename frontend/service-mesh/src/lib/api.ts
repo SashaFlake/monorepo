@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------
 // Registry API client
-// Типы зеркалят backend domain/model.ts
 // ---------------------------------------------------------------------------
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
@@ -35,11 +34,75 @@ export type ServiceView = {
   worstStatus:  InstanceStatus
 }
 
+// ---------------------------------------------------------------------------
+// Versions & Manifest
+// ---------------------------------------------------------------------------
+
+export type MockManifest = {
+  apiVersion: string
+  kind: string
+  metadata: {
+    name: string
+    version: string
+    generatedAt: string
+  }
+  spec: {
+    exposure: string
+    protocol: string
+    ports: Array<{ name: string; port: number; targetPort: number; protocol: string }>
+    routing: { loadBalancing: string; retries: number; timeoutMs: number }
+    health: { path: string; intervalMs: number; ttlMs: number }
+  }
+}
+
+export type ServiceVersion = {
+  version:       string
+  instanceCount: number
+  instances:     InstanceView[]
+  manifest:      MockManifest
+}
+
+export type ServiceVersionsResponse = {
+  serviceId:   string
+  serviceName: string
+  versions:    ServiceVersion[]
+}
+
+// OpenAPI — минимальный тип для отображения
+export type OpenApiDoc = {
+  openapi?: string
+  info?: { title?: string; version?: string; description?: string }
+  paths?: Record<string, Record<string, {
+    summary?:     string
+    description?: string
+    operationId?: string
+    tags?:        string[]
+    parameters?:  unknown[]
+    responses?:   Record<string, unknown>
+    deprecated?:  boolean
+  }>>
+  tags?: Array<{ name: string; description?: string }>
+}
+
+export type OpenApiError = {
+  error:   string
+  message: string
+  url?:    string
+}
+
+// ---------------------------------------------------------------------------
+// Fetch helper
+// ---------------------------------------------------------------------------
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, init)
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
   return res.json() as Promise<T>
 }
+
+// ---------------------------------------------------------------------------
+// API
+// ---------------------------------------------------------------------------
 
 export const registryApi = {
   // Services
@@ -58,6 +121,16 @@ export const registryApi = {
 
   deleteService: (id: string): Promise<void> =>
     apiFetch<void>(`/api/v1/services/${id}`, { method: 'DELETE' }),
+
+  // Versions & manifest
+  getServiceVersions: (id: string): Promise<ServiceVersionsResponse> =>
+    apiFetch<ServiceVersionsResponse>(`/api/v1/services/${id}/versions`),
+
+  // OpenAPI (может вернуть 502/503 — обрабатываем в компоненте)
+  getServiceOpenApi: (id: string, version?: string): Promise<OpenApiDoc> => {
+    const qs = version ? `?version=${encodeURIComponent(version)}` : ''
+    return apiFetch<OpenApiDoc>(`/api/v1/services/${id}/openapi${qs}`)
+  },
 
   // Instances
   registerInstance: (input: {
@@ -81,7 +154,9 @@ export const registryApi = {
 // Query keys
 // ---------------------------------------------------------------------------
 export const registryKeys = {
-  all:     ['registry'] as const,
-  list:    () => [...registryKeys.all, 'list'] as const,
-  service: (id: string) => [...registryKeys.all, 'service', id] as const,
+  all:      ['registry'] as const,
+  list:     () => [...registryKeys.all, 'list'] as const,
+  service:  (id: string) => [...registryKeys.all, 'service', id] as const,
+  versions: (id: string) => [...registryKeys.all, 'versions', id] as const,
+  openapi:  (id: string, version?: string) => [...registryKeys.all, 'openapi', id, version ?? ''] as const,
 }
