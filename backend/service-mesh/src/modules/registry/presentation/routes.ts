@@ -39,6 +39,7 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
       return reply.status(400).send({ error: 'VALIDATION_ERROR', issues: parsed.error.issues })
     }
     const result = registry.createService(parsed.data)
+    if (result.isErr()) return reply.status(400).send({ error: result.error.code, message: result.error.message })
     return reply.status(201).send(result.value)
   })
 
