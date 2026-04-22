@@ -28,6 +28,26 @@ const ListServicesQuery = z.object({
 })
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Парсит строку вида "env=prod,version=1.0" в Record<string, string>.
+ * Пары без '=' игнорируются.
+ */
+function parseLabelsQuery(raw: string): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const pair of raw.split(',')) {
+    const eqIdx = pair.indexOf('=')
+    if (eqIdx === -1) continue
+    const key = pair.slice(0, eqIdx).trim()
+    const val = pair.slice(eqIdx + 1).trim()
+    if (key) result[key] = val
+  }
+  return result
+}
+
+// ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
 
@@ -54,15 +74,8 @@ export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }
     if (!query.success) return reply.status(400).send({ error: 'VALIDATION_ERROR' })
 
     const filter: { name?: string; labels?: Record<string, string> } = {}
-    if (query.data.name) filter.name = query.data.name
-    if (query.data.labels) {
-      filter.labels = Object.fromEntries(
-        query.data.labels.split(',').map(pair => {
-          const [k, ...rest] = pair.split('=')
-          return [k.trim(), rest.join('=').trim()]
-        })
-      )
-    }
+    if (query.data.name)   filter.name   = query.data.name
+    if (query.data.labels) filter.labels = parseLabelsQuery(query.data.labels)
 
     return reply.send(registry.listServices(filter))
   })
