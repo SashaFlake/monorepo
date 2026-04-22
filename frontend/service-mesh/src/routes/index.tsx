@@ -14,8 +14,10 @@ const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = 
   critical: 'error',
 }
 
-// Агрегация статуса сервиса: worst-case по инстансам
+// Агрегация статуса сервиса: worst-case по инстансам.
+// Пустой массив = нет живых инстансов → critical.
 function worstStatus(statuses: InstanceStatus[]): InstanceStatus {
+  if (statuses.length === 0)         return 'critical'
   if (statuses.includes('critical')) return 'critical'
   if (statuses.includes('warning'))  return 'warning'
   return 'passing'
