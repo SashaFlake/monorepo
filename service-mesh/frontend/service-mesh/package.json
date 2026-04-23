@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "./node_modules/.bin/tsr generate && tsc -b && vite build",
+    "build": "tsr generate && tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "./node_modules/.bin/tsr generate && tsc --noEmit"
+    "typecheck": "tsr generate && tsc --noEmit"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/router-cli": "^1.95.0",
     "@tanstack/router-plugin": "^1.95.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
