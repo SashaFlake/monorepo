@@ -1,8 +1,9 @@
 import { Bell, Search } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 type HeaderProps = {
   title: string
-  subtitle?: string
+  subtitle?: ReactNode
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
@@ -23,7 +24,7 @@ export function Header({ title, subtitle }: HeaderProps) {
       <div>
         <h1 style={{ fontSize: 'var(--text-base)', fontWeight: 600, lineHeight: 1.2 }}>{title}</h1>
         {subtitle && (
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: '1px' }}>{subtitle}</p>
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: '1px' }}>{subtitle}</div>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
