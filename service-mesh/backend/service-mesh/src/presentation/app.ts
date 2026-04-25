@@ -38,6 +38,7 @@ export async function buildApp() {
   await app.register(registryRoutes, { prefix: '/api/v1', registry })
 
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
+  app.register(routingRulesRoutes(routingRuleService))
 
   return app
 }

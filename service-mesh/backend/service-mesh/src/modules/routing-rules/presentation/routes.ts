@@ -1,8 +1,13 @@
-export const registryRoutes: FastifyPluginAsync<Opts> = async (app, { registry }) => {
-    const rules = makeRoutingRuleHandlers(registry)
+import type { FastifyInstance } from 'fastify'
+import type { RoutingRuleService } from '../application/routing-rule.service.js'
+import { makeRoutingRuleHandlers } from './routing-rule.handlers.js'
 
-    app.get('/services/:serviceId/routing-rules',      rules.list)
-    app.post('/services/:serviceId/routing-rules',     rules.create)
-    app.put('/routing-rules/:ruleId',                  rules.update)
-    app.delete('/routing-rules/:ruleId',               rules.delete)
-}
+export const routingRulesRoutes = (service: RoutingRuleService) =>
+    async (app: FastifyInstance) => {
+        const handlers = makeRoutingRuleHandlers(service)
+
+        app.get('/services/:serviceId/routing-rules',  handlers.list)
+        app.post('/services/:serviceId/routing-rules', handlers.create)
+        app.put('/routing-rules/:ruleId',              handlers.update)
+        app.delete('/routing-rules/:ruleId',           handlers.delete)
+    }
