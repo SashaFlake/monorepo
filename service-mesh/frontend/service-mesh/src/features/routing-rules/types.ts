@@ -1,34 +1,38 @@
-// ---------------------------------------------------------------------------
-// Routing Rules — domain types
-// ---------------------------------------------------------------------------
+// ── Типы UI (с запасом на traffic splitting) ─────────────────────────────────
+//
+// Бэкенд сейчас хранит один destination на правило.
+// UI работает с массивом destinations[] — маппинг в api.ts.
+// Когда бэкенд вырастет — меняем только адаптер.
 
-export type Upstream = {
-  serviceId: string
-  weight: number  // 0–100, сумма всех upstreams в правиле должна быть 100
+export type Destination = {
+  /** Для будущего cross-service routing */
+  serviceId?: string
+  /** Целевая версия инстанса */
+  version?: string
+  /** Доля трафика 0–100. Сумма всех destinations должна быть 100 */
+  weightPct: number
+}
+
+export type RuleMatch = {
+  pathPrefix?: string
+  headers?: Record<string, string>
 }
 
 export type RoutingRule = {
   id: string
+  serviceId: string
   name: string
-  match: {
-    host?: string
-    path?: string
-    headers?: Record<string, string>
-  }
-  upstreams: Upstream[]
+  /** 0–1000, меньше = выше приоритет */
+  priority: number
+  match: RuleMatch
+  destinations: Destination[]
   createdAt: string
   updatedAt: string
 }
 
-// Форма создания/редактирования — без id и дат
 export type RuleFormValues = {
   name: string
-  match: {
-    host: string
-    path: string
-  }
-  upstreams: Upstream[]
+  priority: number
+  match: RuleMatch
+  destinations: Destination[]
 }
-
-export type CreateRuleInput = RuleFormValues
-export type UpdateRuleInput = RuleFormValues
