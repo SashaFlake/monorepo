@@ -1,0 +1,104 @@
+# =============================================================================
+# IDEs & Editors
+# =============================================================================
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# Vim / Emacs
+*.swp
+*.swo
+*~
+\#*\#
+
+# =============================================================================
+# Node.js
+# =============================================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+build/
+.next/
+.nuxt/
+.svelte-kit/
+
+# Env files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.stylelintcache
+tsconfig.tsbuildinfo
+
+# =============================================================================
+# Kotlin / Android
+# =============================================================================
+
+# Gradle
+.gradle/
+gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+gradlew
+gradlew.bat
+local.properties
+
+# Android build
+android/build/
+android/app/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Kotlin compiled
+*.class
+*.jar
+*.war
+
+# =============================================================================
+# OS
+# =============================================================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# Docker / K8s
+# =============================================================================
+
+*.env.docker
+docker-compose.override.yml
+
+# =============================================================================
+# Misc
+# =============================================================================
+
+*.log
+*.pid
+*.seed
+*.lock.bak
+coverage/
+.nyc_output/
