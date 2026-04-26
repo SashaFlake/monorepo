@@ -19,6 +19,13 @@ type RoutingRuleDto = {
   updatedAt: string
 }
 
+// ── Query Keys ────────────────────────────────────────────────────────────────
+
+export const routingKeys = {
+  all:  () => ['routing-rules']                             as const,
+  list: (serviceId: string) => ['routing-rules', serviceId] as const,
+}
+
 // ── Адаптеры (единственное место знания об ограничении бэкенда) ───────────────
 
 const fromDto = (dto: RoutingRuleDto): RoutingRule => ({
