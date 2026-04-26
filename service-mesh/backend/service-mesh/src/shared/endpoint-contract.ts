@@ -7,7 +7,7 @@ import type { ZodTypeAny } from 'zod'
  *   - handler type inference
  *   - future OpenAPI spec generation
  */
-export interface RouteContract<
+export interface EndpointContract<
   TBody extends ZodTypeAny = ZodTypeAny,
   TParams extends ZodTypeAny = ZodTypeAny,
   TQuery extends ZodTypeAny = ZodTypeAny,

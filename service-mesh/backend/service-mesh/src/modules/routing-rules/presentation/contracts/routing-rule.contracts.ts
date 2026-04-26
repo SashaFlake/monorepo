@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { EndpointContract } from '../../../../shared/route-contract.js'
 
 const Match = z.object({
   headers:    z.record(z.string()).optional(),

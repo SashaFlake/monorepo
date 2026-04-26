@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { RouteContract } from './route-contract.js'
+import type { EndpointContract } from '../../../../shared/route-contract.js'
 
 // ---------------------------------------------------------------------------
 // Shared schemas
@@ -44,7 +44,7 @@ export const RegisterInstanceContract = {
   tags:     ['Instances'],
   body:     InstanceSchemas.RegisterBody,
   response: InstanceSchemas.InstanceDto,
-} satisfies RouteContract
+} satisfies EndpointContract
 
 export const HeartbeatContract = {
   method:   'PUT',
@@ -53,7 +53,7 @@ export const HeartbeatContract = {
   tags:     ['Instances'],
   params:   InstanceSchemas.InstanceIdParam,
   response: z.void(),
-} satisfies RouteContract
+} satisfies EndpointContract
 
 export const DeregisterInstanceContract = {
   method:   'DELETE',
@@ -62,4 +62,4 @@ export const DeregisterInstanceContract = {
   tags:     ['Instances'],
   params:   InstanceSchemas.InstanceIdParam,
   response: z.void(),
-} satisfies RouteContract
+} satisfies EndpointContract

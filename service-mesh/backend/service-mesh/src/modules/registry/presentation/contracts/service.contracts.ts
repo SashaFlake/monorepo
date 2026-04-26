@@ -1,1 +1,103 @@
-aW1wb3J0IHsgeiB9IGZyb20gJ3pvZCcKaW1wb3J0IHR5cGUgeyBSb3V0ZUNvbnRyYWN0IH0gZnJvbSAnLi4vLi4vLi4vLi4vLi4vc2hhcmVkL3JvdXRlLWNvbnRyYWN0LmpzJwoKLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCi8vIFNoYXJlZCBzY2hlbWFzCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKZXhwb3J0IGNvbnN0IFNlcnZpY2VTY2hlbWFzID0gewogIENyZWF0ZUJvZHk6IHoub2JqZWN0KHsKICAgIG5hbWU6ICAgei5zdHJpbmcoKS5taW4oMSkubWF4KDEyOCksCiAgICBsYWJlbHM6IHoucmVjb3JkKHouc3RyaW5nKCkpLm9wdGlvbmFsKCksCiAgfSksCgogIFNlcnZpY2VJZFBhcmFtOiB6Lm9iamVjdCh7CiAgICBzZXJ2aWNlSWQ6IHouc3RyaW5nKCkudXVpZCgpLAogIH0pLAoKICBMaXN0UXVlcnk6IHoub2JqZWN0KHsKICAgIG5hbWU6ICAgei5zdHJpbmcoKS5vcHRpb25hbCgpLAogICAgbGFiZWxzOiB6LnN0cmluZygpLm9wdGlvbmFsKCksCiAgfSksCgogIFZlcnNpb25RdWVyeTogeC5vYmplY3QoewogICAgdmVyc2lvbjogei5zdHJpbmcoKS5vcHRpb25hbCgpLAogIH0pLAoKICBTZXJ2aWNlRHRvOiB6Lm9iamVjdCh7CiAgICBpZDogICAgICAgIHouc3RyaW5nKCkudXVpZCgpLAogICAgbmFtZTogICAgICB6LnN0cmluZygpLAogICAgbGFiZWxzOiAgICB6LnJlY29yZCh6LnN0cmluZygpKSwKICAgIGNyZWF0ZWRBdDogei5zdHJpbmcoKS5kYXRldGltZSgpLAogICAgaW5zdGFuY2VzOiB6LmFycmF5KHouYW55KCkpLAogIH0pLAoKICBWZXJzaW9uc0R0bzogeC5vYmplY3QoewogICAgc2VydmljZUlkOiAgIHouc3RyaW5nKCkudXVpZCgpLAogICAgc2VydmljZU5hbWU6IHouc3RyaW5nKCksCiAgICB2ZXJzaW9uczogICAgei5hcnJheSh6LmFueSgpKSwKICB9KSwKfSBhcyBjb25zdAoKZXhwb3J0IHR5cGUgQ3JlYXRlU2VydmljZUJvZHkgPSB6LmluZmVyPHR5cGVvZiBTZXJ2aWNlU2NoZW1hcy5DcmVhdGVCb2R5PgpleHBvcnQgdHlwZSBTZXJ2aWNlSWRQYXJhbSAgICA9IHouaW5mZXI8dHlwZW9mIFNlcnZpY2VTY2hlbWFzLlNlcnZpY2VJZFBhcmFtPgpleHBvcnQgdHlwZSBMaXN0U2VydmljZXNRdWVyeSA9IHouaW5mZXI8dHlwZW9mIFNlcnZpY2VTY2hlbWFzLkxpc3RRdWVyeT4KCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQovLyBOYW1lZCBjb250cmFjdHMg4oCUIGxpdmluZyBBUEkgZG9jdW1lbnRhdGlvbgovLyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KCmV4cG9ydCBjb25zdCBDcmVhdGVTZXJ2aWNlQ29udHJhY3QgPSB7CiAgbWV0aG9kOiAgICdQT1NUJywKICBwYXRoOiAgICAgJy9zZXJ2aWNlcycsCiAgc3VtbWFyeTogICdSZWdpc3RlciBhIG5ldyBzZXJ2aWNlIGluIHRoZSByZWdpc3RyeScsCiAgdGFnczogICAgIFsnU2VydmljZXMnXSwKICBib2R5OiAgICAgU2VydmljZVNjaGVtYXMuQ3JlYXRlQm9keSwKICByZXNwb25zZTogU2VydmljZVNjaGVtYXMuU2VydmljZUR0bywKfSBzYXRpc2ZpZXMgUm91dGVDb250cmFjdAoKZXhwb3J0IGNvbnN0IExpc3RTZXJ2aWNlc0NvbnRyYWN0ID0gewogIG1ldGhvZDogICAnR0VUJywKICBwYXRoOiAgICAgJy9zZXJ2aWNlcycsCiAgc3VtbWFyeTogICdMaXN0IGFsbCByZWdpc3RlcmVkIHNlcnZpY2VzIHdpdGggb3B0aW9uYWwgZmlsdGVycycsCiAgdGFnczogICAgIFsnU2VydmljZXMnXSwKICBxdWVyeTogICAgU2VydmljZVNjaGVtYXMuTGlzdFF1ZXJ5LAogIHJlc3BvbnNlOiB6LmFycmF5KFNlcnZpY2VTY2hlbWFzLlNlcnZpY2VEdG8pLAp9IHNhdGlzZmllcyBSb3V0ZUNvbnRyYWN0CgpleHBvcnQgY29uc3QgR2V0U2VydmljZUNvbnRyYWN0ID0gewogIG1ldGhvZDogICAnR0VUJywKICBwYXRoOiAgICAgJy9zZXJ2aWNlcy86c2VydmljZUlkJywKICBzdW1tYXJ5OiAgJ0dldCBhIHNlcnZpY2UgYnkgSUQnLAogIHRhZ3M6ICAgICBbJ1NlcnZpY2VzJ10sCiAgcGFyYW1zOiAgIFNlcnZpY2VTY2hlbWFzLlNlcnZpY2VJZFBhcmFtLAogIHJlc3BvbnNlOiBTZXJ2aWNlU2NoZW1hcy5TZXJ2aWNlRHRvLAp9IHNhdGlzZmllcyBSb3V0ZUNvbnRyYWN0CgpleHBvcnQgY29uc3QgRGVsZXRlU2VydmljZUNvbnRyYWN0ID0gewogIG1ldGhvZDogICAnREVMRVRFJywKICBwYXRoOiAgICAgJy9zZXJ2aWNlcy86c2VydmljZUlkJywKICBzdW1tYXJ5OiAgJ0RlbGV0ZSBhIHNlcnZpY2UgYW5kIGFsbCBpdHMgaW5zdGFuY2VzJywKICB0YWdzOiAgICAgWydTZXJ2aWNlcyddLAogIHBhcmFtczogICBTZXJ2aWNlU2NoZW1hcy5TZXJ2aWNlSWRQYXJhbSwKICByZXNwb25zZTogeC52b2lkKCksCn0gc2F0aXNmaWVzIFJvdXRlQ29udHJhY3QKCmV4cG9ydCBjb25zdCBHZXRTZXJ2aWNlVmVyc2lvbnNDb250cmFjdCA9IHsKICBtZXRob2Q6ICAgJ0dFVCcsCiAgcGF0aDogICAgICcvc2VydmljZXMvOnNlcnZpY2VJZC92ZXJzaW9ucycsCiAgc3VtbWFyeTogICdHZXQgdmVyc2lvbnMgZ3JvdXBlZCBieSBtZXRhZGF0YS52ZXJzaW9uIGZpZWxkJywKICB0YWdzOiAgICAgWydTZXJ2aWNlcyddLAogIHBhcmFtczogICBTZXJ2aWNlU2NoZW1hcy5TZXJ2aWNlSWRQYXJhbSwKICByZXNwb25zZTogU2VydmljZVNjaGVtYXMuVmVyc2lvbnNEdG8sCn0gc2F0aXNmaWVzIFJvdXRlQ29udHJhY3QKCmV4cG9ydCBjb25zdCBHZXRTZXJ2aWNlT3BlbkFwaUNvbnRyYWN0ID0gewogIG1ldGhvZDogICAnR0VUJywKICBwYXRoOiAgICAgJy9zZXJ2aWNlcy86c2VydmljZUlkL29wZW5hcGknLAogIHN1bW1hcnk6ICAnUHJveHkgT3BlbkFQSSBzcGVjIGZyb20gYSBoZWFsdGh5IGluc3RhbmNlIG9mIHRoZSBzZXJ2aWNlJywKICB0YWdzOiAgICAgWydTZXJ2aWNlcyddLAogIHBhcmFtczogICBTZXJ2aWNlU2NoZW1hcy5TZXJ2aWNlSWRQYXJhbSwKICBxdWVyeTogICAgU2VydmljZVNjaGVtYXMuVmVyc2lvblF1ZXJ5LAogIHJlc3BvbnNlOiB6LmFueSgpLAp9IHNhdGlzZmllcyBSb3V0ZUNvbnRyYWN0Cg==
+import { z } from 'zod'
+import type { EndpointContract } from '../../../../shared/route-contract.js'
+
+// ---------------------------------------------------------------------------
+// Shared schemas
+// ---------------------------------------------------------------------------
+
+export const ServiceSchemas = {
+  CreateBody: z.object({
+    name:   z.string().min(1).max(128),
+    labels: z.record(z.string()).optional(),
+  }),
+
+  ServiceIdParam: z.object({
+    serviceId: z.string().uuid(),
+  }),
+
+  ListQuery: z.object({
+    name:   z.string().optional(),
+    labels: z.string().optional(),
+  }),
+
+  VersionQuery: z.object({
+    version: z.string().optional(),
+  }),
+
+  ServiceDto: z.object({
+    id:        z.string().uuid(),
+    name:      z.string(),
+    labels:    z.record(z.string()),
+    createdAt: z.string().datetime(),
+    instances: z.array(z.any()),
+  }),
+
+  VersionsDto: z.object({
+    serviceId:   z.string().uuid(),
+    serviceName: z.string(),
+    versions:    z.array(z.any()),
+  }),
+} as const
+
+export type CreateServiceBody = z.infer<typeof ServiceSchemas.CreateBody>
+export type ServiceIdParam    = z.infer<typeof ServiceSchemas.ServiceIdParam>
+export type ListServicesQuery = z.infer<typeof ServiceSchemas.ListQuery>
+
+// ---------------------------------------------------------------------------
+// Named contracts — living API documentation
+// ---------------------------------------------------------------------------
+
+export const CreateServiceContract = {
+  method:   'POST',
+  path:     '/services',
+  summary:  'Register a new service in the registry',
+  tags:     ['Services'],
+  body:     ServiceSchemas.CreateBody,
+  response: ServiceSchemas.ServiceDto,
+} satisfies EndpointContract
+
+export const ListServicesContract = {
+  method:   'GET',
+  path:     '/services',
+  summary:  'List all registered services with optional filters',
+  tags:     ['Services'],
+  query:    ServiceSchemas.ListQuery,
+  response: z.array(ServiceSchemas.ServiceDto),
+} satisfies EndpointContract
+
+export const GetServiceContract = {
+  method:   'GET',
+  path:     '/services/:serviceId',
+  summary:  'Get a service by ID',
+  tags:     ['Services'],
+  params:   ServiceSchemas.ServiceIdParam,
+  response: ServiceSchemas.ServiceDto,
+} satisfies EndpointContract
+
+export const DeleteServiceContract = {
+  method:   'DELETE',
+  path:     '/services/:serviceId',
+  summary:  'Delete a service and all its instances',
+  tags:     ['Services'],
+  params:   ServiceSchemas.ServiceIdParam,
+  response: z.void(),
+} satisfies EndpointContract
+
+export const GetServiceVersionsContract = {
+  method:   'GET',
+  path:     '/services/:serviceId/versions',
+  summary:  'Get versions grouped by metadata.version field',
+  tags:     ['Services'],
+  params:   ServiceSchemas.ServiceIdParam,
+  response: ServiceSchemas.VersionsDto,
+} satisfies EndpointContract
+
+export const GetServiceOpenApiContract = {
+  method:   'GET',
+  path:     '/services/:serviceId/openapi',
+  summary:  'Proxy OpenAPI spec from a healthy instance of the service',
+  tags:     ['Services'],
+  params:   ServiceSchemas.ServiceIdParam,
+  query:    ServiceSchemas.VersionQuery,
+  response: z.any(),
+} satisfies EndpointContract
