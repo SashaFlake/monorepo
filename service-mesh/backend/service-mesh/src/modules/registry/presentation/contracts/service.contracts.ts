@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { EndpointContract } from '../../../../shared/route-contract.js'
+import type { EndpointContract } from '../../../../shared/endpoint-contract.js'
 
 // ---------------------------------------------------------------------------
 // Shared schemas
