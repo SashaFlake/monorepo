@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto'
 import type { RoutingRule, CreateRoutingRuleDto, UpdateRoutingRuleDto } from '../domain/routing-rule.js'
+import { RoutingRuleNotFoundError } from '../domain/errors.js'
 import type { RoutingRuleService } from './routing-rule.service.js'
 
 /**
- * In-memory реализация RoutingRuleService.
- * Хранит правила в Map, сгруппированные по serviceId.
+ * In-memory implementation of RoutingRuleService.
+ * Stores rules in a Map grouped by serviceId.
  */
 export class RoutingRuleServiceImpl implements RoutingRuleService {
   private readonly rules = new Map<string, RoutingRule>()
@@ -30,7 +31,7 @@ export class RoutingRuleServiceImpl implements RoutingRuleService {
 
   update(ruleId: string, data: UpdateRoutingRuleDto): RoutingRule {
     const existing = this.rules.get(ruleId)
-    if (!existing) throw new NotFoundError(`Routing rule ${ruleId} not found`)
+    if (!existing) throw new RoutingRuleNotFoundError(ruleId)
 
     const updated: RoutingRule = {
       ...existing,
@@ -42,15 +43,7 @@ export class RoutingRuleServiceImpl implements RoutingRuleService {
   }
 
   delete(ruleId: string): void {
-    if (!this.rules.has(ruleId)) throw new NotFoundError(`Routing rule ${ruleId} not found`)
+    if (!this.rules.has(ruleId)) throw new RoutingRuleNotFoundError(ruleId)
     this.rules.delete(ruleId)
-  }
-}
-
-export class NotFoundError extends Error {
-  readonly statusCode = 404
-  constructor(message: string) {
-    super(message)
-    this.name = 'NotFoundError'
   }
 }

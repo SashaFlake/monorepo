@@ -1,6 +1,8 @@
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { RoutingRuleServiceImpl, NotFoundError } from './routing-rule.service.impl.js'
+import type { RoutingRuleService } from './routing-rule.service.js'
+import { RoutingRuleServiceImpl } from './routing-rule.service.impl.js'
+import { RoutingRuleNotFoundError } from '../domain/errors.js'
 
 const SERVICE_A = 'aaaaaaaa-0000-0000-0000-000000000001'
 const SERVICE_B = 'bbbbbbbb-0000-0000-0000-000000000002'
@@ -15,7 +17,8 @@ const makeRoutingRule = (overrides = {}) => ({
 })
 
 describe('Routing Rule Management', () => {
-  let svc: RoutingRuleServiceImpl
+  // typed as interface — tests are decoupled from the implementation
+  let svc: RoutingRuleService
 
   beforeEach(() => {
     svc = new RoutingRuleServiceImpl()
@@ -88,10 +91,10 @@ describe('Routing Rule Management', () => {
       assert.ok(updated.updatedAt > rule.updatedAt)    // advanced
     })
 
-    it('throws NotFoundError when the rule does not exist', () => {
+    it('throws RoutingRuleNotFoundError when the rule does not exist', () => {
       assert.throws(
         () => svc.update('non-existent-id', { priority: 1 }),
-        NotFoundError,
+        RoutingRuleNotFoundError,
       )
     })
   })
@@ -105,10 +108,10 @@ describe('Routing Rule Management', () => {
       assert.deepEqual(svc.list(SERVICE_A), [])
     })
 
-    it('throws NotFoundError when the rule does not exist', () => {
+    it('throws RoutingRuleNotFoundError when the rule does not exist', () => {
       assert.throws(
         () => svc.delete('non-existent-id'),
-        NotFoundError,
+        RoutingRuleNotFoundError,
       )
     })
   })
