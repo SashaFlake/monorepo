@@ -4,10 +4,10 @@ import type { ReactNode } from 'react'
 type HeaderProps = {
   title: string
   subtitle?: ReactNode
-  actions?: ReactNode
+  action?: ReactNode
 }
 
-export function Header({ title, subtitle, actions }: HeaderProps) {
+export function Header({ title, subtitle, action }: HeaderProps) {
   return (
     <header style={{
       display: 'flex',
@@ -29,7 +29,7 @@ export function Header({ title, subtitle, actions }: HeaderProps) {
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-        {actions}
+        {action}
         <button aria-label="Search" style={{ padding: 'var(--space-2)', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-sm)' }}>
           <Search size={16} />
         </button>
