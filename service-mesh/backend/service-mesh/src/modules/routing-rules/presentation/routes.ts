@@ -1,6 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { RoutingRuleService } from '../application/routing-rule.service.js'
 import { makeRoutingRuleHandlers } from './handlers/routing-rule.handlers.js'
+import {
+  ListRulesContract,
+  CreateRuleContract,
+  UpdateRuleContract,
+  DeleteRuleContract,
+} from './contracts/routing-rule.contracts.js'
 
 type Opts = { routingRuleService: RoutingRuleService }
 
@@ -14,8 +20,27 @@ export const routingRulesRoutes: FastifyPluginAsync<Opts> = async (app, { routin
   const handlers = makeRoutingRuleHandlers(routingRuleService)
 
   // ── Routing Rules ─────────────────────────────────────────────────────────
-  app.get('/services/:serviceId/routing-rules',  handlers.list)
-  app.post('/services/:serviceId/routing-rules', handlers.create)
-  app.put('/routing-rules/:ruleId',              handlers.update)
-  app.delete('/routing-rules/:ruleId',           handlers.delete)
+  app.get(
+    ListRulesContract.path,
+    { schema: { tags: ListRulesContract.tags, summary: ListRulesContract.summary, params: ListRulesContract.params } },
+    handlers.list,
+  )
+
+  app.post(
+    CreateRuleContract.path,
+    { schema: { tags: CreateRuleContract.tags, summary: CreateRuleContract.summary, params: CreateRuleContract.params, body: CreateRuleContract.body } },
+    handlers.create,
+  )
+
+  app.put(
+    UpdateRuleContract.path,
+    { schema: { tags: UpdateRuleContract.tags, summary: UpdateRuleContract.summary, params: UpdateRuleContract.params, body: UpdateRuleContract.body } },
+    handlers.update,
+  )
+
+  app.delete(
+    DeleteRuleContract.path,
+    { schema: { tags: DeleteRuleContract.tags, summary: DeleteRuleContract.summary, params: DeleteRuleContract.params } },
+    handlers.delete,
+  )
 }
