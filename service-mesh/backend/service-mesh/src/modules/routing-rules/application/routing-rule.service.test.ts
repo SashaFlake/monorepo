@@ -5,7 +5,7 @@ import { RoutingRuleServiceImpl, NotFoundError } from './routing-rule.service.im
 const SERVICE_A = 'aaaaaaaa-0000-0000-0000-000000000001'
 const SERVICE_B = 'bbbbbbbb-0000-0000-0000-000000000002'
 
-const aRule = (overrides = {}) => ({
+const makeRoutingRule = (overrides = {}) => ({
   name:        'canary',
   priority:    10,
   serviceId:   SERVICE_A,
@@ -27,8 +27,8 @@ describe('Routing Rule Management', () => {
     })
 
     it('returns only rules that belong to the requested service', () => {
-      svc.create(SERVICE_A, aRule())
-      svc.create(SERVICE_B, aRule())
+      svc.create(SERVICE_A, makeRoutingRule())
+      svc.create(SERVICE_B, makeRoutingRule())
 
       const rules = svc.list(SERVICE_A)
 
@@ -37,9 +37,9 @@ describe('Routing Rule Management', () => {
     })
 
     it('returns rules ordered by priority ascending so higher-priority rules come first', () => {
-      svc.create(SERVICE_A, aRule({ priority: 50 }))
-      svc.create(SERVICE_A, aRule({ priority: 10 }))
-      svc.create(SERVICE_A, aRule({ priority: 30 }))
+      svc.create(SERVICE_A, makeRoutingRule({ priority: 50 }))
+      svc.create(SERVICE_A, makeRoutingRule({ priority: 10 }))
+      svc.create(SERVICE_A, makeRoutingRule({ priority: 30 }))
 
       const priorities = svc.list(SERVICE_A).map(r => r.priority)
 
@@ -49,7 +49,7 @@ describe('Routing Rule Management', () => {
 
   describe('creating a rule', () => {
     it('assigns a unique id and timestamps to the new rule', () => {
-      const rule = svc.create(SERVICE_A, aRule())
+      const rule = svc.create(SERVICE_A, makeRoutingRule())
 
       assert.ok(rule.id)
       assert.equal(rule.serviceId, SERVICE_A)
@@ -58,7 +58,7 @@ describe('Routing Rule Management', () => {
     })
 
     it('makes the rule immediately visible in the list', () => {
-      const created = svc.create(SERVICE_A, aRule())
+      const created = svc.create(SERVICE_A, makeRoutingRule())
 
       const listed = svc.list(SERVICE_A)
 
@@ -69,7 +69,7 @@ describe('Routing Rule Management', () => {
 
   describe('updating a rule', () => {
     it('changes only the provided fields, leaving the rest intact', () => {
-      const rule = svc.create(SERVICE_A, aRule())
+      const rule = svc.create(SERVICE_A, makeRoutingRule())
 
       const updated = svc.update(rule.id, { priority: 99 })
 
@@ -79,7 +79,7 @@ describe('Routing Rule Management', () => {
     })
 
     it('advances updatedAt while keeping createdAt unchanged', async () => {
-      const rule = svc.create(SERVICE_A, aRule())
+      const rule = svc.create(SERVICE_A, makeRoutingRule())
       await new Promise(r => setTimeout(r, 5))
 
       const updated = svc.update(rule.id, { priority: 99 })
@@ -98,7 +98,7 @@ describe('Routing Rule Management', () => {
 
   describe('deleting a rule', () => {
     it('removes the rule so it no longer appears in the list', () => {
-      const rule = svc.create(SERVICE_A, aRule())
+      const rule = svc.create(SERVICE_A, makeRoutingRule())
 
       svc.delete(rule.id)
 

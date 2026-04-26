@@ -10,7 +10,7 @@ const postService = async (app: FastifyInstance, name = 'test-svc') => {
   return JSON.parse(res.body) as { id: string }
 }
 
-const postRule = (app: FastifyInstance, serviceId: string, overrides = {}) =>
+const postRoutingRule = (app: FastifyInstance, serviceId: string, overrides = {}) =>
   app.inject({
     method:  'POST',
     url:     `/api/v1/services/${serviceId}/routing-rules`,
@@ -59,7 +59,7 @@ describe('Routing Rule Management — HTTP API', () => {
 
   describe('creating a rule', () => {
     it('returns 201 with the created rule including its id', async () => {
-      const res = await postRule(app, serviceId)
+      const res = await postRoutingRule(app, serviceId)
 
       assert.equal(res.statusCode, 201)
       const rule = body<{ id: string; serviceId: string; name: string; priority: number }>(res)
@@ -79,14 +79,14 @@ describe('Routing Rule Management — HTTP API', () => {
     })
 
     it('rejects weightPct above 100 with 400', async () => {
-      const res = await postRule(app, serviceId, { destination: { weightPct: 999 } })
+      const res = await postRoutingRule(app, serviceId, { destination: { weightPct: 999 } })
       assert.equal(res.statusCode, 400)
     })
   })
 
   describe('updating a rule', () => {
     it('applies partial changes while keeping other fields intact', async () => {
-      const { id } = body<{ id: string }>(await postRule(app, serviceId))
+      const { id } = body<{ id: string }>(await postRoutingRule(app, serviceId))
 
       const res = await app.inject({
         method:  'PUT',
@@ -101,7 +101,7 @@ describe('Routing Rule Management — HTTP API', () => {
     })
 
     it('rejects a negative weightPct with 400', async () => {
-      const { id } = body<{ id: string }>(await postRule(app, serviceId))
+      const { id } = body<{ id: string }>(await postRoutingRule(app, serviceId))
 
       const res = await app.inject({
         method:  'PUT',
@@ -123,7 +123,7 @@ describe('Routing Rule Management — HTTP API', () => {
 
   describe('deleting a rule', () => {
     it('responds with 204 and no body', async () => {
-      const { id } = body<{ id: string }>(await postRule(app, serviceId))
+      const { id } = body<{ id: string }>(await postRoutingRule(app, serviceId))
 
       const res = await app.inject({ method: 'DELETE', url: `/api/v1/routing-rules/${id}` })
 
@@ -131,7 +131,7 @@ describe('Routing Rule Management — HTTP API', () => {
     })
 
     it('removes the rule from the list permanently', async () => {
-      const { id } = body<{ id: string }>(await postRule(app, serviceId))
+      const { id } = body<{ id: string }>(await postRoutingRule(app, serviceId))
       await app.inject({ method: 'DELETE', url: `/api/v1/routing-rules/${id}` })
 
       const res  = await app.inject({ method: 'GET', url: `/api/v1/services/${serviceId}/routing-rules` })
