@@ -91,6 +91,30 @@ export type OpenApiError = {
 }
 
 // ---------------------------------------------------------------------------
+// Routing Rules
+// ---------------------------------------------------------------------------
+
+export type RoutingRuleDestination = {
+  serviceId: string
+  weightPct: number
+}
+
+export type RoutingRule = {
+  id:           string
+  name:         string
+  sourceService: string
+  destinations: RoutingRuleDestination[]
+  createdAt:    string
+  updatedAt:    string
+}
+
+export type CreateRoutingRuleInput = {
+  name:          string
+  sourceService: string
+  destinations:  RoutingRuleDestination[]
+}
+
+// ---------------------------------------------------------------------------
 // Fetch helper
 // ---------------------------------------------------------------------------
 
@@ -148,15 +172,34 @@ export const registryApi = {
 
   deregisterInstance: (id: string): Promise<void> =>
     apiFetch<void>(`/api/v1/instances/${id}`, { method: 'DELETE' }),
+
+  // Routing rules
+  listRoutingRules: (): Promise<RoutingRule[]> =>
+    apiFetch<RoutingRule[]>('/api/v1/routing-rules'),
+
+  getRoutingRule: (id: string): Promise<RoutingRule> =>
+    apiFetch<RoutingRule>(`/api/v1/routing-rules/${id}`),
+
+  createRoutingRule: (input: CreateRoutingRuleInput): Promise<RoutingRule> =>
+    apiFetch<RoutingRule>('/api/v1/routing-rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+
+  deleteRoutingRule: (id: string): Promise<void> =>
+    apiFetch<void>(`/api/v1/routing-rules/${id}`, { method: 'DELETE' }),
 }
 
 // ---------------------------------------------------------------------------
 // Query keys
 // ---------------------------------------------------------------------------
 export const registryKeys = {
-  all:      ['registry'] as const,
-  list:     () => [...registryKeys.all, 'list'] as const,
-  service:  (id: string) => [...registryKeys.all, 'service', id] as const,
-  versions: (id: string) => [...registryKeys.all, 'versions', id] as const,
-  openapi:  (id: string, version?: string) => [...registryKeys.all, 'openapi', id, version ?? ''] as const,
+  all:          ['registry'] as const,
+  list:         () => [...registryKeys.all, 'list'] as const,
+  service:      (id: string) => [...registryKeys.all, 'service', id] as const,
+  versions:     (id: string) => [...registryKeys.all, 'versions', id] as const,
+  openapi:      (id: string, version?: string) => [...registryKeys.all, 'openapi', id, version ?? ''] as const,
+  routingRules: () => [...registryKeys.all, 'routing-rules'] as const,
+  routingRule:  (id: string) => [...registryKeys.all, 'routing-rules', id] as const,
 }
