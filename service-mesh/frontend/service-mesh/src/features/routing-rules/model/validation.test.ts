@@ -5,104 +5,93 @@ import type { Destination, RuleFormValues } from './types'
 const dest = (version: string, weightPct: number): Destination => ({ version, weightPct })
 
 const validForm = (overrides?: Partial<RuleFormValues>): RuleFormValues => ({
-  name: 'my-rule',
+  name: 'api-split',
   priority: 100,
   match: { pathPrefix: '/api/*' },
   destinations: [dest('v1', 100)],
   ...overrides,
 })
 
-describe('sumWeights', () => {
-  it('returns 0 for empty array', () => {
-    expect(sumWeights([])).toBe(0)
+// ---------------------------------------------------------------------------
+// Traffic distribution
+// ---------------------------------------------------------------------------
+
+describe('traffic distribution', () => {
+  it('calculates total traffic share across all destinations', () => {
+    // 80% to v2 canary + 20% to v1 stable = full distribution
+    expect(sumWeights([dest('v2', 80), dest('v1', 20)])).toBe(100)
   })
 
-  it('sums weights of all destinations', () => {
-    expect(sumWeights([dest('v1', 80), dest('v2', 20)])).toBe(100)
-  })
-
-  it('works with a single destination', () => {
-    expect(sumWeights([dest('v1', 100)])).toBe(100)
-  })
-
-  it('works with incomplete distribution', () => {
-    expect(sumWeights([dest('v1', 30), dest('v2', 30)])).toBe(60)
-  })
-})
-
-describe('validateWeights', () => {
-  it('returns ok when sum equals 100', () => {
-    expect(validateWeights([dest('v1', 60), dest('v2', 40)]).ok).toBe(true)
-  })
-
-  it('returns error when sum is less than 100', () => {
+  it('detects unrouted traffic when weights do not add up to 100%', () => {
+    // operator configured only 60% — 40% of traffic has nowhere to go
     const result = validateWeights([dest('v1', 60)])
     expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.errors[0].field).toBe('destinations')
-      expect(result.errors[0].message).toContain('60%')
-    }
+    if (!result.ok) expect(result.errors[0].message).toContain('60%')
   })
 
-  it('returns error when sum exceeds 100', () => {
+  it('detects over-allocated traffic when weights exceed 100%', () => {
+    // misconfigured split: 80 + 40 = 120% is impossible
     const result = validateWeights([dest('v1', 80), dest('v2', 40)])
     expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.errors[0].message).toContain('120%')
-    }
+    if (!result.ok) expect(result.errors[0].message).toContain('120%')
   })
 
-  it('returns ok for a single destination with weight 100', () => {
+  it('accepts a single destination receiving 100% of traffic', () => {
+    // no canary — all traffic goes to stable
     expect(validateWeights([dest('v1', 100)]).ok).toBe(true)
+  })
+
+  it('accepts a valid canary split', () => {
+    // classic canary: 10% new version, 90% stable
+    expect(validateWeights([dest('v2', 10), dest('v1', 90)]).ok).toBe(true)
   })
 })
 
-describe('validateRule', () => {
-  it('passes validation for valid values', () => {
+// ---------------------------------------------------------------------------
+// Routing rule form
+// ---------------------------------------------------------------------------
+
+describe('routing rule form', () => {
+  it('allows saving a fully configured rule', () => {
     expect(validateRule(validForm()).ok).toBe(true)
   })
 
-  it('returns error when name is empty', () => {
+  it('prevents saving a rule without a name', () => {
+    // operator must identify the rule — blank name is not allowed
     const result = validateRule(validForm({ name: '' }))
     expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.errors.some(e => e.field === 'name')).toBe(true)
-    }
+    if (!result.ok) expect(result.errors.some(e => e.field === 'name')).toBe(true)
   })
 
-  it('returns error when name is whitespace only', () => {
+  it('prevents saving a rule with a whitespace-only name', () => {
     expect(validateRule(validForm({ name: '   ' })).ok).toBe(false)
   })
 
-  it('returns error when priority is below 0', () => {
-    const result = validateRule(validForm({ priority: -1 }))
-    expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.errors.some(e => e.field === 'priority')).toBe(true)
-    }
-  })
-
-  it('returns error when priority exceeds 1000', () => {
-    expect(validateRule(validForm({ priority: 1001 })).ok).toBe(false)
-  })
-
-  it('returns error when destinations array is empty', () => {
+  it('prevents saving a rule with no destinations', () => {
+    // a rule with no destinations would drop all matched traffic
     const result = validateRule(validForm({ destinations: [] }))
     expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.errors.some(e => e.field === 'destinations')).toBe(true)
-    }
+    if (!result.ok) expect(result.errors.some(e => e.field === 'destinations')).toBe(true)
   })
 
-  it('returns error when weights do not sum to 100', () => {
-    expect(validateRule(validForm({ destinations: [dest('v1', 70), dest('v2', 20)] })).ok).toBe(false)
+  it('prevents saving when traffic is not fully distributed', () => {
+    // 70 + 20 = 90% — 10% of traffic would be unrouted
+    expect(validateRule(validForm({
+      destinations: [dest('v1', 70), dest('v2', 20)],
+    })).ok).toBe(false)
   })
 
-  it('collects all errors at once', () => {
+  it('enforces priority range 0–1000', () => {
+    // priority drives rule evaluation order in the control plane
+    expect(validateRule(validForm({ priority: -1 })).ok).toBe(false)
+    expect(validateRule(validForm({ priority: 1001 })).ok).toBe(false)
+    expect(validateRule(validForm({ priority: 0 })).ok).toBe(true)
+    expect(validateRule(validForm({ priority: 1000 })).ok).toBe(true)
+  })
+
+  it('reports all configuration errors at once so the operator can fix them in one go', () => {
     const result = validateRule({ name: '', priority: -1, match: {}, destinations: [] })
     expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.errors.length).toBeGreaterThanOrEqual(3)
-    }
+    if (!result.ok) expect(result.errors.length).toBeGreaterThanOrEqual(3)
   })
 })
