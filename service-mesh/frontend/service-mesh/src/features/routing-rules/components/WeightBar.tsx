@@ -40,8 +40,9 @@ export function WeightBar({ destinations }: WeightBarProps) {
         {destinations.map((item, i) => (
           <div
             key={item.version ?? i}
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}
-          >
+            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)',
+                color: 'var(--color-text-muted)' }}>
+
             <span style={{ width: 8, height: 8, borderRadius: 2, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
             <span style={{ fontFamily: 'monospace' }}>{item.version ?? 'default'}</span>
             <span style={{ color: 'var(--color-text-faint)' }}>{item.weightPct}%</span>
