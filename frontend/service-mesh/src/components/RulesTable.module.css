@@ -1,0 +1,129 @@
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--color-border-dashed);
+  border-radius: var(--radius-xl);
+}
+
+.emptyTitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.emptyHint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-faint);
+}
+
+/* Table wrapper */
+.wrapper {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+/* Head */
+.thead {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.thSrOnly {
+  padding: 0.75rem 1rem;
+}
+
+/* Body */
+.tbody tr {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-fast);
+}
+
+.tbody tr:last-child {
+  border-bottom: none;
+}
+
+.tbody tr:hover {
+  background: var(--color-surface-hover);
+}
+
+.td {
+  padding: 0.75rem 1rem;
+  color: var(--color-text-muted);
+}
+
+.tdVersion {
+  padding: 0.75rem 1rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.tdWeight {
+  padding: 0.75rem 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.tdActions {
+  padding: 0.75rem 1rem;
+  text-align: right;
+}
+
+/* Status badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge[data-status='active'] {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.badge[data-status='inactive'] {
+  background: var(--color-neutral-badge-bg);
+  color: var(--color-neutral-badge-text);
+}
+
+/* Delete button */
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-faint);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.deleteBtn:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
