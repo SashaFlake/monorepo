@@ -6,43 +6,42 @@ import type { Destination } from '../model/types'
 const dest = (version: string, weightPct: number): Destination => ({ version, weightPct })
 
 describe('WeightBar', () => {
-  it('ничего не рендерит для пустого массива', () => {
+  it('renders nothing for an empty destinations array', () => {
     const { container } = render(<WeightBar destinations={[]} />)
     expect(container.firstChild).toBeNull()
   })
 
-  it('рендерит сегменты полосы для каждого destination', () => {
+  it('renders one bar segment per destination', () => {
     render(<WeightBar destinations={[dest('v1', 80), dest('v2', 20)]} />)
-    const segments = document.querySelectorAll('[title]')
-    expect(segments).toHaveLength(2)
+    expect(document.querySelectorAll('[title]')).toHaveLength(2)
   })
 
-  it('показывает версию и процент в tooltip', () => {
+  it('shows version and percentage in segment tooltip', () => {
     render(<WeightBar destinations={[dest('v1', 80), dest('v2', 20)]} />)
     expect(document.querySelector('[title="v1: 80%"]')).toBeInTheDocument()
     expect(document.querySelector('[title="v2: 20%"]')).toBeInTheDocument()
   })
 
-  it('показывает версии в легенде', () => {
+  it('shows versions in the legend', () => {
     render(<WeightBar destinations={[dest('v1', 60), dest('v2', 40)]} />)
     expect(screen.getByText('v1')).toBeInTheDocument()
     expect(screen.getByText('v2')).toBeInTheDocument()
   })
 
-  it('показывает проценты в легенде', () => {
+  it('shows percentages in the legend', () => {
     render(<WeightBar destinations={[dest('v1', 60), dest('v2', 40)]} />)
     expect(screen.getByText('60%')).toBeInTheDocument()
     expect(screen.getByText('40%')).toBeInTheDocument()
   })
 
-  it('использует “default” если version не задан', () => {
+  it('falls back to "default" label when version is not set', () => {
     render(<WeightBar destinations={[{ weightPct: 100 }]} />)
     expect(screen.getAllByText('default').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('ширина сегмента соответствует weightPct', () => {
+  it('sets segment width equal to weightPct', () => {
     render(<WeightBar destinations={[dest('v1', 80), dest('v2', 20)]} />)
-    const firstSegment = document.querySelector('[title="v1: 80%"]') as HTMLElement
-    expect(firstSegment.style.width).toBe('80%')
+    const segment = document.querySelector('[title="v1: 80%"]') as HTMLElement
+    expect(segment.style.width).toBe('80%')
   })
 })
