@@ -2,7 +2,6 @@ import { Link } from '@tanstack/react-router'
 import {
   LayoutDashboard,
   Server,
-  GitBranch,
   Shield,
   History,
   Activity,
@@ -11,12 +10,11 @@ import {
 import { useUIStore } from '@/store/ui'
 
 const NAV = [
-  { to: '/',           label: 'Dashboard',  icon: LayoutDashboard },
-  { to: '/services',   label: 'Services',   icon: Server },
-  { to: '/routes',     label: 'Routes',     icon: GitBranch },
-  { to: '/policies',   label: 'Policies',   icon: Shield },
-  { to: '/revisions',  label: 'Revisions',  icon: History },
-  { to: '/nodes',      label: 'Nodes',      icon: Activity },
+  { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/services',  label: 'Services',  icon: Server },
+  { to: '/policies',  label: 'Policies',  icon: Shield },
+  { to: '/revisions', label: 'Revisions', icon: History },
+  { to: '/nodes',     label: 'Nodes',     icon: Activity },
 ] as const
 
 export function Sidebar() {

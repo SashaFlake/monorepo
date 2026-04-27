@@ -1,9 +1,10 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { RoutingRulesPage } from '@/features/routing-rules/RoutingRulesPage'
 import { registryApi, registryKeys, type InstanceStatus, type ServiceVersion, type OpenApiDoc } from '@/lib/api'
 
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
@@ -167,11 +168,11 @@ function InstancesPanel({ version }: { version: ServiceVersion }) {
   )
 }
 
-type Tab = 'manifest' | 'openapi' | 'instances'
+type VersionTab = 'manifest' | 'openapi' | 'instances'
 
 function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }) {
-  const [tab, setTab] = useState<Tab>('manifest')
-  const tabs: { id: Tab; label: string }[] = [
+  const [tab, setTab] = useState<VersionTab>('manifest')
+  const tabs: { id: VersionTab; label: string }[] = [
     { id: 'manifest',  label: 'Manifest' },
     { id: 'openapi',   label: 'OpenAPI' },
     { id: 'instances', label: `Instances (${version.instanceCount})` },
@@ -196,14 +197,50 @@ function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceI
   )
 }
 
+// ── Page-level tabs ──────────────────────────────────────────────────────────
+
+type PageTab = 'overview' | 'routing-rules'
+
+const PAGE_TABS: { id: PageTab; label: string }[] = [
+  { id: 'overview',      label: 'Overview' },
+  { id: 'routing-rules', label: 'Routing Rules' },
+]
+
+const tabBarStyle: React.CSSProperties = {
+  display: 'flex',
+  borderBottom: '1px solid var(--color-border)',
+  background: 'var(--color-surface)',
+  paddingInline: 'var(--space-6)',
+}
+
+function pageTabBtn(active: boolean): React.CSSProperties {
+  return {
+    padding: 'var(--space-3) var(--space-4)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: active ? 600 : 400,
+    color: active ? 'var(--color-text)' : 'var(--color-text-muted)',
+    background: 'none',
+    border: 'none',
+    borderBottom: active ? '2px solid var(--color-primary)' : '2px solid transparent',
+    borderRadius: 0,
+    cursor: 'pointer',
+    transition: 'color var(--transition-interactive)',
+    marginBottom: '-1px',
+  }
+}
+
 export function ServiceDetailPage({ serviceId }: { serviceId: string }) {
+  const [pageTab, setPageTab] = useState<PageTab>('overview')
+
   const { data, isLoading, isError } = useQuery({
     queryKey: registryKeys.versions(serviceId),
     queryFn:  () => registryApi.getServiceVersions(serviceId),
     refetchInterval: 10_000,
     staleTime: 5_000,
   })
+
   const title = data?.serviceName ?? serviceId
+
   return (
     <>
       <Header
@@ -216,14 +253,32 @@ export function ServiceDetailPage({ serviceId }: { serviceId: string }) {
           </span>
         }
       />
-      <main style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-        {isError && <Card style={{ color: 'var(--color-error)', fontSize: 'var(--text-sm)' }}>⚠️ Could not load service</Card>}
-        {isLoading && <Card style={{ color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>Loading…</Card>}
-        {!isLoading && !isError && (data?.versions.length ?? 0) === 0 && (
-          <Card style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>No instances registered — no versions to show.</Card>
-        )}
-        {data?.versions.map(v => <VersionCard key={v.version} version={v} serviceId={serviceId} />)}
-      </main>
+
+      {/* Page-level tab bar */}
+      <div style={tabBarStyle}>
+        {PAGE_TABS.map(t => (
+          <button key={t.id} style={pageTabBtn(pageTab === t.id)} onClick={() => setPageTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Overview tab */}
+      {pageTab === 'overview' && (
+        <main style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {isError && <Card style={{ color: 'var(--color-error)', fontSize: 'var(--text-sm)' }}>⚠️ Could not load service</Card>}
+          {isLoading && <Card style={{ color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>Loading…</Card>}
+          {!isLoading && !isError && (data?.versions.length ?? 0) === 0 && (
+            <Card style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>No instances registered — no versions to show.</Card>
+          )}
+          {data?.versions.map(v => <VersionCard key={v.version} version={v} serviceId={serviceId} />)}
+        </main>
+      )}
+
+      {/* Routing Rules tab — переиспользуем готовую фичу, без Header внутри */}
+      {pageTab === 'routing-rules' && (
+        <RoutingRulesPage serviceId={serviceId} />
+      )}
     </>
   )
 }
