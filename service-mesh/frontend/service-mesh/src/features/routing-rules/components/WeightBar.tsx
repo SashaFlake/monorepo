@@ -1,4 +1,5 @@
 import type { Destination } from '../model/types'
+import styles from './WeightBar.module.css'
 
 const COLORS = [
   'var(--color-primary)',
@@ -16,36 +17,26 @@ export function WeightBar({ destinations }: WeightBarProps) {
   if (destinations.length === 0) return null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-      <div style={{
-        display: 'flex',
-        height: 6,
-        borderRadius: 'var(--radius-full)',
-        overflow: 'hidden',
-        background: 'var(--color-surface-offset)',
-      }}>
+    <div className={styles.root}>
+      <div className={styles.track}>
         {destinations.map((item, i) => (
           <div
             key={item.version ?? i}
+            className={styles.segment}
             title={`${item.version ?? 'default'}: ${item.weightPct}%`}
-            style={{
-              width: `${item.weightPct}%`,
-              background: COLORS[i % COLORS.length],
-              transition: 'width 200ms ease',
-            }}
+            style={{ width: `${item.weightPct}%`, background: COLORS[i % COLORS.length] }}
           />
         ))}
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+      <div className={styles.legend}>
         {destinations.map((item, i) => (
-          <div
-            key={item.version ?? i}
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)',
-                color: 'var(--color-text-muted)' }}>
-
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-            <span style={{ fontFamily: 'monospace' }}>{item.version ?? 'default'}</span>
-            <span style={{ color: 'var(--color-text-faint)' }}>{item.weightPct}%</span>
+          <div key={item.version ?? i} className={styles.legendItem}>
+            <span
+              className={styles.legendDot}
+              style={{ background: COLORS[i % COLORS.length] }}
+            />
+            <span className={styles.legendVersion}>{item.version ?? 'default'}</span>
+            <span className={styles.legendWeight}>{item.weightPct}%</span>
           </div>
         ))}
       </div>

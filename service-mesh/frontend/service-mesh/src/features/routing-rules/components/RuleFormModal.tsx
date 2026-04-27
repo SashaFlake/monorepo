@@ -4,7 +4,7 @@ import type { RoutingRule, RuleFormValues, Destination } from '../model/types'
 import { validateRule, sumWeights } from '../model/validation'
 import { Button } from '@/components/ui/button'
 import { WeightBar } from './WeightBar'
-import * as React from "react";
+import styles from './RuleFormModal.module.css'
 
 interface RuleFormModalProps {
   initial?: RoutingRule
@@ -13,7 +13,7 @@ interface RuleFormModalProps {
   onClose: () => void
 }
 
-const emptyDestination = (): Destination => ({serviceId: '', version: '', weightPct: 0 })
+const emptyDestination = (): Destination => ({ version: '', weightPct: 0 })
 
 const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   name: rule.name,
@@ -43,8 +43,8 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
   const weightSum   = sumWeights(values.destinations)
   const weightValid = weightSum === 100
 
-  const setName     = (name: string)     => setValues(v => ({ ...v, name }))
-  const setPriority = (priority: number) => setValues(v => ({ ...v, priority }))
+  const setName       = (name: string)     => setValues(v => ({ ...v, name }))
+  const setPriority   = (priority: number) => setValues(v => ({ ...v, priority }))
   const setMatchField = (key: 'pathPrefix', val: string) =>
     setValues(v => ({ ...v, match: { ...v.match, [key]: val } }))
 
@@ -65,88 +65,52 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
     if (result.ok) onSubmit(values)
   }
 
-  const inputStyle = (hasError?: boolean): React.CSSProperties => ({
-    width: '100%',
-    padding: 'var(--space-2) var(--space-3)',
-    fontSize: 'var(--text-sm)',
-    background: 'var(--color-surface-offset)',
-    border: `1px solid ${hasError ? 'var(--color-error)' : 'var(--color-border)'}`,
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--color-text)',
-    outline: 'none',
-    fontFamily: 'inherit',
-  })
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 'var(--text-xs)',
-    fontWeight: 500,
-    color: 'var(--color-text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    marginBottom: 'var(--space-1)',
-    display: 'block',
-  }
-
-  const errorStyle: React.CSSProperties = {
-    fontSize: 'var(--text-xs)',
-    color: 'var(--color-error)',
-    marginTop: 'var(--space-1)',
-  }
+  const weightSumClass = weightValid
+    ? `${styles.weightSum} ${styles['weightSum--valid']}`
+    : weightSum > 100
+      ? `${styles.weightSum} ${styles['weightSum--over']}`
+      : styles.weightSum
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 50,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'oklch(from var(--color-bg) l c h / 0.7)',
-      backdropFilter: 'blur(4px)',
-    }}>
-      <div style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-xl)',
-        padding: 'var(--space-6)',
-        width: '100%', maxWidth: 560,
-        maxHeight: '90vh', overflowY: 'auto',
-        boxShadow: 'var(--shadow-lg)',
-        display: 'flex', flexDirection: 'column', gap: 'var(--space-5)',
-      }}>
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ fontSize: 'var(--text-base)', fontWeight: 600, margin: 0 }}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>
             {initial ? 'Редактировать правило' : 'Новое правило'}
           </h2>
-          <button onClick={onClose} aria-label="Закрыть" style={{ color: 'var(--color-text-muted)', padding: 'var(--space-1)' }}>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Закрыть">
             <X size={16} />
           </button>
         </div>
 
-        <div>
-          <label style={labelStyle}>Название *</label>
+        <div className={styles.field}>
+          <label className={styles.label}>Название *</label>
           <input
-            style={inputStyle(!!fieldError('name'))}
+            className={`${styles.input}${fieldError('name') ? ` ${styles['input--error']}` : ''}`}
             value={values.name}
             onChange={e => setName(e.target.value)}
             placeholder="api-gateway-split"
             autoFocus
           />
-          {fieldError('name') && <div style={errorStyle}>{fieldError('name')}</div>}
+          {fieldError('name') && <span className={styles.errorMsg}>{fieldError('name')}</span>}
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          <div style={{ width: 100 }}>
-            <label style={labelStyle}>Приоритет</label>
+        <div className={styles.row}>
+          <div className={`${styles.field} ${styles.priorityField}`}>
+            <label className={styles.label}>Приоритет</label>
             <input
               type="number" min={0} max={1000}
-              style={inputStyle(!!fieldError('priority'))}
+              className={`${styles.input}${fieldError('priority') ? ` ${styles['input--error']}` : ''}`}
               value={values.priority}
               onChange={e => setPriority(Number(e.target.value))}
             />
-            {fieldError('priority') && <div style={errorStyle}>{fieldError('priority')}</div>}
+            {fieldError('priority') && <span className={styles.errorMsg}>{fieldError('priority')}</span>}
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Path prefix</label>
+          <div className={`${styles.field} ${styles.pathField}`}>
+            <label className={styles.label}>Path prefix</label>
             <input
-              style={inputStyle()}
+              className={styles.input}
               value={values.match.pathPrefix ?? ''}
               onChange={e => setMatchField('pathPrefix', e.target.value)}
               placeholder="/api/v1/*"
@@ -154,43 +118,34 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
           </div>
         </div>
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
-            <label style={{ ...labelStyle, margin: 0 }}>Destinations *</label>
-            <span style={{
-              fontSize: 'var(--text-xs)',
-              fontVariantNumeric: 'tabular-nums',
-              color: weightValid ? 'var(--color-success)' : weightSum > 100 ? 'var(--color-error)' : 'var(--color-text-muted)',
-              fontWeight: 500,
-            }}>{weightSum}/100%</span>
+        <div className={styles.field}>
+          <div className={styles.destinationsHeader}>
+            <label className={styles.label} style={{ margin: 0 }}>Destinations *</label>
+            <span className={weightSumClass}>{weightSum}/100%</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <div className={styles.destinationRows}>
             {values.destinations.map((d, i) => (
-              <div key={i} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+              <div key={i} className={styles.destinationRow}>
                 <input
-                  style={{ ...inputStyle(), flex: 1, fontFamily: 'monospace' }}
+                  className={`${styles.input} ${styles.inputMono}`}
+                  style={{ flex: 1 }}
                   value={d.version ?? ''}
                   onChange={e => setDestination(i, { version: e.target.value })}
-                  // onBlur={e => }
                   placeholder="v1.2.0"
                 />
                 <input
-                  type="text" inputMode="numeric" min={0} max={100}
-                  style={{ ...inputStyle(), width: 72, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
+                  type="number" min={0} max={100}
+                  className={`${styles.input} ${styles.inputWeight}`}
                   value={d.weightPct}
-                  onChange={e => {
-                    const raw = e.target.value
-                    const num = raw === '' ? 0 : parseInt(raw, 10)
-                    if (!isNaN(num)) setDestination(i, { weightPct: Number(num) })}
-                  }
+                  onChange={e => setDestination(i, { weightPct: Number(e.target.value) })}
                 />
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>%</span>
+                <span className={styles.weightUnit}>%</span>
                 {values.destinations.length > 1 && (
                   <button
+                    className={styles.removeBtn}
                     onClick={() => removeDestination(i)}
                     aria-label="Удалить destination"
-                    style={{ color: 'var(--color-text-faint)', padding: 'var(--space-1)', flexShrink: 0 }}
                   >
                     <Trash2 size={13} />
                   </button>
@@ -200,27 +155,21 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
           </div>
 
           {values.destinations.some(d => d.version && d.weightPct > 0) && (
-            <div style={{ marginTop: 'var(--space-3)' }}>
+            <div className={styles.weightBarWrap}>
               <WeightBar destinations={values.destinations.filter(d => !!d.version)} />
             </div>
           )}
 
-          {fieldError('destinations') && <div style={errorStyle}>{fieldError('destinations')}</div>}
+          {fieldError('destinations') && (
+            <span className={styles.errorMsg}>{fieldError('destinations')}</span>
+          )}
 
-          <button
-            onClick={addDestination}
-            style={{
-              marginTop: 'var(--space-2)',
-              display: 'flex', alignItems: 'center', gap: 'var(--space-1)',
-              fontSize: 'var(--text-xs)', color: 'var(--color-primary)',
-              padding: 'var(--space-1) 0',
-            }}
-          >
+          <button className={styles.addBtn} onClick={addDestination}>
             <Plus size={12} /> Добавить destination
           </button>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)', paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-divider)' }}>
+        <div className={styles.actions}>
           <Button variant="ghost" onClick={onClose} disabled={isPending}>Отмена</Button>
           <Button onClick={handleSubmit} disabled={isPending}>
             {isPending ? 'Сохранение…' : initial ? 'Сохранить' : 'Создать'}
