@@ -17,7 +17,6 @@ const makeRoutingRule = (overrides = {}) => ({
 })
 
 describe('Routing Rule Management', () => {
-  // typed as interface — tests are decoupled from the implementation
   let svc: RoutingRuleService
 
   beforeEach(() => {

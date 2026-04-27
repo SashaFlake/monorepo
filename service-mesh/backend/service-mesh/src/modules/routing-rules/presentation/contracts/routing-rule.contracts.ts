@@ -9,9 +9,21 @@ const Match = z.object({
 })
 
 const Destination = z.object({
-  version:   z.string().optional(),
+  version:   z.string().min(1, 'Версия destination не может быть пустой'),
   weightPct: z.number().int().min(0).max(100),
 })
+
+const Destinations = z
+  .array(Destination)
+  .min(1, 'Нужен хотя бы один destination')
+  .refine(
+      arr => new Set(arr.map(d => d.version)).size === arr.length,
+      { message: 'Версии destinations должны быть уникальными' },
+  )
+  .refine(
+    arr => arr.reduce((s, d) => s + d.weightPct, 0) === 100,
+    { message: 'Сумма weightPct всех destinations должна быть равна 100' },
+  )
 
 // ── Params ────────────────────────────────────────────────────────────────────
 
@@ -21,25 +33,30 @@ export const RuleIdParam    = z.object({ ruleId:    z.string().uuid() })
 // ── Request bodies ────────────────────────────────────────────────────────────
 
 export const CreateBody = z.object({
-  name:        z.string().min(1).max(128),
-  priority:    z.number().int().min(0).max(1000),
-  match:       Match,
-  destination: Destination,
+  name:         z.string().min(1).max(128),
+  priority:     z.number().int().min(0).max(1000),
+  match:        Match,
+  destinations: Destinations,
 })
 
-export const UpdateBody = CreateBody.partial()
+export const UpdateBody = z.object({
+  name:         z.string().min(1).max(128).optional(),
+  priority:     z.number().int().min(0).max(1000).optional(),
+  match:        Match.optional(),
+  destinations: Destinations.optional(),
+})
 
 // ── Response DTO ──────────────────────────────────────────────────────────────
 
 export const RoutingRuleDto = z.object({
-  id:          z.string().uuid(),
-  serviceId:   z.string().uuid(),
-  name:        z.string(),
-  priority:    z.number().int(),
-  match:       Match,
-  destination: Destination,
-  createdAt:   z.string().datetime(),
-  updatedAt:   z.string().datetime(),
+  id:           z.string().uuid(),
+  serviceId:    z.string().uuid(),
+  name:         z.string(),
+  priority:     z.number().int(),
+  match:        Match,
+  destinations: z.array(Destination),
+  createdAt:    z.string().datetime(),
+  updatedAt:    z.string().datetime(),
 })
 
 // ── Endpoint contracts ────────────────────────────────────────────────────────

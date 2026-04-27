@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cors     from '@fastify/cors'
 import sensible from '@fastify/sensible'
 import { env } from '../config/env.js'
+import { ZodTypeProvider, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
 import { RegistryService }          from '../modules/registry/application/registry.service.js'
 import { ActiveHealthChecker }      from '../modules/registry/application/health-checker.js'
 import { RoutingRuleServiceImpl }   from '../modules/routing-rules/application/routing-rule.service.impl.js'
@@ -16,10 +17,12 @@ export async function buildApp() {
         ? { target: 'pino-pretty', options: { colorize: true } }
         : undefined,
     },
-  })
+  }).withTypeProvider<ZodTypeProvider>()
 
   await app.register(cors,     { origin: true })
   await app.register(sensible)
+  app.setValidatorCompiler(validatorCompiler)
+  app.setSerializerCompiler(serializerCompiler)
 
   const registry           = new RegistryService(env.INSTANCE_TTL_SECONDS * 1000)
   const routingRuleService = new RoutingRuleServiceImpl()

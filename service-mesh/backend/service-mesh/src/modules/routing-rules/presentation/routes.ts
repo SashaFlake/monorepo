@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from 'fastify'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import type { RoutingRuleService } from '../application/routing-rule.service.js'
 import { makeRoutingRuleHandlers } from './handlers/routing-rule.handlers.js'
 import {
@@ -16,7 +16,7 @@ type Opts = { routingRuleService: RoutingRuleService }
  * Validation       → presentation/contracts/routing-rule.contracts.ts
  * Request handling → presentation/handlers/routing-rule.handlers.ts
  */
-export const routingRulesRoutes: FastifyPluginAsync<Opts> = async (app, { routingRuleService }) => {
+export const routingRulesRoutes: FastifyPluginAsyncZod<Opts> = async (app, { routingRuleService }) => {
   const handlers = makeRoutingRuleHandlers(routingRuleService)
 
   // ── Routing Rules ─────────────────────────────────────────────────────────
