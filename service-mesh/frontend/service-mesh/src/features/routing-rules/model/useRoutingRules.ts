@@ -16,7 +16,7 @@ export type RoutingRulesState = {
   closeCreate: () => void
   openEdit: (rule: RoutingRule) => void
   closeEdit: () => void
-  openDelete: (rule: RoutingRule) => void
+  openDelete: (id: string) => void
   closeDelete: () => void
 
   create: (values: RuleFormValues) => void
@@ -65,7 +65,7 @@ export function useRoutingRules(serviceId: string): RoutingRulesState {
     closeCreate: () => setCreateOpen(false),
     openEdit:    (rule) => setEditRule(rule),
     closeEdit:   () => setEditRule(null),
-    openDelete:  (rule) => setDeleteRule(rule),
+    openDelete:  (id) => setDeleteRule(rules.find(r => r.id === id) ?? null),
     closeDelete: () => setDeleteRule(null),
     create:     (values) => createMutation.mutate(values),
     update:     (values) => updateMutation.mutate({ id: editRule!.id, input: values }),
