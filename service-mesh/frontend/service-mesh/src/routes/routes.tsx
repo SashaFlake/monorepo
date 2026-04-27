@@ -223,8 +223,8 @@ export function RoutesPage() {
       <Header
         title="Routes"
         subtitle="Traffic routing rules"
-        actions={
-          rules.length > 0 && (
+        action={
+          rules.length > 0 ? (
             <button
               disabled
               title="Coming soon"
@@ -239,7 +239,7 @@ export function RoutesPage() {
             >
               <Plus size={14} /> Add rule
             </button>
-          )
+          ) : null
         }
       />
 
