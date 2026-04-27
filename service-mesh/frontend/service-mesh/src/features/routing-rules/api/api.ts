@@ -33,7 +33,7 @@ const fromDto = (dto: RoutingRuleDto): RoutingRule => ({
   destinations: [dto.destination],
 })
 
-const toCreateBody = (serviceId: string, form: RuleFormValues) => ({
+const toCreateBody = (form: RuleFormValues) => ({
   name: form.name,
   priority: form.priority,
   match: form.match,
@@ -65,7 +65,7 @@ export const routingRulesApi = {
     const res = await fetch(endpoint(`/services/${serviceId}/routing-rules`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toCreateBody(serviceId, form)),
+      body: JSON.stringify(toCreateBody(form)),
     })
     if (!res.ok) throw new Error(`create rule failed: ${res.status}`)
     return fromDto(await res.json())

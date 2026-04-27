@@ -58,7 +58,7 @@ export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: Delet
             Отмена
           </Button>
           <Button
-            variant="destructive"
+            variant="danger"
             onClick={onConfirm}
             disabled={isPending}
             aria-busy={isPending}
