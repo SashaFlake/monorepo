@@ -1,0 +1,16 @@
+.main {
+  padding: var(--space-6);
+}
+
+.loading {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+}
+
+.error {
+  padding: var(--space-6);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
