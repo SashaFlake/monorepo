@@ -45,7 +45,7 @@ export function RoutingRulesPage({ serviceId }: Props) {
             <RulesTable
               rules={r.rules}
               onEdit={r.openEdit}
-              onDelete={r.openDelete}
+              onDelete={(id) => r.openDelete(id)}
             />
           )}
         </Card>

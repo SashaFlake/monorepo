@@ -115,7 +115,6 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
                   <div style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
                     <Button
                       variant="ghost"
-                      size="icon"
                       aria-label={`Редактировать правило ${rule.name}`}
                       onClick={() => onEdit(rule)}
                     >
@@ -123,7 +122,6 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
                     </Button>
                     <Button
                       variant="ghost"
-                      size="icon"
                       aria-label={`Удалить правило ${rule.name}`}
                       onClick={() => setRuleToDelete(rule)}
                     >
