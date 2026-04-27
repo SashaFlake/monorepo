@@ -100,7 +100,7 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
         </div>
       )}
       {routes.length === 0 ? (
-        <div style={{ color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>No paths defined in spec.</div>
+        <div className={s.openapiLoading}>No paths defined in spec.</div>
       ) : (
         <table className={s.table}>
           <thead className={s.thead}>
@@ -114,10 +114,10 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
                     {r.method}
                   </span>
                 </td>
-                <td className={`${s.td}`} style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                <td className={`${s.td} ${s.monoXsMuted}`}>
                   {r.path}{r.deprecated && <span className={s.deprecated}>deprecated</span>}
                 </td>
-                <td className={s.td} style={{ color: 'var(--color-text-muted)' }}>{r.summary ?? '—'}</td>
+                <td className={`${s.td} ${s.tabularMuted}`}>{r.summary ?? '—'}</td>
                 <td className={s.td}>
                   <div className={s.tagsList}>
                     {(r.tags ?? []).map(t => <span key={t} className={s.tagChip}>{t}</span>)}
@@ -146,17 +146,17 @@ function InstancesPanel({ version }: { version: ServiceVersion }) {
           const hc  = inst.lastHealthCheck
           return (
             <tr key={inst.id} className={s.row}>
-              <td className={s.td} style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{inst.id.slice(0, 8)}…</td>
-              <td className={s.td} style={{ fontFamily: 'monospace' }}>{inst.host}</td>
-              <td className={s.td} style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-muted)' }}>{inst.port}</td>
-              <td className={s.td} style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-muted)' }}>
+              <td className={`${s.td} ${s.monoXsMuted}`}>{inst.id.slice(0, 8)}…</td>
+              <td className={`${s.td} ${s.mono}`}>{inst.host}</td>
+              <td className={`${s.td} ${s.tabularMuted}`}>{inst.port}</td>
+              <td className={`${s.td} ${s.tabular}`}>
                 {hc
                   ? <span style={{ color: hc.ok ? 'var(--color-success)' : 'var(--color-error)' }}>{hc.ok ? '✓' : '✗'} {hc.statusCode ?? 'timeout'} · {hc.latencyMs}ms</span>
-                  : <span style={{ color: 'var(--color-text-faint)' }}>pending</span>
+                  : <span className={s.openapiLoading}>pending</span>
                 }
               </td>
               <td className={s.td}><Badge variant={STATUS_VARIANT[inst.status]}>{inst.status}</Badge></td>
-              <td className={s.td} style={{ color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}>{ago}s ago</td>
+              <td className={`${s.td} ${s.tabularMuted}`}>{ago}s ago</td>
             </tr>
           )
         })}
