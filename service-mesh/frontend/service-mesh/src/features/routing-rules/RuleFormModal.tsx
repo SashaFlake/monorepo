@@ -4,8 +4,8 @@
 
 import { useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
-import type { RoutingRule, RuleFormValues, Upstream } from './types'
-import { validateRule, getWeightSum, isWeightSumValid } from './validation'
+import type { RoutingRule, RuleFormValues, Destination } from './types'
+import { validateRule, sumWeights } from './validation'
 import { Button } from '@/components/ui/button'
 import { WeightBar } from './WeightBar'
 
@@ -16,18 +16,20 @@ interface RuleFormModalProps {
   onClose: () => void
 }
 
-const emptyUpstream = (): Upstream => ({ serviceId: '', weight: 0 })
+const emptyDestination = (): Destination => ({ version: '', weightPct: 0 })
 
 const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   name: rule.name,
-  match: { host: rule.match.host ?? '', path: rule.match.path ?? '' },
-  upstreams: rule.upstreams,
+  priority: rule.priority,
+  match: rule.match,
+  destinations: rule.destinations,
 })
 
 const defaultValues = (): RuleFormValues => ({
   name: '',
-  match: { host: '', path: '' },
-  upstreams: [emptyUpstream()],
+  priority: 100,
+  match: {},
+  destinations: [emptyDestination()],
 })
 
 export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps) {
@@ -37,34 +39,35 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
   const [submitAttempted, setSubmitAttempted] = useState(false)
 
   const result = validateRule(values)
-  const errors = result.valid ? [] : result.errors
+  const errors = result.ok ? [] : result.errors
   const fieldError = (field: string) =>
     submitAttempted ? errors.find(e => e.field === field)?.message : undefined
 
-  const weightSum = getWeightSum(values.upstreams)
-  const weightValid = isWeightSumValid(values.upstreams)
+  const weightSum = sumWeights(values.destinations)
+  const weightValid = weightSum === 100
 
   // --- Handlers ---
 
   const setName = (name: string) => setValues(v => ({ ...v, name }))
-  const setMatchField = (key: 'host' | 'path', val: string) =>
+  const setPriority = (priority: number) => setValues(v => ({ ...v, priority }))
+  const setMatchField = (key: 'pathPrefix', val: string) =>
     setValues(v => ({ ...v, match: { ...v.match, [key]: val } }))
 
-  const setUpstream = (index: number, patch: Partial<Upstream>) =>
+  const setDestination = (index: number, patch: Partial<Destination>) =>
     setValues(v => ({
       ...v,
-      upstreams: v.upstreams.map((u, i) => i === index ? { ...u, ...patch } : u),
+      destinations: v.destinations.map((d, i) => i === index ? { ...d, ...patch } : d),
     }))
 
-  const addUpstream = () =>
-    setValues(v => ({ ...v, upstreams: [...v.upstreams, emptyUpstream()] }))
+  const addDestination = () =>
+    setValues(v => ({ ...v, destinations: [...v.destinations, emptyDestination()] }))
 
-  const removeUpstream = (index: number) =>
-    setValues(v => ({ ...v, upstreams: v.upstreams.filter((_, i) => i !== index) }))
+  const removeDestination = (index: number) =>
+    setValues(v => ({ ...v, destinations: v.destinations.filter((_, i) => i !== index) }))
 
   const handleSubmit = () => {
     setSubmitAttempted(true)
-    if (result.valid) onSubmit(values)
+    if (result.ok) onSubmit(values)
   }
 
   // --- Styles ---
@@ -142,32 +145,35 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
           {fieldError('name') && <div style={errorStyle}>{fieldError('name')}</div>}
         </div>
 
-        {/* Match */}
+        {/* Приоритет + Match */}
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Host</label>
+          <div style={{ width: 100 }}>
+            <label style={labelStyle}>Приоритет</label>
             <input
-              style={inputStyle()}
-              value={values.match.host}
-              onChange={e => setMatchField('host', e.target.value)}
-              placeholder="api.example.com"
+              type="number"
+              min={0}
+              max={1000}
+              style={inputStyle(!!fieldError('priority'))}
+              value={values.priority}
+              onChange={e => setPriority(Number(e.target.value))}
             />
+            {fieldError('priority') && <div style={errorStyle}>{fieldError('priority')}</div>}
           </div>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Path</label>
+            <label style={labelStyle}>Path prefix</label>
             <input
               style={inputStyle()}
-              value={values.match.path}
-              onChange={e => setMatchField('path', e.target.value)}
+              value={values.match.pathPrefix ?? ''}
+              onChange={e => setMatchField('pathPrefix', e.target.value)}
               placeholder="/api/v1/*"
             />
           </div>
         </div>
 
-        {/* Upstreams */}
+        {/* Destinations */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
-            <label style={{ ...labelStyle, margin: 0 }}>Upstreams *</label>
+            <label style={{ ...labelStyle, margin: 0 }}>Destinations *</label>
             <span style={{
               fontSize: 'var(--text-xs)',
               fontVariantNumeric: 'tabular-nums',
@@ -179,27 +185,27 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            {values.upstreams.map((u, i) => (
+            {values.destinations.map((d, i) => (
               <div key={i} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
                 <input
-                  style={{ ...inputStyle(!!fieldError(`upstreams.${i}.serviceId`)), flex: 1, fontFamily: 'monospace' }}
-                  value={u.serviceId}
-                  onChange={e => setUpstream(i, { serviceId: e.target.value })}
-                  placeholder="service-id"
+                  style={{ ...inputStyle(), flex: 1, fontFamily: 'monospace' }}
+                  value={d.version ?? ''}
+                  onChange={e => setDestination(i, { version: e.target.value })}
+                  placeholder="v1.2.0"
                 />
                 <input
                   type="number"
                   min={0}
                   max={100}
                   style={{ ...inputStyle(), width: 72, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
-                  value={u.weight}
-                  onChange={e => setUpstream(i, { weight: Number(e.target.value) })}
+                  value={d.weightPct}
+                  onChange={e => setDestination(i, { weightPct: Number(e.target.value) })}
                 />
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>%</span>
-                {values.upstreams.length > 1 && (
+                {values.destinations.length > 1 && (
                   <button
-                    onClick={() => removeUpstream(i)}
-                    aria-label="Удалить upstream"
+                    onClick={() => removeDestination(i)}
+                    aria-label="Удалить destination"
                     style={{ color: 'var(--color-text-faint)', padding: 'var(--space-1)', flexShrink: 0 }}
                   >
                     <Trash2 size={13} />
@@ -210,16 +216,16 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
           </div>
 
           {/* WeightBar preview */}
-          {values.upstreams.some(u => u.serviceId && u.weight > 0) && (
+          {values.destinations.some(d => d.version && d.weightPct > 0) && (
             <div style={{ marginTop: 'var(--space-3)' }}>
-              <WeightBar upstreams={values.upstreams.filter(u => u.serviceId)} />
+              <WeightBar destinations={values.destinations.filter(d => d.version)} />
             </div>
           )}
 
-          {fieldError('upstreams') && <div style={errorStyle}>{fieldError('upstreams')}</div>}
+          {fieldError('destinations') && <div style={errorStyle}>{fieldError('destinations')}</div>}
 
           <button
-            onClick={addUpstream}
+            onClick={addDestination}
             style={{
               marginTop: 'var(--space-2)',
               display: 'flex', alignItems: 'center', gap: 'var(--space-1)',
@@ -227,7 +233,7 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
               padding: 'var(--space-1) 0',
             }}
           >
-            <Plus size={12} /> Добавить upstream
+            <Plus size={12} /> Добавить destination
           </button>
         </div>
 
