@@ -4,6 +4,7 @@ import type { RoutingRule, RuleFormValues, Destination } from '../model/types'
 import { validateRule, sumWeights } from '../model/validation'
 import { Button } from '@/components/ui/button'
 import { WeightBar } from './WeightBar'
+import * as React from "react";
 
 interface RuleFormModalProps {
   initial?: RoutingRule
@@ -12,7 +13,7 @@ interface RuleFormModalProps {
   onClose: () => void
 }
 
-const emptyDestination = (): Destination => ({ version: '', weightPct: 0 })
+const emptyDestination = (): Destination => ({serviceId: '', version: '', weightPct: 0 })
 
 const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   name: rule.name,
@@ -171,13 +172,18 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
                   style={{ ...inputStyle(), flex: 1, fontFamily: 'monospace' }}
                   value={d.version ?? ''}
                   onChange={e => setDestination(i, { version: e.target.value })}
+                  // onBlur={e => }
                   placeholder="v1.2.0"
                 />
                 <input
-                  type="number" min={0} max={100}
+                  type="text" inputMode="numeric" min={0} max={100}
                   style={{ ...inputStyle(), width: 72, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
                   value={d.weightPct}
-                  onChange={e => setDestination(i, { weightPct: Number(e.target.value) })}
+                  onChange={e => {
+                    const raw = e.target.value
+                    const num = raw === '' ? 0 : parseInt(raw, 10)
+                    if (!isNaN(num)) setDestination(i, { weightPct: Number(num) })}
+                  }
                 />
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>%</span>
                 {values.destinations.length > 1 && (

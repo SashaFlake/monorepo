@@ -1,7 +1,5 @@
 import type { Destination, RuleFormValues } from './types'
 
-// ── Чистые функции валидации (FP-first) ─────────────────────────────────────
-
 export type ValidationError = { field: string; message: string }
 export type ValidationResult = { ok: true } | { ok: false; errors: ValidationError[] }
 
@@ -34,6 +32,8 @@ export const validateRule = (values: RuleFormValues): ValidationResult => {
   if (emptyVersion)
     errors.push({ field: 'destinations', message: 'Укажите версию для каждого destination' })
 
+  const duplicateVersions = new Set(values.destinations.map(i => i.version)).size === values.destinations.length
+  if (!duplicateVersions) errors.push({ field: "version", message: "Duplicated versions not allowed"})
   const weightsResult = validateWeights(values.destinations)
   if (!weightsResult.ok) errors.push(...weightsResult.errors)
 

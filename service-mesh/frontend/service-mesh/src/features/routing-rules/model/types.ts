@@ -6,9 +6,9 @@
 
 export type Destination = {
   /** Для будущего cross-service routing */
-  serviceId?: string
+  serviceId: string
   /** Целевая версия инстанса */
-  version?: string
+  version: string
   /** Доля трафика 0–100. Сумма всех destinations должна быть 100 */
   weightPct: number
 }

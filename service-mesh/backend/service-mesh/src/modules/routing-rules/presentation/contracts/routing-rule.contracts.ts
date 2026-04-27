@@ -17,6 +17,10 @@ const Destinations = z
   .array(Destination)
   .min(1, 'Нужен хотя бы один destination')
   .refine(
+      arr => new Set(arr.map(d => d.version)).size === arr.length,
+      { message: 'Версии destinations должны быть уникальными' },
+  )
+  .refine(
     arr => arr.reduce((s, d) => s + d.weightPct, 0) === 100,
     { message: 'Сумма weightPct всех destinations должна быть равна 100' },
   )
