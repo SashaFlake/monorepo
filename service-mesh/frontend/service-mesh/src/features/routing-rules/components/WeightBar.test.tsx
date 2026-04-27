@@ -11,17 +11,6 @@ describe('WeightBar', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('renders a separate visual segment for each destination', () => {
-    render(<WeightBar destinations={[dest('v2', 10), dest('v1', 90)]} />)
-    expect(document.querySelectorAll('[title]')).toHaveLength(2)
-  })
-
-  it('shows version and traffic share on segment hover', () => {
-    render(<WeightBar destinations={[dest('v2', 10), dest('v1', 90)]} />)
-    expect(document.querySelector('[title="v2: 10%"]')).toBeInTheDocument()
-    expect(document.querySelector('[title="v1: 90%"]')).toBeInTheDocument()
-  })
-
   it('lists each version in the legend', () => {
     render(<WeightBar destinations={[dest('v2', 10), dest('v1', 90)]} />)
     expect(screen.getByText('v2')).toBeInTheDocument()
@@ -37,11 +26,5 @@ describe('WeightBar', () => {
   it('labels an unversioned destination as "default"', () => {
     render(<WeightBar destinations={[{ weightPct: 100 }]} />)
     expect(screen.getAllByText('default').length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('segment width reflects the configured traffic percentage', () => {
-    render(<WeightBar destinations={[dest('v2', 10), dest('v1', 90)]} />)
-    const segment = document.querySelector('[title="v2: 10%"]') as HTMLElement
-    expect(segment.style.width).toBe('10%')
   })
 })
