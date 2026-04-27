@@ -1,4 +1,4 @@
-import type { Destination } from '../types'
+import type { Destination } from '../model/types'
 
 const COLORS = [
   'var(--color-primary)',
@@ -36,19 +36,13 @@ export function WeightBar({ destinations }: WeightBarProps) {
           />
         ))}
       </div>
-
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
         {destinations.map((d, i) => (
           <div
             key={d.version ?? i}
             style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}
           >
-            <span style={{
-              width: 8, height: 8,
-              borderRadius: 2,
-              background: COLORS[i % COLORS.length],
-              flexShrink: 0,
-            }} />
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
             <span style={{ fontFamily: 'monospace' }}>{d.version ?? 'default'}</span>
             <span style={{ color: 'var(--color-text-faint)' }}>{d.weightPct}%</span>
           </div>

@@ -2,13 +2,17 @@ import { Plus } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useRoutingRules } from './useRoutingRules'
-import { RulesTable } from './RulesTable'
-import { RuleFormModal } from './RuleFormModal'
-import { DeleteConfirmDialog } from './DeleteConfirmDialog'
+import { useRoutingRules } from './model/useRoutingRules'
+import { RulesTable } from './components/RulesTable'
+import { RuleFormModal } from './components/RuleFormModal'
+import { DeleteRuleDialog } from './components/DeleteRuleDialog'
 
-export function RoutingRulesPage() {
-  const r = useRoutingRules()
+interface Props {
+  serviceId: string
+}
+
+export function RoutingRulesPage({ serviceId }: Props) {
+  const r = useRoutingRules(serviceId)
 
   return (
     <>
@@ -65,7 +69,7 @@ export function RoutingRulesPage() {
       )}
 
       {r.deleteRule && (
-        <DeleteConfirmDialog
+        <DeleteRuleDialog
           rule={r.deleteRule}
           isPending={r.isDeleting}
           onConfirm={r.remove}
