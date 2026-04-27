@@ -6,6 +6,7 @@ import { useRoutingRules } from './model/useRoutingRules'
 import { RulesTable } from './components/RulesTable'
 import { RuleFormModal } from './components/RuleFormModal'
 import { DeleteRuleDialog } from './components/DeleteRuleDialog'
+import s from './RoutingRulesPage.module.css'
 
 interface Props {
   serviceId: string
@@ -20,27 +21,16 @@ export function RoutingRulesPage({ serviceId }: Props) {
         title="Routing Rules"
         subtitle="Управление правилами маршрутизации трафика"
         action={
-          <Button
-            onClick={r.openCreate}
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}
-          >
+          <Button onClick={r.openCreate}>
             <Plus size={14} /> Новое правило
           </Button>
         }
       />
 
-      <main style={{ padding: 'var(--space-6)' }}>
+      <main className={s.main}>
         <Card style={{ padding: 0, overflow: 'hidden' }}>
-          {r.isLoading && (
-            <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--color-text-faint)', fontSize: 'var(--text-sm)' }}>
-              Загрузка правил…
-            </div>
-          )}
-          {r.isError && (
-            <div style={{ padding: 'var(--space-6)', color: 'var(--color-error)', fontSize: 'var(--text-sm)' }}>
-              ⚠️ Не удалось загрузить правила маршрутизации
-            </div>
-          )}
+          {r.isLoading && <div className={s.loading}>Загрузка правил…</div>}
+          {r.isError && <div className={s.error}>⚠️ Не удалось загрузить правила маршрутизации</div>}
           {!r.isLoading && !r.isError && (
             <RulesTable
               rules={r.rules}

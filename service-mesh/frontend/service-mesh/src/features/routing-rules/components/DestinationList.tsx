@@ -1,5 +1,7 @@
 import type { Destination } from '../model/types'
 import { sumWeights } from '../model/validation'
+import { Button } from '@/components/ui/button'
+import s from './DestinationList.module.css'
 
 type Props = {
   destinations: Destination[]
@@ -17,25 +19,36 @@ export const DestinationList = ({ destinations, onChange }: Props) => {
     onChange([...destinations, { version: '', weightPct: 0 }])
 
   const sum = sumWeights(destinations)
+  const sumOk = sum === 100
 
   return (
-    <div>
+    <div className={s.list}>
       {destinations.map((item, i) => (
-        <div key={i}>
+        <div key={i} className={s.row}>
           <input
+            className={s.input}
+            placeholder="version"
             value={item.version ?? ''}
             onChange={e => update(i, { version: e.target.value })}
           />
           <input
             type="number"
+            className={`${s.input} ${s.inputWeight}`}
+            placeholder="%"
             value={item.weightPct}
             onChange={e => update(i, { weightPct: Number(e.target.value) })}
           />
-          <button onClick={() => remove(i)}>x</button>
+          <button className={s.removeBtn} onClick={() => remove(i)} aria-label="Remove destination">
+            ✕
+          </button>
         </div>
       ))}
-      <button onClick={add}>add</button>
-      <span>{sum === 100 ? `${sum}% ✓` : `${sum}% — должно быть 100%`}</span>
+      <div className={s.footer}>
+        <Button variant="ghost" onClick={add}>+ Add destination</Button>
+        <span className={`${s.sum} ${sumOk ? s.sumOk : s.sumError}`}>
+          {sumOk ? `${sum}% ✓` : `${sum}% — должно быть 100%`}
+        </span>
+      </div>
     </div>
   )
 }
