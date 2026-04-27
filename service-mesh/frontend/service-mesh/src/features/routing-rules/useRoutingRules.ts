@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { routingApi, routingKeys } from './api'
+import { routingRulesApi, routingKeys } from './api'
 import type { RoutingRule, RuleFormValues } from './types'
 
 export type RoutingRulesState = {
@@ -35,7 +35,7 @@ export type RoutingRulesState = {
   isDeleting: boolean
 }
 
-export function useRoutingRules(): RoutingRulesState {
+export function useRoutingRules(serviceId: string): RoutingRulesState {
   const qc = useQueryClient()
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -43,26 +43,26 @@ export function useRoutingRules(): RoutingRulesState {
   const [deleteRule, setDeleteRule] = useState<RoutingRule | null>(null)
 
   const { data: rules = [], isLoading, isError } = useQuery({
-    queryKey: routingKeys.list(),
-    queryFn:  routingApi.list,
+    queryKey: routingKeys.list(serviceId),
+    queryFn:  () => routingRulesApi.list(serviceId),
     staleTime: 10_000,
   })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: routingKeys.list() })
+  const invalidate = () => qc.invalidateQueries({ queryKey: routingKeys.list(serviceId) })
 
   const createMutation = useMutation({
-    mutationFn: (input: RuleFormValues) => routingApi.create(input),
+    mutationFn: (input: RuleFormValues) => routingRulesApi.create(serviceId, input),
     onSuccess: () => { void invalidate(); setCreateOpen(false) },
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: RuleFormValues }) =>
-      routingApi.update(id, input),
+      routingRulesApi.update(id, input),
     onSuccess: () => { void invalidate(); setEditRule(null) },
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => routingApi.delete(id),
+    mutationFn: (id: string) => routingRulesApi.delete(id),
     onSuccess: () => { void invalidate(); setDeleteRule(null) },
   })
 
