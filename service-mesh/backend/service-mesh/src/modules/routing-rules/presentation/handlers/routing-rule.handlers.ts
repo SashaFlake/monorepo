@@ -17,13 +17,13 @@ type UpdateBodyType  = z.infer<typeof UpdateBody>
  * Handlers receive already-validated data — Fastify validates via JSON Schema
  * registered in routes.ts (derived from EndpointContracts).
  */
-export const makeRoutingRuleHandlers = (service: RoutingRuleService) => ({
+export const makeRoutingRuleHandlers = (routingRulesService: RoutingRuleService) => ({
 
   list: async (
     req: FastifyRequest<{ Params: ServiceIdParams }>,
     reply: FastifyReply,
   ) => {
-    return reply.send(service.list(req.params.serviceId))
+    return reply.send(routingRulesService.list(req.params.serviceId))
   },
 
   create: async (
@@ -31,7 +31,7 @@ export const makeRoutingRuleHandlers = (service: RoutingRuleService) => ({
     reply: FastifyReply,
   ) => {
     return reply.status(201).send(
-      service.create(req.params.serviceId, { ...req.body, serviceId: req.params.serviceId }),
+      routingRulesService.create(req.params.serviceId, { ...req.body, serviceId: req.params.serviceId }),
     )
   },
 
@@ -39,14 +39,14 @@ export const makeRoutingRuleHandlers = (service: RoutingRuleService) => ({
     req: FastifyRequest<{ Params: RuleIdParams; Body: UpdateBodyType }>,
     reply: FastifyReply,
   ) => {
-    return reply.send(service.update(req.params.ruleId, req.body))
+    return reply.send(routingRulesService.update(req.params.ruleId, req.body))
   },
 
   delete: async (
     req: FastifyRequest<{ Params: RuleIdParams }>,
     reply: FastifyReply,
   ) => {
-    service.delete(req.params.ruleId)
+    routingRulesService.delete(req.params.ruleId)
     return reply.status(204).send()
   },
 

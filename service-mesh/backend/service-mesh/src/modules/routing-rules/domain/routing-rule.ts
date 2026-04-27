@@ -18,7 +18,7 @@ export interface RoutingRule {
   name: string
   priority: number
   match: RoutingRuleMatch
-  destination: RoutingRuleDestination
+  destinations: RoutingRuleDestination[]
   createdAt: string
   updatedAt: string
 }

@@ -1,9 +1,12 @@
-# docker-compose.service-mesh.yml
 # Запуск: docker compose -f docker-compose.service-mesh.yml up --build
+# Registry UI  : http://localhost:5173
+# Registry API : http://localhost:4000
+# Mock-1       : http://localhost:3001
+# Mock-2       : http://localhost:3002
 
 services:
 
-  # ─── Registry backend ──────────────────────────────────────────────────────────
+  # ─── Registry (control plane) ────────────────────────────────────────────────
   registry:
     build:
       context: ./backend/service-mesh
@@ -13,16 +16,16 @@ services:
     ports:
       - "4000:4000"
     environment:
-      NODE_ENV: development
-      PORT: 4000
-      HOST: 0.0.0.0
-      LOG_LEVEL: info
+      NODE_ENV:             development
+      PORT:                 4000
+      HOST:                 0.0.0.0
+      LOG_LEVEL:            info
       INSTANCE_TTL_SECONDS: 30
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      test:         ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval:     10s
+      timeout:      5s
+      retries:      5
       start_period: 15s
     networks:
       - sm-net
@@ -37,14 +40,14 @@ services:
     ports:
       - "3001:3001"
     environment:
-      PORT: 3001
-      HOST: 0.0.0.0
+      PORT:         3001
+      HOST:         0.0.0.0
       SERVICE_NAME: mock-service
       SERVICE_HOST: sm-mock-1
       REGISTRY_URL: http://sm-registry:4000
       HEARTBEAT_MS: 10000
-      ENV_LABEL: dev
-      VERSION: 0.1.0
+      ENV_LABEL:    dev
+      VERSION:      "0.1.0"
     depends_on:
       registry:
         condition: service_healthy
@@ -61,21 +64,21 @@ services:
     ports:
       - "3002:3002"
     environment:
-      PORT: 3002
-      HOST: 0.0.0.0
+      PORT:         3002
+      HOST:         0.0.0.0
       SERVICE_NAME: mock-service
       SERVICE_HOST: sm-mock-2
       REGISTRY_URL: http://sm-registry:4000
       HEARTBEAT_MS: 10000
-      ENV_LABEL: dev
-      VERSION: 0.1.0
+      ENV_LABEL:    dev
+      VERSION:      "0.1.0"
     depends_on:
       registry:
         condition: service_healthy
     networks:
       - sm-net
 
-  # ─── UI frontend ──────────────────────────────────────────────────────────────
+  # ─── UI frontend ─────────────────────────────────────────────────────────────
   ui:
     build:
       context: ./frontend/service-mesh

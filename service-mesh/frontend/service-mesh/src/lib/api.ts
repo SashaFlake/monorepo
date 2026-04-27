@@ -100,12 +100,12 @@ export type RoutingRuleDestination = {
 }
 
 export type RoutingRule = {
-  id:           string
-  name:         string
+  id:            string
+  name:          string
   sourceService: string
-  destinations: RoutingRuleDestination[]
-  createdAt:    string
-  updatedAt:    string
+  destinations:  RoutingRuleDestination[]
+  createdAt:     string
+  updatedAt:     string
 }
 
 export type CreateRoutingRuleInput = {
