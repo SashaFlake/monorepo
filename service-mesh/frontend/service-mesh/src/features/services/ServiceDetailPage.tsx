@@ -1,4 +1,4 @@
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Header } from '@/components/layout/Header'
@@ -275,7 +275,7 @@ export function ServiceDetailPage({ serviceId }: { serviceId: string }) {
         </main>
       )}
 
-      {/* Routing Rules tab — переиспользуем готовую фичу, без Header внутри */}
+      {/* Routing Rules tab */}
       {pageTab === 'routing-rules' && (
         <RoutingRulesPage serviceId={serviceId} />
       )}
