@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { RoutingRule } from '../model/types'
-import { DeleteRuleDialog } from './DeleteRuleDialog'
+import type { RoutingRule } from '../../model/types'
+import { DeleteRuleDialog } from '../DeleteRuleDialog/DeleteRuleDialog'
 import styles from './RulesTable.module.css'
 
 type Props = {
@@ -18,8 +18,8 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
   if (rules.length === 0) {
     return (
       <div role="status" className={styles.empty}>
-        <p className={styles.emptyTitle}>Нет правил маршрутизации</p>
-        <p className={styles.emptyHint}>Создайте первое правило</p>
+        <p className={styles.emptyTitle}>No routing rules</p>
+        <p className={styles.emptyHint}>Create the first rule</p>
       </div>
     )
   }
@@ -34,7 +34,7 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
               <th className={styles.th} scope="col">Priority</th>
               <th className={styles.th} scope="col">Match</th>
               <th className={styles.th} scope="col">Destinations</th>
-              <th className={styles.th} scope="col"><span className="sr-only">Действия</span></th>
+              <th className={styles.th} scope="col"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
@@ -56,14 +56,14 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
                   <div className={styles.actionBtns}>
                     <Button
                       variant="ghost"
-                      aria-label={`Редактировать правило ${rule.name}`}
+                      aria-label={`Edit rule ${rule.name}`}
                       onClick={() => onEdit(rule)}
                     >
                       <Pencil size={16} />
                     </Button>
                     <Button
                       variant="ghost"
-                      aria-label={`Удалить правило ${rule.name}`}
+                      aria-label={`Delete rule ${rule.name}`}
                       onClick={() => setRuleToDelete(rule)}
                     >
                       <Trash2 size={16} />

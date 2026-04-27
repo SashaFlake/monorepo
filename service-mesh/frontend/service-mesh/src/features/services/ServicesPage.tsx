@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { registryApi, registryKeys, type InstanceStatus } from '@/lib/api'
+import { registryApi, registryKeys } from './api/api'
+import type { InstanceStatus } from './api/types'
 import s from './ServicesPage.module.css'
 
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {

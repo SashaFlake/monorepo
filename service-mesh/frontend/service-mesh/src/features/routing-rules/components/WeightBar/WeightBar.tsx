@@ -1,4 +1,4 @@
-import type { Destination } from '../model/types'
+import type { Destination } from '../../model/types'
 import styles from './WeightBar.module.css'
 
 const COLORS = [

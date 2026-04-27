@@ -5,7 +5,8 @@ import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { RoutingRulesPage } from '@/features/routing-rules/RoutingRulesPage'
-import { registryApi, registryKeys, type InstanceStatus, type ServiceVersion, type OpenApiDoc } from '@/lib/api'
+import { registryApi, registryKeys } from './api/api'
+import type { InstanceStatus, ServiceVersion, OpenApiDoc } from './api/types'
 import s from './ServiceDetailPage.module.css'
 
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
@@ -107,7 +108,7 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
             <tr><th className={s.th}>Method</th><th className={s.th}>Path</th><th className={s.th}>Summary</th><th className={s.th}>Tags</th></tr>
           </thead>
           <tbody>
-            {routes.map((r, i) => (
+            {routes.map((r) => (
               <tr key={`${r.method}-${r.path}`} className={s.row} style={{ opacity: r.deprecated ? 0.5 : 1 }}>
                 <td className={s.td}>
                   <span className={s.methodBadge} style={{ color: HTTP_METHOD_COLOR[r.method.toLowerCase()] ?? 'var(--color-text)' }}>
