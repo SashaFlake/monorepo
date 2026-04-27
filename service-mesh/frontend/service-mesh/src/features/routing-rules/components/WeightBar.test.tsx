@@ -24,7 +24,7 @@ describe('WeightBar', () => {
   })
 
   it('labels an unversioned destination as "default"', () => {
-    render(<WeightBar destinations={[{ weightPct: 100 }]} />)
+    render(<WeightBar destinations={[{ version: "v1", weightPct: 100 }]} />)
     expect(screen.getAllByText('default').length).toBeGreaterThanOrEqual(1)
   })
 })
