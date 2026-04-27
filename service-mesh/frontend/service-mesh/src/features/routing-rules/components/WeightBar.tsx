@@ -24,12 +24,12 @@ export function WeightBar({ destinations }: WeightBarProps) {
         overflow: 'hidden',
         background: 'var(--color-surface-offset)',
       }}>
-        {destinations.map((d, i) => (
+        {destinations.map((item, i) => (
           <div
-            key={d.version ?? i}
-            title={`${d.version ?? 'default'}: ${d.weightPct}%`}
+            key={item.version ?? i}
+            title={`${item.version ?? 'default'}: ${item.weightPct}%`}
             style={{
-              width: `${d.weightPct}%`,
+              width: `${item.weightPct}%`,
               background: COLORS[i % COLORS.length],
               transition: 'width 200ms ease',
             }}
@@ -37,14 +37,14 @@ export function WeightBar({ destinations }: WeightBarProps) {
         ))}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-        {destinations.map((d, i) => (
+        {destinations.map((item, i) => (
           <div
-            key={d.version ?? i}
+            key={item.version ?? i}
             style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}
           >
             <span style={{ width: 8, height: 8, borderRadius: 2, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-            <span style={{ fontFamily: 'monospace' }}>{d.version ?? 'default'}</span>
-            <span style={{ color: 'var(--color-text-faint)' }}>{d.weightPct}%</span>
+            <span style={{ fontFamily: 'monospace' }}>{item.version ?? 'default'}</span>
+            <span style={{ color: 'var(--color-text-faint)' }}>{item.weightPct}%</span>
           </div>
         ))}
       </div>

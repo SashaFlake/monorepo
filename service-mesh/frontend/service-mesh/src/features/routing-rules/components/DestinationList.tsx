@@ -20,15 +20,15 @@ export const DestinationList = ({ destinations, onChange }: Props) => {
 
   return (
     <div>
-      {destinations.map((d, i) => (
+      {destinations.map((item, i) => (
         <div key={i}>
           <input
-            value={d.version ?? ''}
+            value={item.version ?? ''}
             onChange={e => update(i, { version: e.target.value })}
           />
           <input
             type="number"
-            value={d.weightPct}
+            value={item.weightPct}
             onChange={e => update(i, { weightPct: Number(e.target.value) })}
           />
           <button onClick={() => remove(i)}>x</button>
