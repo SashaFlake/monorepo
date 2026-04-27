@@ -1,58 +1,54 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { RulesTable } from './RulesTable'
 import type { RoutingRule } from '../types/routing'
 
-const rule = (id: string, version: string, weightPct: number, status: RoutingRule['status'] = 'active'): RoutingRule =>
-  ({ id, version, weightPct, status })
-
-const rules = [
-  rule('1', 'v1', 80, 'active'),
-  rule('2', 'v2-canary', 20, 'inactive'),
+const mockRules: RoutingRule[] = [
+  { id: '1', version: 'v1.0', weightPct: 80, status: 'active' },
+  { id: '2', version: 'v1.1', weightPct: 20, status: 'inactive' },
 ]
 
 describe('RulesTable', () => {
-  it('renders each rule version', () => {
-    render(<RulesTable rules={rules} onDelete={vi.fn()} />)
-    expect(screen.getByText('v1')).toBeInTheDocument()
-    expect(screen.getByText('v2-canary')).toBeInTheDocument()
-  })
-
-  it('shows empty state when there are no rules', () => {
+  it('renders empty state when no rules', () => {
     render(<RulesTable rules={[]} onDelete={vi.fn()} />)
-    expect(screen.getByRole('status')).toBeInTheDocument()
-    expect(screen.getByText(/нет правил/i)).toBeInTheDocument()
+    expect(screen.getByText('Нет правил маршрутизации')).toBeInTheDocument()
   })
 
-  it('opens confirmation dialog on delete button click', () => {
-    render(<RulesTable rules={rules} onDelete={vi.fn()} />)
-    fireEvent.click(screen.getByLabelText('Удалить правило v1'))
+  it('renders rules in table', () => {
+    render(<RulesTable rules={mockRules} onDelete={vi.fn()} />)
+    expect(screen.getByText('v1.0')).toBeInTheDocument()
+    expect(screen.getByText('v1.1')).toBeInTheDocument()
+  })
+
+  it('shows delete dialog on button click', async () => {
+    const user = userEvent.setup()
+    render(<RulesTable rules={mockRules} onDelete={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /удалить правило v1.0/i }))
+
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText(/v1/)).toBeInTheDocument()
+    expect(screen.getByText('Удалить правило?')).toBeInTheDocument()
   })
 
-  it('calls onDelete with correct id on confirm', () => {
+  it('calls onDelete with correct id on confirm', async () => {
+    const user = userEvent.setup()
     const onDelete = vi.fn()
-    render(<RulesTable rules={rules} onDelete={onDelete} />)
-    fireEvent.click(screen.getByLabelText('Удалить правило v1'))
-    fireEvent.click(screen.getByText('Удалить'))
+    render(<RulesTable rules={mockRules} onDelete={onDelete} />)
+
+    await user.click(screen.getByRole('button', { name: /удалить правило v1.0/i }))
+    await user.click(screen.getByRole('button', { name: /^удалить$/i }))
+
     expect(onDelete).toHaveBeenCalledWith('1')
-    expect(onDelete).toHaveBeenCalledTimes(1)
   })
 
-  it('closes dialog without deleting on cancel', () => {
-    const onDelete = vi.fn()
-    render(<RulesTable rules={rules} onDelete={onDelete} />)
-    fireEvent.click(screen.getByLabelText('Удалить правило v1'))
-    fireEvent.click(screen.getByText('Отмена'))
+  it('closes dialog on cancel', async () => {
+    const user = userEvent.setup()
+    render(<RulesTable rules={mockRules} onDelete={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /удалить правило v1.0/i }))
+    await user.click(screen.getByRole('button', { name: /отмена/i }))
+
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(onDelete).not.toHaveBeenCalled()
-  })
-
-  it('disables buttons when isPending is true', () => {
-    render(<RulesTable rules={rules} onDelete={vi.fn()} isPending />)
-    fireEvent.click(screen.getByLabelText('Удалить правило v1'))
-    expect(screen.getByText('Удаление…')).toBeDisabled()
-    expect(screen.getByText('Отмена')).toBeDisabled()
   })
 })

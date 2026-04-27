@@ -1,6 +1,7 @@
 import { Activity, Server, Cpu, AlertTriangle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardValue } from '@/components/ui/card'
 import type { RegistryStats } from './useRegistryStats'
+import s from './StatsGrid.module.css'
 
 interface StatsGridProps {
   stats: RegistryStats
@@ -11,18 +12,14 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
   const val = (n: number) => isLoading ? '—' : n
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-      gap: 'var(--space-4)',
-    }}>
+    <div className={s.grid}>
       <Card>
         <CardHeader>
           <CardTitle>Services</CardTitle>
           <Server size={16} style={{ color: 'var(--color-text-faint)' }} />
         </CardHeader>
         <CardValue>{val(stats.totalServices)}</CardValue>
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>registered</p>
+        <p className={s.hint}>registered</p>
       </Card>
 
       <Card>
@@ -31,7 +28,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
           <Cpu size={16} style={{ color: 'var(--color-text-faint)' }} />
         </CardHeader>
         <CardValue>{val(stats.totalInstances)}</CardValue>
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>total</p>
+        <p className={s.hint}>total</p>
       </Card>
 
       <Card>
@@ -39,8 +36,10 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
           <CardTitle>Healthy</CardTitle>
           <Activity size={16} style={{ color: 'var(--color-success)' }} />
         </CardHeader>
-        <CardValue style={{ color: 'var(--color-success)' }}>{val(stats.passingInstances)}</CardValue>
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>passing</p>
+        <CardValue style={{ color: 'var(--color-success)' }}>
+          {val(stats.passingInstances)}
+        </CardValue>
+        <p className={s.hint}>passing</p>
       </Card>
 
       <Card>
@@ -58,7 +57,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
         }}>
           {val(stats.degradedInstances)}
         </CardValue>
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)', marginTop: 'var(--space-1)' }}>
+        <p className={s.hint}>
           {stats.criticalInstances > 0 ? `${stats.criticalInstances} critical` : 'warning or critical'}
         </p>
       </Card>

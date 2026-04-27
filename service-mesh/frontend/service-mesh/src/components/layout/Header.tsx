@@ -1,5 +1,6 @@
 import { Bell, Search } from 'lucide-react'
 import type { ReactNode } from 'react'
+import s from './Header.module.css'
 
 type HeaderProps = {
   title: string
@@ -9,31 +10,17 @@ type HeaderProps = {
 
 export function Header({ title, subtitle, action }: HeaderProps) {
   return (
-    <header style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 var(--space-6)',
-      height: '56px',
-      borderBottom: '1px solid var(--color-border)',
-      background: 'var(--color-surface)',
-      flexShrink: 0,
-      position: 'sticky',
-      top: 0,
-      zIndex: 10,
-    }}>
-      <div>
-        <h1 style={{ fontSize: 'var(--text-base)', fontWeight: 600, lineHeight: 1.2 }}>{title}</h1>
-        {subtitle && (
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: '1px' }}>{subtitle}</div>
-        )}
+    <header className={s.header}>
+      <div className={s.titleBlock}>
+        <h1 className={s.title}>{title}</h1>
+        {subtitle && <div className={s.subtitle}>{subtitle}</div>}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+      <div className={s.actions}>
         {action}
-        <button aria-label="Search" style={{ padding: 'var(--space-2)', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-sm)' }}>
+        <button aria-label="Search" className={s.iconBtn}>
           <Search size={16} />
         </button>
-        <button aria-label="Notifications" style={{ padding: 'var(--space-2)', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-sm)' }}>
+        <button aria-label="Notifications" className={s.iconBtn}>
           <Bell size={16} />
         </button>
       </div>

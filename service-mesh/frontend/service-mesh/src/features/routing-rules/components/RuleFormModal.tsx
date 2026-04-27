@@ -120,7 +120,7 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
 
         <div className={styles.field}>
           <div className={styles.destinationsHeader}>
-            <label className={styles.label} style={{ margin: 0 }}>Destinations *</label>
+            <label className={`${styles.label} ${styles.labelNoMargin}`}>Destinations *</label>
             <span className={weightSumClass}>{weightSum}/100%</span>
           </div>
 
@@ -128,8 +128,7 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
             {values.destinations.map((d, i) => (
               <div key={i} className={styles.destinationRow}>
                 <input
-                  className={`${styles.input} ${styles.inputMono}`}
-                  style={{ flex: 1 }}
+                  className={`${styles.input} ${styles.inputMono} ${styles.inputFlex}`}
                   value={d.version ?? ''}
                   onChange={e => setDestination(i, { version: e.target.value })}
                   placeholder="v1.2.0"

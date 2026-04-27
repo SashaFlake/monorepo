@@ -8,6 +8,7 @@ import {
   ChevronLeft,
 } from 'lucide-react'
 import { useUIStore } from '@/store/ui'
+import s from './Sidebar.module.css'
 
 const NAV = [
   { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
@@ -21,31 +22,9 @@ export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
 
   return (
-    <aside
-      style={{
-        width: sidebarCollapsed ? '56px' : 'var(--sidebar-width)',
-        background: 'var(--color-surface)',
-        borderRight: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'width var(--transition)',
-        overflow: 'hidden',
-        flexShrink: 0,
-        height: '100dvh',
-        position: 'sticky',
-        top: 0,
-      }}
-    >
-      {/* Logo */}
-      <div style={{
-        padding: 'var(--space-4)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--space-3)',
-        borderBottom: '1px solid var(--color-border)',
-        minHeight: '56px',
-      }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-label="Service Mesh">
+    <aside className={s.sidebar} data-collapsed={sidebarCollapsed}>
+      <div className={s.logo}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-label="Service Mesh" style={{ flexShrink: 0 }}>
           <circle cx="12" cy="12" r="3" fill="var(--color-primary)" />
           <circle cx="4"  cy="5"  r="2" fill="var(--color-primary)" opacity="0.6" />
           <circle cx="20" cy="5"  r="2" fill="var(--color-primary)" opacity="0.6" />
@@ -56,36 +35,14 @@ export function Sidebar() {
           <line x1="12" y1="12" x2="4"  y2="19" stroke="var(--color-primary)" strokeWidth="1" opacity="0.4" />
           <line x1="12" y1="12" x2="20" y2="19" stroke="var(--color-primary)" strokeWidth="1" opacity="0.4" />
         </svg>
-        {!sidebarCollapsed && (
-          <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-            Service Mesh
-          </span>
-        )}
+        {!sidebarCollapsed && <span className={s.logoLabel}>Service Mesh</span>}
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: 'var(--space-3) var(--space-2)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <nav className={s.nav}>
         {NAV.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            style={{ textDecoration: 'none' }}
-            activeProps={{ style: { textDecoration: 'none' } }}
-          >
+          <Link key={to} to={to} className={s.navLink}>
             {({ isActive }) => (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-3)',
-                padding: 'var(--space-2) var(--space-3)',
-                borderRadius: 'var(--radius-md)',
-                background: isActive ? 'var(--color-primary-dim)' : 'transparent',
-                color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontWeight: isActive ? 500 : 400,
-                fontSize: 'var(--text-sm)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-              }}>
+              <div className={s.navItem} data-active={isActive}>
                 <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                 {!sidebarCollapsed && label}
               </div>
@@ -94,23 +51,12 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Collapse toggle */}
       <button
         onClick={toggleSidebar}
         aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: sidebarCollapsed ? 'center' : 'flex-end',
-          padding: 'var(--space-3) var(--space-4)',
-          borderTop: '1px solid var(--color-border)',
-          color: 'var(--color-text-faint)',
-        }}
+        className={s.collapseBtn}
       >
-        <ChevronLeft
-          size={16}
-          style={{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform var(--transition)' }}
-        />
+        <ChevronLeft size={16} className={s.chevron} />
       </button>
     </aside>
   )
