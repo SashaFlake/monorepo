@@ -1,6 +1,6 @@
 import type { Destination, RuleFormValues } from './types'
 
-// ── Чистые функции валидации (FP-first) ──────────────────────────────────────
+// ── Чистые функции валидации (FP-first) ─────────────────────────────────────
 
 export type ValidationError = { field: string; message: string }
 export type ValidationResult = { ok: true } | { ok: false; errors: ValidationError[] }
@@ -29,6 +29,10 @@ export const validateRule = (values: RuleFormValues): ValidationResult => {
 
   if (values.destinations.length === 0)
     errors.push({ field: 'destinations', message: 'Добавьте хотя бы один destination' })
+
+  const emptyVersion = values.destinations.some(d => !d.version?.trim())
+  if (emptyVersion)
+    errors.push({ field: 'destinations', message: 'Укажите версию для каждого destination' })
 
   const weightsResult = validateWeights(values.destinations)
   if (!weightsResult.ok) errors.push(...weightsResult.errors)

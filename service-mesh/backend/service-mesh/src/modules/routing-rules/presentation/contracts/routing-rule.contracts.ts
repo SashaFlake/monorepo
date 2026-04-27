@@ -9,7 +9,7 @@ const Match = z.object({
 })
 
 const Destination = z.object({
-  version:   z.string().optional(),
+  version:   z.string().min(1, 'Версия destination не может быть пустой'),
   weightPct: z.number().int().min(0).max(100),
 })
 
