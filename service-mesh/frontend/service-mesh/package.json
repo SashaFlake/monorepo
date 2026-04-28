@@ -10,7 +10,9 @@
     "typecheck": "tsr generate && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "lint":     "eslint src",
+    "lint:fix": "eslint src --fix"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",
