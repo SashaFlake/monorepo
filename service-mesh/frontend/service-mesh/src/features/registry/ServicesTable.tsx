@@ -14,7 +14,7 @@ interface ServicesTableProps {
   isLoading: boolean
 }
 
-export function ServicesTable({ services, isLoading }: ServicesTableProps) {
+export function ServicesTable({ services, isLoading }: ServicesTableProps): JSX.Element {
   return (
     <Card style={{ padding: 0 }}>
       <div className={s.tableHeader}>
