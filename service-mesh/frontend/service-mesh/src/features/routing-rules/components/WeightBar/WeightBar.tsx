@@ -12,7 +12,7 @@ const COLORS = [
 ]
 
 interface WeightBarProps {
-  destinations: A.NonEmptyArray<Destination>
+  destinations: Readonly<A.NonEmptyArray<Destination>>
 }
 
 export function WeightBar({ destinations }: WeightBarProps): ReactElement {
