@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react'
+import { Either } from 'effect'
 import type { RoutingRule, RuleFormValues, Destination } from '../model/types'
 import { validateRule, sumWeights } from '../model/validation'
 
-// ── Helpers (pure, testable in isolation) ───────────────────────────────────────────────
+// ── Helpers (pure) ────────────────────────────────────────────────────────────
 
 const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   name:         rule.name,
@@ -15,73 +16,65 @@ const defaultValues = (): RuleFormValues => ({
   name:         '',
   priority:     100,
   match:        {},
-  destinations: [{ version: '', weightPct: 0 }],
+  destinations: [],
 })
 
-// ── Public contract ────────────────────────────────────────────────────────
+// ── Public contract ───────────────────────────────────────────────────────────
 
 export type UseRuleFormResult = {
-  rule: RuleFormValues
-  fieldError: (field: string) => string | undefined
-  weightSum: number
-  weightValid: boolean
+  rule:         RuleFormValues
+  fieldError:   (field: string) => string | undefined
+  weightSum:    number
+  weightValid:  boolean
   setName:         (name: string)                => void
   setPriority:     (priority: number)            => void
   setPathPrefix:   (val: string)                 => void
   setDestinations: (destinations: Destination[]) => void
-  handleSubmit: (onSubmit: (v: RuleFormValues) => void) => void
+  handleSubmit:    (onSubmit: (v: RuleFormValues) => void) => void
 }
 
-// ── Hook ────────────────────────────────────────────────────────────────
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useRuleForm(initial?: RoutingRule): UseRuleFormResult {
-  const [rule, setRule] = useState<RuleFormValues>(
+  const [rule, setRule]                   = useState<RuleFormValues>(
     initial ? toFormValues(initial) : defaultValues()
   )
   const [submitAttempted, setSubmitAttempted] = useState(false)
 
-  // ── Derived state ────────────────────────────────────────────────────────────────
+  // ── Derived ───────────────────────────────────────────────────────────────
 
-  const result = useMemo(() => validateRule(rule), [rule])
+  const validationResult = useMemo(() => validateRule(rule), [rule])
 
-  // errors wrapped in its own useMemo so errorMap dep doesn't change every render
-  const errors = useMemo(
-    () => (result.ok ? [] : result.errors),
-    [result]
-  )
-
-  const errorMap = useMemo(
-    () => Object.fromEntries(errors.map(e => [e.field, e.message])),
-    [errors]
+  const errorMap = useMemo(() =>
+    Either.isLeft(validationResult)
+      ? Object.fromEntries(validationResult.left.map(e => [e.field, e.message]))
+      : {},
+    [validationResult]
   )
 
   const weightSum   = sumWeights(rule.destinations)
   const weightValid = weightSum === 100
 
-  // ── Field helpers ───────────────────────────────────────────────────────────────
+  // ── Accessors ─────────────────────────────────────────────────────────────
 
   const fieldError = (field: string): string | undefined =>
     submitAttempted ? errorMap[field] : undefined
 
-  // ── Setters ───────────────────────────────────────────────────────────────────
+  // ── Setters (pure updaters) ───────────────────────────────────────────────
 
-  const setName = (name: string): void =>
-    setRule(r => ({ ...r, name }))
+  const setName         = (name: string): void        => setRule(r => ({ ...r, name }))
+  const setPriority     = (priority: number): void    => setRule(r => ({ ...r, priority }))
+  const setPathPrefix   = (val: string): void         => setRule(r => ({ ...r, match: { ...r.match, pathPrefix: val } }))
+  const setDestinations = (destinations: Destination[]): void => setRule(r => ({ ...r, destinations }))
 
-  const setPriority = (priority: number): void =>
-    setRule(r => ({ ...r, priority }))
-
-  const setPathPrefix = (val: string): void =>
-    setRule(r => ({ ...r, match: { ...r.match, pathPrefix: val } }))
-
-  const setDestinations = (destinations: Destination[]): void =>
-    setRule(r => ({ ...r, destinations }))
-
-  // ── Submit ────────────────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
 
   const handleSubmit = (onSubmit: (v: RuleFormValues) => void): void => {
     setSubmitAttempted(true)
-    if (result.ok) onSubmit(rule)
+    Either.match(validationResult, {
+      onLeft:  () => { /* errors already shown via fieldError */ },
+      onRight: onSubmit,
+    })
   }
 
   return {
