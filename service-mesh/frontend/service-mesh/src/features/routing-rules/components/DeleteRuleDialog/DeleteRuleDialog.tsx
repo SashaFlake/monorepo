@@ -10,7 +10,7 @@ interface DeleteRuleDialogProps {
   onCancel: () => void
 }
 
-export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: DeleteRuleDialogProps) {
+export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: DeleteRuleDialogProps): JSX.Element {
   return (
     <div className={styles.overlay} onClick={onCancel}>
       <div

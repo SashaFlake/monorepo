@@ -12,7 +12,7 @@ interface Props {
   serviceId: string
 }
 
-export function RoutingRulesPage({ serviceId }: Props) {
+export function RoutingRulesPage({ serviceId }: Props): JSX.Element {
   const r = useRoutingRules(serviceId)
 
   return (

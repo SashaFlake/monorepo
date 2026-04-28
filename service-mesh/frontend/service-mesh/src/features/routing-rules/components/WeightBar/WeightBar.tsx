@@ -13,7 +13,7 @@ interface WeightBarProps {
   destinations: Destination[]
 }
 
-export function WeightBar({ destinations }: WeightBarProps) {
+export function WeightBar({ destinations }: WeightBarProps): JSX.Element | null {
   if (destinations.length === 0) return null
 
   return (

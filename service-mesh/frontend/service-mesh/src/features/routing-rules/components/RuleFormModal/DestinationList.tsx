@@ -8,14 +8,14 @@ type Props = {
   onChange: (destinations: Destination[]) => void
 }
 
-export const DestinationList = ({ destinations, onChange }: Props) => {
-  const update = (index: number, patch: Partial<Destination>) =>
+export function DestinationList({ destinations, onChange }: Props): JSX.Element {
+  const update = (index: number, patch: Partial<Destination>): void =>
     onChange(destinations.map((d, idx) => idx === index ? { ...d, ...patch } : d))
 
-  const remove = (index: number) =>
+  const remove = (index: number): void =>
     onChange(destinations.filter((_, idx) => idx !== index))
 
-  const add = () =>
+  const add = (): void =>
     onChange([...destinations, { version: '', weightPct: 0 }])
 
   const sum = sumWeights(destinations)
