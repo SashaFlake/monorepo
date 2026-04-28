@@ -18,7 +18,7 @@ const NAV = [
   { to: '/nodes',     label: 'Nodes',     icon: Activity },
 ] as const
 
-export function Sidebar() {
+export function Sidebar(): JSX.Element {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
 
   return (

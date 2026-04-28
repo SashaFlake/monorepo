@@ -8,7 +8,7 @@ type CardProps = {
   className?: string
 }
 
-export function Card({ children, style, className }: CardProps) {
+export function Card({ children, style, className }: CardProps): JSX.Element {
   return (
     <div className={clsx(s.card, className)} style={style}>
       {children}
@@ -16,14 +16,14 @@ export function Card({ children, style, className }: CardProps) {
   )
 }
 
-export function CardHeader({ children }: { children: ReactNode }) {
+export function CardHeader({ children }: { children: ReactNode }): JSX.Element {
   return <div className={s.header}>{children}</div>
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
+export function CardTitle({ children }: { children: ReactNode }): JSX.Element {
   return <h3 className={s.title}>{children}</h3>
 }
 
-export function CardValue({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+export function CardValue({ children, style }: { children: ReactNode; style?: CSSProperties }): JSX.Element {
   return <p className={s.value} style={style}>{children}</p>
 }

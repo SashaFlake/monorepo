@@ -8,7 +8,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
 }
 
-export function Button({ variant = 'secondary', children, ...props }: ButtonProps) {
+export function Button({ variant = 'secondary', children, ...props }: ButtonProps): JSX.Element {
   return (
     <button
       {...props}
