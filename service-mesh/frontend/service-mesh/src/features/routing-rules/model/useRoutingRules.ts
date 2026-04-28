@@ -40,7 +40,7 @@ export function useRoutingRules(serviceId: string): RoutingRulesState {
     staleTime: 10_000,
   })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: routingKeys.list(serviceId) })
+  const invalidate = (): Promise<void> => qc.invalidateQueries({ queryKey: routingKeys.list(serviceId) })
 
   const createMutation = useMutation({
     mutationFn: (input: RuleFormValues) => routingRulesApi.create(serviceId, input),
@@ -61,15 +61,15 @@ export function useRoutingRules(serviceId: string): RoutingRulesState {
   return {
     rules, isLoading, isError,
     createOpen, editRule, deleteRule,
-    openCreate:  () => setCreateOpen(true),
-    closeCreate: () => setCreateOpen(false),
-    openEdit:    (rule) => setEditRule(rule),
-    closeEdit:   () => setEditRule(null),
-    openDelete:  (id) => setDeleteRule(rules.find(r => r.id === id) ?? null),
-    closeDelete: () => setDeleteRule(null),
-    create:     (values) => createMutation.mutate(values),
-    update:     (values) => updateMutation.mutate({ id: editRule!.id, input: values }),
-    remove:     () => deleteMutation.mutate(deleteRule!.id),
+    openCreate:  (): void => setCreateOpen(true),
+    closeCreate: (): void => setCreateOpen(false),
+    openEdit:    (rule): void => setEditRule(rule),
+    closeEdit:   (): void => setEditRule(null),
+    openDelete:  (id): void => setDeleteRule(rules.find(r => r.id === id) ?? null),
+    closeDelete: (): void => setDeleteRule(null),
+    create:  (values): void => createMutation.mutate(values),
+    update:  (values): void => updateMutation.mutate({ id: editRule!.id, input: values }),
+    remove:  (): void => deleteMutation.mutate(deleteRule!.id),
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,

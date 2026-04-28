@@ -22,7 +22,7 @@ export function RuleMatchFields({
   priorityError,
   onPriorityChange,
   onPathPrefixChange,
-}: RuleMatchFieldsProps) {
+}: RuleMatchFieldsProps): JSX.Element {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '1rem', marginBottom: '1rem' }}>
       <div>
