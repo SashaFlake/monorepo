@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type {ButtonHTMLAttributes, ReactElement, ReactNode} from 'react'
 import s from './Button.module.css'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
@@ -8,7 +8,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
 }
 
-export function Button({ variant = 'secondary', children, ...props }: ButtonProps): JSX.Element {
+export function Button({ variant = 'secondary', children, ...props }: ButtonProps): ReactElement {
   return (
     <button
       {...props}

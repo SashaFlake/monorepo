@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import {ReactElement, useState} from 'react'
 import type { ReactNode } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
@@ -26,7 +26,7 @@ const HTTP_METHOD_COLOR: Record<string, string> = {
   options: 'var(--color-text-muted)',
 }
 
-function ManifestPanel({ version }: { version: ServiceVersion }): JSX.Element {
+function ManifestPanel({ version }: { version: ServiceVersion }): ReactElement {
   const m = version.manifest
   return (
     <div>
@@ -45,7 +45,7 @@ function ManifestPanel({ version }: { version: ServiceVersion }): JSX.Element {
   )
 }
 
-function SpecCard({ title, children }: { title: string; children: ReactNode }): JSX.Element {
+function SpecCard({ title, children }: { title: string; children: ReactNode }): ReactElement {
   return (
     <div className={s.specCard}>
       <div className={s.specCardTitle}>{title}</div>
@@ -54,7 +54,7 @@ function SpecCard({ title, children }: { title: string; children: ReactNode }): 
   )
 }
 
-function KV({ k, v }: { k: string; v: string }): JSX.Element {
+function KV({ k, v }: { k: string; v: string }): ReactElement {
   return (
     <div className={s.kv}>
       <span className={s.kvKey}>{k}</span>
@@ -72,7 +72,7 @@ type OpenApiOperation = {
 
 type OpenApiRoute = OpenApiOperation & { method: string; path: string }
 
-function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): JSX.Element {
+function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): ReactElement {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: registryKeys.openapi(serviceId, version),
     queryFn:  () => registryApi.getServiceOpenApi(serviceId, version),
@@ -143,7 +143,7 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
   )
 }
 
-function InstancesPanel({ version }: { version: ServiceVersion }): JSX.Element {
+function InstancesPanel({ version }: { version: ServiceVersion }): ReactElement {
   return (
     <table className={s.table}>
       <thead className={s.thead}>
@@ -178,7 +178,7 @@ function InstancesPanel({ version }: { version: ServiceVersion }): JSX.Element {
 
 type VersionTab = 'manifest' | 'openapi' | 'instances'
 
-function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): JSX.Element {
+function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): ReactElement {
   const [tab, setTab] = useState<VersionTab>('manifest')
   const tabs: { id: VersionTab; label: string }[] = [
     { id: 'manifest',  label: 'Manifest' },
@@ -214,7 +214,7 @@ const PAGE_TABS: { id: PageTab; label: string }[] = [
   { id: 'routing-rules', label: 'Routing Rules' },
 ]
 
-export function ServiceDetailPage({ serviceId }: { serviceId: string }): JSX.Element {
+export function ServiceDetailPage({ serviceId }: { serviceId: string }): ReactElement {
   const [pageTab, setPageTab] = useState<PageTab>('overview')
 
   const { data, isLoading, isError } = useQuery({

@@ -4,8 +4,9 @@ import { useRegistryStats } from './useRegistryStats'
 import { StatsGrid } from './StatsGrid'
 import { ServicesTable } from './ServicesTable'
 import s from './RegistryDashboard.module.css'
+import {ReactElement} from "react";
 
-export function RegistryDashboard(): JSX.Element {
+export function RegistryDashboard(): ReactElement {
   const { stats, services, isLoading, isError, updatedAt } = useRegistryStats()
 
   return (

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { registryApi, registryKeys } from './api/api'
 import type { InstanceStatus } from './api/types'
 import s from './ServicesPage.module.css'
+import {ReactElement} from "react";
 
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
   passing:  'success',
@@ -13,7 +14,7 @@ const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = 
   critical: 'error',
 }
 
-export function ServicesPage(): JSX.Element {
+export function ServicesPage(): ReactElement {
   const navigate = useNavigate()
   const { data, isLoading, isError } = useQuery({
     queryKey: registryKeys.list(),

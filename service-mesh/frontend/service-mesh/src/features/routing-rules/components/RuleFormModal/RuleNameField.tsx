@@ -1,10 +1,12 @@
+import {ReactElement} from "react";
+
 interface RuleNameFieldProps {
   value: string
   error?: string
   onChange: (value: string) => void
 }
 
-export function RuleNameField({ value, error, onChange }: RuleNameFieldProps): JSX.Element {
+export function RuleNameField({ value, error, onChange }: RuleNameFieldProps): ReactElement {
   return (
     <div style={{ marginBottom: '1rem' }}>
       <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>

@@ -2,13 +2,14 @@ import type { Destination } from '../../model/types'
 import { sumWeights } from '../../model/validation'
 import { Button } from '@/components/ui/button'
 import s from './DestinationList.module.css'
+import {ReactElement} from "react";
 
 type Props = {
   destinations: Destination[]
   onChange: (destinations: Destination[]) => void
 }
 
-export function DestinationList({ destinations, onChange }: Props): JSX.Element {
+export function DestinationList({ destinations, onChange }: Props): ReactElement {
   const update = (index: number, patch: Partial<Destination>): void =>
     onChange(destinations.map((d, idx) => idx === index ? { ...d, ...patch } : d))
 

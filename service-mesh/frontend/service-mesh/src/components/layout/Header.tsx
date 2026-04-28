@@ -1,5 +1,5 @@
 import { Bell, Search } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type {ReactElement, ReactNode} from 'react'
 import s from './Header.module.css'
 
 type HeaderProps = {
@@ -8,7 +8,7 @@ type HeaderProps = {
   action?: ReactNode
 }
 
-export function Header({ title, subtitle, action }: HeaderProps): JSX.Element {
+export function Header({ title, subtitle, action }: HeaderProps): ReactElement {
   return (
     <header className={s.header}>
       <div className={s.titleBlock}>

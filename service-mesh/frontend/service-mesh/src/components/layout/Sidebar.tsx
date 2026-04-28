@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useUIStore } from '@/store/ui'
 import s from './Sidebar.module.css'
+import {ReactElement} from "react";
 
 const NAV = [
   { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
@@ -18,7 +19,7 @@ const NAV = [
   { to: '/nodes',     label: 'Nodes',     icon: Activity },
 ] as const
 
-export function Sidebar(): JSX.Element {
+export function Sidebar(): ReactElement {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
 
   return (
