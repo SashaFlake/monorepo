@@ -14,9 +14,7 @@ interface WeightBarProps {
   destinations: Destination[]
 }
 
-export function WeightBar({ destinations }: WeightBarProps): ReactElement | null {
-  if (destinations.length === 0) return null
-
+export function WeightBar({ destinations }: WeightBarProps): ReactElement {
   return (
     <div className={styles.root}>
       <div className={styles.track}>
