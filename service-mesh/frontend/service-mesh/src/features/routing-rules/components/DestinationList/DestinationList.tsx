@@ -24,7 +24,7 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
   const sum = sumWeights(destinations)
   const sumOk = sum === 100
 
-  const bar = pipe(
+  const weightBar = pipe(
     destinations,
     A.match({
       onEmpty: () => null,
@@ -60,7 +60,7 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
           {sumOk ? `${sum}% ✓` : `${sum}% — must equal 100%`}
         </span>
       </div>
-      {bar}
+      {weightBar}
     </div>
   )
 }
