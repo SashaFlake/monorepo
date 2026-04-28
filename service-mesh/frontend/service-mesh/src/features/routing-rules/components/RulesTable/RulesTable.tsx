@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,16 +10,17 @@ type Props = {
   rules: RoutingRule[]
   onEdit: (rule: RoutingRule) => void
   onDelete: (id: string) => void
+  isPending?: boolean
 }
 
-export function RulesTable({ rules, onEdit, onDelete }: Props): JSX.Element {
+export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props): ReactElement {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const confirmRule = rules.find(r => r.id === confirmId)
 
   return (
     <>
       {rules.length === 0 ? (
-        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+        <div role="status" style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
           No routing rules yet. Click “New rule” to create one.
         </div>
       ) : (
@@ -46,10 +48,10 @@ export function RulesTable({ rules, onEdit, onDelete }: Props): JSX.Element {
                   </div>
                 </td>
                 <td className={`${styles.td} ${styles.tdActions}`}>
-                  <Button variant="ghost" onClick={() => onEdit(rule)} aria-label="Edit rule">
+                  <Button variant="ghost" onClick={() => onEdit(rule)} aria-label={`Edit rule ${rule.name}`}>
                     <Pencil size={14} />
                   </Button>
-                  <Button variant="ghost" onClick={() => setConfirmId(rule.id)} aria-label="Delete rule">
+                  <Button variant="ghost" onClick={() => setConfirmId(rule.id)} aria-label={`Delete rule ${rule.name}`}>
                     <Trash2 size={14} />
                   </Button>
                 </td>
@@ -62,7 +64,7 @@ export function RulesTable({ rules, onEdit, onDelete }: Props): JSX.Element {
       {confirmRule && (
         <DeleteRuleDialog
           rule={confirmRule}
-          isPending={false}
+          isPending={isPending}
           onConfirm={() => { onDelete(confirmRule.id); setConfirmId(null) }}
           onCancel={() => setConfirmId(null)}
         />
