@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import {ReactElement, useEffect, useRef} from 'react'
 import { X } from 'lucide-react'
 import type { RoutingRule, RuleFormValues } from '../../model/types'
 import { useRuleForm } from '../../hooks/useRuleForm'
@@ -15,7 +15,7 @@ interface RuleFormModalProps {
   onClose: () => void
 }
 
-export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): JSX.Element {
+export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
   const form = useRuleForm(initial)
   const dialogRef = useRef<HTMLDialogElement>(null)
 

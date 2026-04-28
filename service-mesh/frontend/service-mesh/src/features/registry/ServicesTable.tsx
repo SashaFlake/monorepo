@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { ServiceView, InstanceStatus } from '@/features/services/api/types'
 import s from './ServicesTable.module.css'
+import {ReactElement} from "react";
 
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
   passing:  'success',
@@ -14,7 +15,7 @@ interface ServicesTableProps {
   isLoading: boolean
 }
 
-export function ServicesTable({ services, isLoading }: ServicesTableProps): JSX.Element {
+export function ServicesTable({ services, isLoading }: ServicesTableProps): ReactElement {
   return (
     <Card style={{ padding: 0 }}>
       <div className={s.tableHeader}>

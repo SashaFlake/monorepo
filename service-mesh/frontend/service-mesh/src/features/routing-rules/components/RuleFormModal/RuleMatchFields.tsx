@@ -1,3 +1,5 @@
+import {ReactElement} from "react";
+
 interface RuleMatchFieldsProps {
   priority: number
   pathPrefix: string
@@ -22,7 +24,7 @@ export function RuleMatchFields({
   priorityError,
   onPriorityChange,
   onPathPrefixChange,
-}: RuleMatchFieldsProps): JSX.Element {
+}: RuleMatchFieldsProps): ReactElement {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '1rem', marginBottom: '1rem' }}>
       <div>

@@ -2,10 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import s from './placeholder.module.css'
+import {ReactElement} from "react";
 
 export const Route = createFileRoute('/nodes')({ component: NodesPage })
 
-export function NodesPage(): JSX.Element {
+export function NodesPage(): ReactElement {
   return (
     <>
       <Header title="Nodes" subtitle="Connected data plane nodes" />
