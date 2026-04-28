@@ -1,8 +1,7 @@
 import type { ReactElement } from 'react'
+import { Array as A } from 'effect'
 import type { Destination } from '../../model/types'
 import styles from './WeightBar.module.css'
-
-type NonEmptyArray<T> = [T, ...T[]]
 
 const COLORS = [
   'var(--color-primary)',
@@ -13,7 +12,7 @@ const COLORS = [
 ]
 
 interface WeightBarProps {
-  destinations: NonEmptyArray<Destination>
+  destinations: A.NonEmptyArray<Destination>
 }
 
 export function WeightBar({ destinations }: WeightBarProps): ReactElement {
