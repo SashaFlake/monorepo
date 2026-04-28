@@ -1,26 +1,25 @@
+// ── Routing Rules API ─────────────────────────────────────────────────────────
+// Типы домена живут в ../model/types.ts
+// HTTP-helper импортируется из lib/http.ts — единый fetch для всего приложения
+
+import { apiFetch, endpoint } from '@/lib/http'
 import type { RoutingRule, RuleFormValues } from '../model/types'
 
-// ── Query Keys ────────────────────────────────────────────────────────────────
+// ── Query keys ────────────────────────────────────────────────────────────────
 
 export const routingKeys = {
-  all:  () => ['routing-rules']                             as const,
+  all:  () => ['routing-rules']                              as const,
   list: (serviceId: string) => ['routing-rules', serviceId] as const,
 }
 
-// ── API ───────────────────────────────────────────────────────────────────────
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
-const endpoint = (path: string) => `${BASE}/api/v1${path}`
+// ── API client ────────────────────────────────────────────────────────────────
 
 export const routingRulesApi = {
-  list: async (serviceId: string): Promise<RoutingRule[]> => {
-    const res = await fetch(endpoint(`/services/${serviceId}/routing-rules`))
-    if (!res.ok) throw new Error(`list rules failed: ${res.status}`)
-    return res.json()
-  },
+  list: (serviceId: string): Promise<RoutingRule[]> =>
+    apiFetch<RoutingRule[]>(endpoint(`/services/${serviceId}/routing-rules`)),
 
-  create: async (serviceId: string, form: RuleFormValues): Promise<RoutingRule> => {
-    const res = await fetch(endpoint(`/services/${serviceId}/routing-rules`), {
+  create: (serviceId: string, form: RuleFormValues): Promise<RoutingRule> =>
+    apiFetch<RoutingRule>(endpoint(`/services/${serviceId}/routing-rules`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -29,13 +28,10 @@ export const routingRulesApi = {
         match:        form.match,
         destinations: form.destinations,
       }),
-    })
-    if (!res.ok) throw new Error(`create rule failed: ${res.status}`)
-    return res.json()
-  },
+    }),
 
-  update: async (ruleId: string, form: Partial<RuleFormValues>): Promise<RoutingRule> => {
-    const res = await fetch(endpoint(`/routing-rules/${ruleId}`), {
+  update: (ruleId: string, form: Partial<RuleFormValues>): Promise<RoutingRule> =>
+    apiFetch<RoutingRule>(endpoint(`/routing-rules/${ruleId}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -44,13 +40,8 @@ export const routingRulesApi = {
         ...(form.match        !== undefined && { match:        form.match }),
         ...(form.destinations !== undefined && { destinations: form.destinations }),
       }),
-    })
-    if (!res.ok) throw new Error(`update rule failed: ${res.status}`)
-    return res.json()
-  },
+    }),
 
-  delete: async (ruleId: string): Promise<void> => {
-    const res = await fetch(endpoint(`/routing-rules/${ruleId}`), { method: 'DELETE' })
-    if (!res.ok) throw new Error(`delete rule failed: ${res.status}`)
-  },
+  delete: (ruleId: string): Promise<void> =>
+    apiFetch<void>(endpoint(`/routing-rules/${ruleId}`), { method: 'DELETE' }),
 }

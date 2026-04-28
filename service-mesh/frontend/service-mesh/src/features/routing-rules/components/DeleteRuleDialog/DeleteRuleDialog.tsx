@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
-import type { RoutingRule } from '../model/types'
+import type { RoutingRule } from '../../model/types'
 import styles from './DeleteRuleDialog.module.css'
 
 interface DeleteRuleDialogProps {
@@ -26,19 +26,19 @@ export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: Delet
             <Trash2 size={18} />
           </div>
           <h2 id="delete-dialog-title" className={styles.title}>
-            Удалить правило?
+            Delete rule?
           </h2>
         </div>
 
         <p id="delete-dialog-desc" className={styles.description}>
-          Вы собираетесь удалить правило{' '}
+          You are about to delete rule{' '}
           <strong className={styles.ruleName}>"{rule.name}"</strong>.
-          {' '}Это действие уберёт правило из маршрутизации трафика.
+          {' '}This will remove it from traffic routing.
         </p>
 
         <div className={styles.actions}>
           <Button variant="ghost" onClick={onCancel} disabled={isPending}>
-            Отмена
+            Cancel
           </Button>
           <Button
             variant="danger"
@@ -46,7 +46,7 @@ export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: Delet
             disabled={isPending}
             aria-busy={isPending}
           >
-            {isPending ? 'Удаление…' : 'Удалить'}
+            {isPending ? 'Deleting…' : 'Delete'}
           </Button>
         </div>
       </div>

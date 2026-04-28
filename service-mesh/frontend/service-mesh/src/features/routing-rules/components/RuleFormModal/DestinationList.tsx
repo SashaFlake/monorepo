@@ -1,5 +1,5 @@
-import type { Destination } from '../model/types'
-import { sumWeights } from '../model/validation'
+import type { Destination } from '../../model/types'
+import { sumWeights } from '../../model/validation'
 import { Button } from '@/components/ui/button'
 import s from './DestinationList.module.css'
 
@@ -10,10 +10,10 @@ type Props = {
 
 export const DestinationList = ({ destinations, onChange }: Props) => {
   const update = (index: number, patch: Partial<Destination>) =>
-    onChange(destinations.map((d, i) => i === index ? { ...d, ...patch } : d))
+    onChange(destinations.map((d, idx) => idx === index ? { ...d, ...patch } : d))
 
-  const remove = (i: number) =>
-    onChange(destinations.filter((_, index) => index !== i))
+  const remove = (index: number) =>
+    onChange(destinations.filter((_, idx) => idx !== index))
 
   const add = () =>
     onChange([...destinations, { version: '', weightPct: 0 }])
@@ -23,22 +23,22 @@ export const DestinationList = ({ destinations, onChange }: Props) => {
 
   return (
     <div className={s.list}>
-      {destinations.map((item, i) => (
-        <div key={i} className={s.row}>
+      {destinations.map((item, index) => (
+        <div key={index} className={s.row}>
           <input
             className={s.input}
             placeholder="version"
             value={item.version ?? ''}
-            onChange={e => update(i, { version: e.target.value })}
+            onChange={e => update(index, { version: e.target.value })}
           />
           <input
             type="number"
             className={`${s.input} ${s.inputWeight}`}
             placeholder="%"
             value={item.weightPct}
-            onChange={e => update(i, { weightPct: Number(e.target.value) })}
+            onChange={e => update(index, { weightPct: Number(e.target.value) })}
           />
-          <button className={s.removeBtn} onClick={() => remove(i)} aria-label="Remove destination">
+          <button className={s.removeBtn} onClick={() => remove(index)} aria-label="Remove destination">
             ✕
           </button>
         </div>
@@ -46,7 +46,7 @@ export const DestinationList = ({ destinations, onChange }: Props) => {
       <div className={s.footer}>
         <Button variant="ghost" onClick={add}>+ Add destination</Button>
         <span className={`${s.sum} ${sumOk ? s.sumOk : s.sumError}`}>
-          {sumOk ? `${sum}% ✓` : `${sum}% — должно быть 100%`}
+          {sumOk ? `${sum}% ✓` : `${sum}% — must equal 100%`}
         </span>
       </div>
     </div>

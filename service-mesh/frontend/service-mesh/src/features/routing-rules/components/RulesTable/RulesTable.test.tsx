@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { RulesTable } from './RulesTable'
-import type { RoutingRule } from '../model/types'
+import type { RoutingRule } from '../../model/types'
 
 const rule = (overrides: Partial<RoutingRule> = {}): RoutingRule => ({
   id: '1',
@@ -26,13 +26,13 @@ describe('RulesTable', () => {
   it('shows empty state when there are no rules', () => {
     render(<RulesTable rules={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByRole('status')).toBeInTheDocument()
-    expect(screen.getByText(/нет правил/i)).toBeInTheDocument()
+    expect(screen.getByText(/no routing rules/i)).toBeInTheDocument()
   })
 
   it('opens confirmation dialog on delete button click', () => {
     const rules = [rule({ name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={vi.fn()} />)
-    fireEvent.click(screen.getByLabelText('Удалить правило my-rule'))
+    fireEvent.click(screen.getByLabelText('Delete rule my-rule'))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText(/my-rule/)).toBeInTheDocument()
   })
@@ -41,8 +41,8 @@ describe('RulesTable', () => {
     const onDelete = vi.fn()
     const rules = [rule({ id: 'abc', name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={onDelete} />)
-    fireEvent.click(screen.getByLabelText('удалить правило my-rule', { exact: false }))
-    fireEvent.click(screen.getByText('Удалить'))
+    fireEvent.click(screen.getByLabelText('delete rule my-rule', { exact: false }))
+    fireEvent.click(screen.getByText('Delete'))
     expect(onDelete).toHaveBeenCalledWith('abc')
     expect(onDelete).toHaveBeenCalledTimes(1)
   })
@@ -51,8 +51,8 @@ describe('RulesTable', () => {
     const onDelete = vi.fn()
     const rules = [rule({ name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={onDelete} />)
-    fireEvent.click(screen.getByLabelText('удалить правило my-rule', { exact: false }))
-    fireEvent.click(screen.getByText('Отмена'))
+    fireEvent.click(screen.getByLabelText('delete rule my-rule', { exact: false }))
+    fireEvent.click(screen.getByText('Cancel'))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(onDelete).not.toHaveBeenCalled()
   })
@@ -60,16 +60,16 @@ describe('RulesTable', () => {
   it('disables buttons when isPending is true', () => {
     const rules = [rule({ name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={vi.fn()} isPending />)
-    fireEvent.click(screen.getByLabelText('удалить правило my-rule', { exact: false }))
-    expect(screen.getByText('Удаление…')).toBeDisabled()
-    expect(screen.getByText('Отмена')).toBeDisabled()
+    fireEvent.click(screen.getByLabelText('delete rule my-rule', { exact: false }))
+    expect(screen.getByText('Deleting…')).toBeDisabled()
+    expect(screen.getByText('Cancel')).toBeDisabled()
   })
 
   it('calls onEdit when edit button is clicked', () => {
     const onEdit = vi.fn()
     const r = rule({ name: 'my-rule' })
     render(<RulesTable rules={[r]} onEdit={onEdit} onDelete={vi.fn()} />)
-    fireEvent.click(screen.getByLabelText('редактировать правило my-rule', { exact: false }))
+    fireEvent.click(screen.getByLabelText('edit rule my-rule', { exact: false }))
     expect(onEdit).toHaveBeenCalledWith(r)
   })
 })
