@@ -13,7 +13,7 @@ const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = 
   critical: 'error',
 }
 
-export function ServicesPage() {
+export function ServicesPage(): JSX.Element {
   const navigate = useNavigate()
   const { data, isLoading, isError } = useQuery({
     queryKey: registryKeys.list(),
@@ -51,7 +51,9 @@ export function ServicesPage() {
                   <tr
                     key={svc.id}
                     className={s.row}
-                    onClick={() => navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })}
+                    onClick={() => {
+                      void navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })
+                    }}
                   >
                     <td className={`${s.td} ${s.nameCell}`}>{svc.name}</td>
                     <td className={s.td}>
