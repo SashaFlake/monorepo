@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +26,7 @@ const HTTP_METHOD_COLOR: Record<string, string> = {
   options: 'var(--color-text-muted)',
 }
 
-function ManifestPanel({ version }: { version: ServiceVersion }) {
+function ManifestPanel({ version }: { version: ServiceVersion }): JSX.Element {
   const m = version.manifest
   return (
     <div>
@@ -44,7 +45,7 @@ function ManifestPanel({ version }: { version: ServiceVersion }) {
   )
 }
 
-function SpecCard({ title, children }: { title: string; children: React.ReactNode }) {
+function SpecCard({ title, children }: { title: string; children: ReactNode }): JSX.Element {
   return (
     <div className={s.specCard}>
       <div className={s.specCardTitle}>{title}</div>
@@ -53,7 +54,7 @@ function SpecCard({ title, children }: { title: string; children: React.ReactNod
   )
 }
 
-function KV({ k, v }: { k: string; v: string }) {
+function KV({ k, v }: { k: string; v: string }): JSX.Element {
   return (
     <div className={s.kv}>
       <span className={s.kvKey}>{k}</span>
@@ -62,7 +63,16 @@ function KV({ k, v }: { k: string; v: string }) {
   )
 }
 
-function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }) {
+type OpenApiOperation = {
+  summary?: string
+  operationId?: string
+  deprecated?: boolean
+  tags?: string[]
+}
+
+type OpenApiRoute = OpenApiOperation & { method: string; path: string }
+
+function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): JSX.Element {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: registryKeys.openapi(serviceId, version),
     queryFn:  () => registryApi.getServiceOpenApi(serviceId, version),
@@ -81,14 +91,14 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
 
   const doc = data as OpenApiDoc
   const paths = doc?.paths ?? {}
-  const routes: Array<{ method: string; path: string; summary?: string; operationId?: string; deprecated?: boolean; tags?: string[] }> = []
-  for (const [path, methods] of Object.entries(paths)) {
-    for (const [method, op] of Object.entries(methods ?? {})) {
-      if (!op || typeof op !== 'object') continue
-      const operation = op as { summary?: string; operationId?: string; deprecated?: boolean; tags?: string[] }
-      routes.push({ method: method.toUpperCase(), path, ...operation })
-    }
-  }
+
+  const routes: OpenApiRoute[] = Object.entries(paths).flatMap(([path, methods]) =>
+    Object.entries(methods ?? {}).flatMap(([method, op]) => {
+      if (!op || typeof op !== 'object') return []
+      const operation = op as OpenApiOperation
+      return [{ method: method.toUpperCase(), path, ...operation }]
+    })
+  )
 
   return (
     <div>
@@ -133,7 +143,7 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
   )
 }
 
-function InstancesPanel({ version }: { version: ServiceVersion }) {
+function InstancesPanel({ version }: { version: ServiceVersion }): JSX.Element {
   return (
     <table className={s.table}>
       <thead className={s.thead}>
@@ -168,7 +178,7 @@ function InstancesPanel({ version }: { version: ServiceVersion }) {
 
 type VersionTab = 'manifest' | 'openapi' | 'instances'
 
-function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }) {
+function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): JSX.Element {
   const [tab, setTab] = useState<VersionTab>('manifest')
   const tabs: { id: VersionTab; label: string }[] = [
     { id: 'manifest',  label: 'Manifest' },
@@ -204,7 +214,7 @@ const PAGE_TABS: { id: PageTab; label: string }[] = [
   { id: 'routing-rules', label: 'Routing Rules' },
 ]
 
-export function ServiceDetailPage({ serviceId }: { serviceId: string }) {
+export function ServiceDetailPage({ serviceId }: { serviceId: string }): JSX.Element {
   const [pageTab, setPageTab] = useState<PageTab>('overview')
 
   const { data, isLoading, isError } = useQuery({
