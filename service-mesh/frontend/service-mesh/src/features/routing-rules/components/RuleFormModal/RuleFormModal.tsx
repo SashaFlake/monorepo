@@ -5,7 +5,7 @@ import { useRuleForm } from '../../hooks/useRuleForm'
 import { Button } from '@/components/ui/button'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
-import { DestinationList } from './DestinationList'
+import { DestinationList } from '../DestinationList/DestinationList'
 import styles from './RuleFormModal.module.css'
 
 interface RuleFormModalProps {
