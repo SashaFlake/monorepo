@@ -1,3 +1,4 @@
+import { Destination } from '../model/types'
 import type { RoutingRule } from '../model/types'
 
 export const MOCK_RULES: RoutingRule[] = [
@@ -8,8 +9,8 @@ export const MOCK_RULES: RoutingRule[] = [
     priority: 100,
     match: { pathPrefix: '/api/v1/*' },
     destinations: [
-      { version: 'v2', weightPct: 80 },
-      { version: 'v1', weightPct: 20 },
+      Destination.unsafe({ version: 'v2', weightPct: 80 }),
+      Destination.unsafe({ version: 'v1', weightPct: 20 }),
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -21,7 +22,7 @@ export const MOCK_RULES: RoutingRule[] = [
     priority: 10,
     match: { pathPrefix: '/health' },
     destinations: [
-      { version: 'v1', weightPct: 100 },
+      Destination.unsafe({ version: 'v1', weightPct: 100 }),
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
