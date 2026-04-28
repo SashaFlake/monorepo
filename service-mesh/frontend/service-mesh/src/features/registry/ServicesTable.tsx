@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import type { ServiceView, InstanceStatus } from '@/lib/api'
+import type { ServiceView, InstanceStatus } from '@/features/services/api/types'
 import s from './ServicesTable.module.css'
 
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {

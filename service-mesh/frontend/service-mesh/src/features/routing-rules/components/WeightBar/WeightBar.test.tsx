@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { WeightBar } from './WeightBar'
-import type { Destination } from '../model/types'
+import type { Destination } from '../../model/types'
 
 const dest = (version: string, weightPct: number): Destination => ({ version, weightPct })
 
@@ -24,7 +24,7 @@ describe('WeightBar', () => {
   })
 
   it('labels an unversioned destination as "default"', () => {
-    render(<WeightBar destinations={[{ version: "v1", weightPct: 100 }]} />)
+    render(<WeightBar destinations={[{ version: 'v1', weightPct: 100 }]} />)
     expect(screen.getAllByText('default').length).toBeGreaterThanOrEqual(1)
   })
 })
