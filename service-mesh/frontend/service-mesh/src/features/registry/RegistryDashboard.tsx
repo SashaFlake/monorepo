@@ -5,7 +5,7 @@ import { StatsGrid } from './StatsGrid'
 import { ServicesTable } from './ServicesTable'
 import s from './RegistryDashboard.module.css'
 
-export function RegistryDashboard() {
+export function RegistryDashboard(): JSX.Element {
   const { stats, services, isLoading, isError, updatedAt } = useRegistryStats()
 
   return (
