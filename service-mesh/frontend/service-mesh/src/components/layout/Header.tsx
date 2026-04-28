@@ -8,7 +8,7 @@ type HeaderProps = {
   action?: ReactNode
 }
 
-export function Header({ title, subtitle, action }: HeaderProps) {
+export function Header({ title, subtitle, action }: HeaderProps): JSX.Element {
   return (
     <header className={s.header}>
       <div className={s.titleBlock}>

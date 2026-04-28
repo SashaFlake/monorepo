@@ -8,7 +8,7 @@ type BadgeProps = {
   children: ReactNode
 }
 
-export function Badge({ variant = 'neutral', children }: BadgeProps) {
+export function Badge({ variant = 'neutral', children }: BadgeProps): JSX.Element {
   return (
     <span className={s.badge} data-variant={variant}>
       <span className={s.dot} />
