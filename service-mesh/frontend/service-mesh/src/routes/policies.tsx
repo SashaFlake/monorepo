@@ -5,7 +5,7 @@ import s from './placeholder.module.css'
 
 export const Route = createFileRoute('/policies')({ component: PoliciesPage })
 
-export function PoliciesPage() {
+export function PoliciesPage(): JSX.Element {
   return (
     <>
       <Header title="Policies" subtitle="Retry, timeout & access rules" />

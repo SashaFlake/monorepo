@@ -5,7 +5,7 @@ import s from './placeholder.module.css'
 
 export const Route = createFileRoute('/revisions')({ component: RevisionsPage })
 
-export function RevisionsPage() {
+export function RevisionsPage(): JSX.Element {
   return (
     <>
       <Header title="Revisions" subtitle="Config revision history" />

@@ -11,7 +11,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
 })
 
-function RootLayout() {
+function RootLayout(): JSX.Element {
   return (
     <div className={s.layout}>
       <Sidebar />
