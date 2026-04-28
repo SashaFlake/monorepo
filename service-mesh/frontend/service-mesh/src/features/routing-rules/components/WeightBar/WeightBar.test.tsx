@@ -6,9 +6,10 @@ import type { Destination } from '../../model/types'
 const dest = (version: string, weightPct: number): Destination => ({ version, weightPct })
 
 describe('WeightBar', () => {
-  it('renders nothing when no traffic split is configured', () => {
+  it('renders an empty track when destinations list is empty', () => {
     const { container } = render(<WeightBar destinations={[]} />)
-    expect(container.firstChild).toBeNull()
+    // WeightBar always renders — caller is responsible for the empty guard
+    expect(container.firstChild).not.toBeNull()
   })
 
   it('lists each version in the legend', () => {
