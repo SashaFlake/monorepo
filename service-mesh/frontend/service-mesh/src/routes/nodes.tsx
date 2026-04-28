@@ -5,7 +5,7 @@ import s from './placeholder.module.css'
 
 export const Route = createFileRoute('/nodes')({ component: NodesPage })
 
-export function NodesPage() {
+export function NodesPage(): JSX.Element {
   return (
     <>
       <Header title="Nodes" subtitle="Connected data plane nodes" />
