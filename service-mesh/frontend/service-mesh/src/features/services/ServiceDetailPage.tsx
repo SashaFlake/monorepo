@@ -84,7 +84,7 @@ function OpenApiPanel({ serviceId, version }: { serviceId: string; version: stri
   if (isError) return (
     <div className={s.openapiError}>
       <div className={s.openapiErrorTitle}>Could not fetch OpenAPI</div>
-      <div className={s.openapiErrorMsg}>{(error as Error).message}</div>
+      <div className={s.openapiErrorMsg}>{error instanceof Error ? error.message : String(error)}</div>
       <div className={s.openapiErrorHint}>Make sure the instance exposes <code>/openapi.json</code></div>
     </div>
   )

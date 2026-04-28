@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import type { Destination } from '../../model/types'
 import styles from './WeightBar.module.css'
 
@@ -13,7 +14,7 @@ interface WeightBarProps {
   destinations: Destination[]
 }
 
-export function WeightBar({ destinations }: WeightBarProps): JSX.Element | null {
+export function WeightBar({ destinations }: WeightBarProps): ReactElement | null {
   if (destinations.length === 0) return null
 
   return (
