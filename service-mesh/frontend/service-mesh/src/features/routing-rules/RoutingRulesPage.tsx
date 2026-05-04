@@ -7,12 +7,13 @@ import { RulesTable } from './components/RulesTable/RulesTable'
 import { RuleFormModal } from './components/RuleFormModal/RuleFormModal'
 import { DeleteRuleDialog } from './components/DeleteRuleDialog/DeleteRuleDialog'
 import s from './RoutingRulesPage.module.css'
+import {ReactElement} from "react";
 
 interface Props {
   serviceId: string
 }
 
-export function RoutingRulesPage({ serviceId }: Props) {
+export function RoutingRulesPage({ serviceId }: Props): ReactElement {
   const r = useRoutingRules(serviceId)
 
   return (

@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 import type { RoutingRule } from '../../model/types'
@@ -10,7 +11,7 @@ interface DeleteRuleDialogProps {
   onCancel: () => void
 }
 
-export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: DeleteRuleDialogProps) {
+export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: DeleteRuleDialogProps): ReactElement {
   return (
     <div className={styles.overlay} onClick={onCancel}>
       <div
@@ -32,7 +33,7 @@ export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: Delet
 
         <p id="delete-dialog-desc" className={styles.description}>
           You are about to delete rule{' '}
-          <strong className={styles.ruleName}>"{rule.name}"</strong>.
+          <strong className={styles.ruleName}>“{rule.name}”</strong>.
           {' '}This will remove it from traffic routing.
         </p>
 

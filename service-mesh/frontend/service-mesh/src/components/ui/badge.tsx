@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type {ReactElement, ReactNode} from 'react'
 import s from './Badge.module.css'
 
 type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral'
@@ -8,7 +8,7 @@ type BadgeProps = {
   children: ReactNode
 }
 
-export function Badge({ variant = 'neutral', children }: BadgeProps) {
+export function Badge({ variant = 'neutral', children }: BadgeProps): ReactElement {
   return (
     <span className={s.badge} data-variant={variant}>
       <span className={s.dot} />

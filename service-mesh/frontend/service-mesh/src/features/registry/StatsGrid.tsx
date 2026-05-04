@@ -2,14 +2,15 @@ import { Activity, Server, Cpu, AlertTriangle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardValue } from '@/components/ui/card'
 import type { RegistryStats } from './useRegistryStats'
 import s from './StatsGrid.module.css'
+import {ReactElement} from "react";
 
 interface StatsGridProps {
   stats: RegistryStats
   isLoading: boolean
 }
 
-export function StatsGrid({ stats, isLoading }: StatsGridProps) {
-  const val = (n: number) => isLoading ? '—' : n
+export function StatsGrid({ stats, isLoading }: StatsGridProps): ReactElement {
+  const val = (n: number): number | string => isLoading ? '—' : n
 
   return (
     <div className={s.grid}>

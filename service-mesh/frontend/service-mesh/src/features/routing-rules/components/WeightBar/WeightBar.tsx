@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react'
+import { Array as A } from 'effect'
 import type { Destination } from '../../model/types'
 import styles from './WeightBar.module.css'
 
@@ -10,12 +12,10 @@ const COLORS = [
 ]
 
 interface WeightBarProps {
-  destinations: Destination[]
+  destinations: Readonly<A.NonEmptyArray<Destination>>
 }
 
-export function WeightBar({ destinations }: WeightBarProps) {
-  if (destinations.length === 0) return null
-
+export function WeightBar({ destinations }: WeightBarProps): ReactElement {
   return (
     <div className={styles.root}>
       <div className={styles.track}>

@@ -1,11 +1,19 @@
 /**
  * Domain errors for the routing-rules module.
- * Thrown by the service when a requested resource does not exist.
+ * Uses Result<T, E> pattern with neverthrow for type-safe error handling.
  */
-export class RoutingRuleNotFoundError extends Error {
-  readonly statusCode = 404
-  constructor(ruleId: string) {
-    super(`Routing rule ${ruleId} not found`)
-    this.name = 'RoutingRuleNotFoundError'
-  }
+
+export type RoutingRuleErrorCode =
+  | 'RULE_NOT_FOUND'
+  | 'SERVICE_NOT_FOUND'
+  | 'VALIDATION_ERROR'
+
+export type RoutingRuleError = {
+  readonly code: RoutingRuleErrorCode
+  readonly message: string
 }
+
+export const routingRuleError = (
+  code: RoutingRuleErrorCode,
+  message: string,
+): RoutingRuleError => ({ code, message })

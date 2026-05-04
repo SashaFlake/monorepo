@@ -1,6 +1,9 @@
+import type { ReactElement } from 'react'
+import { Array as A, pipe } from 'effect'
 import type { Destination } from '../../model/types'
 import { sumWeights } from '../../model/validation'
 import { Button } from '@/components/ui/button'
+import { WeightBar } from '../WeightBar/WeightBar'
 import s from './DestinationList.module.css'
 
 type Props = {
@@ -8,18 +11,26 @@ type Props = {
   onChange: (destinations: Destination[]) => void
 }
 
-export const DestinationList = ({ destinations, onChange }: Props) => {
-  const update = (index: number, patch: Partial<Destination>) =>
+export function DestinationList({ destinations, onChange }: Props): ReactElement {
+  const update = (index: number, patch: Partial<Destination>): void =>
     onChange(destinations.map((d, idx) => idx === index ? { ...d, ...patch } : d))
 
-  const remove = (index: number) =>
+  const remove = (index: number): void =>
     onChange(destinations.filter((_, idx) => idx !== index))
 
-  const add = () =>
+  const add = (): void =>
     onChange([...destinations, { version: '', weightPct: 0 }])
 
   const sum = sumWeights(destinations)
   const sumOk = sum === 100
+
+  const weightBar = pipe(
+    destinations,
+    A.match({
+      onEmpty: () => null,
+      onNonEmpty: (nea) => <WeightBar destinations={nea} />
+    })
+  )
 
   return (
     <div className={s.list}>
@@ -49,6 +60,7 @@ export const DestinationList = ({ destinations, onChange }: Props) => {
           {sumOk ? `${sum}% ✓` : `${sum}% — must equal 100%`}
         </span>
       </div>
+      {weightBar}
     </div>
   )
 }

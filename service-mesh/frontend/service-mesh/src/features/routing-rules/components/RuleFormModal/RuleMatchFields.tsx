@@ -1,3 +1,6 @@
+import type { ReactElement } from 'react'
+import s from './RuleFormFields.module.css'
+
 interface RuleMatchFieldsProps {
   priority: number
   pathPrefix: string
@@ -6,53 +9,35 @@ interface RuleMatchFieldsProps {
   onPathPrefixChange: (v: string) => void
 }
 
-const fieldStyle = {
-  width: '100%',
-  padding: '0.5rem 0.75rem',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border)',
-  background: 'var(--color-surface)',
-  color: 'var(--color-text)',
-  fontSize: '0.875rem',
-} as const
-
 export function RuleMatchFields({
   priority,
   pathPrefix,
   priorityError,
   onPriorityChange,
   onPathPrefixChange,
-}: RuleMatchFieldsProps) {
+}: RuleMatchFieldsProps): ReactElement {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '1rem', marginBottom: '1rem' }}>
+    <div className={s.matchGrid}>
       <div>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>
-          Priority
-        </label>
+        <label className={s.label}>Priority</label>
         <input
           type="number"
           value={priority}
           onChange={e => onPriorityChange(Number(e.target.value))}
-          style={{ ...fieldStyle, border: `1px solid ${priorityError ? 'var(--color-error)' : 'var(--color-border)'}` }}
+          className={s.input}
           aria-invalid={!!priorityError}
         />
-        {priorityError && (
-          <span style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-            {priorityError}
-          </span>
-        )}
+        {priorityError && <span className={s.error}>{priorityError}</span>}
       </div>
 
       <div>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>
-          Path prefix
-        </label>
+        <label className={s.label}>Path prefix</label>
         <input
           type="text"
           value={pathPrefix}
           onChange={e => onPathPrefixChange(e.target.value)}
           placeholder="/api/v2"
-          style={fieldStyle}
+          className={s.input}
         />
       </div>
     </div>

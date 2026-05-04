@@ -1,4 +1,5 @@
-import type { InputHTMLAttributes } from 'react'
+import type { ReactElement } from 'react'
+import s from './RuleFormFields.module.css'
 
 interface RuleNameFieldProps {
   value: string
@@ -6,34 +7,20 @@ interface RuleNameFieldProps {
   onChange: (value: string) => void
 }
 
-export function RuleNameField({ value, error, onChange }: RuleNameFieldProps) {
+export function RuleNameField({ value, error, onChange }: RuleNameFieldProps): ReactElement {
   return (
-    <div style={{ marginBottom: '1rem' }}>
-      <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>
-        Rule name
-      </label>
+    <div className={s.field}>
+      <label className={s.label}>Rule name</label>
       <input
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder="e.g. canary-v2"
-        style={{
-          width: '100%',
-          padding: '0.5rem 0.75rem',
-          borderRadius: 'var(--radius-md)',
-          border: `1px solid ${error ? 'var(--color-error)' : 'var(--color-border)'}`,
-          background: 'var(--color-surface)',
-          color: 'var(--color-text)',
-          fontSize: '0.875rem',
-        }}
+        className={s.input}
         aria-invalid={!!error}
         aria-describedby={error ? 'name-error' : undefined}
       />
-      {error && (
-        <span id="name-error" style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-          {error}
-        </span>
-      )}
+      {error && <span id="name-error" className={s.error}>{error}</span>}
     </div>
   )
 }

@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react'
+import {ReactElement, useEffect, useRef} from 'react'
 import { X } from 'lucide-react'
 import type { RoutingRule, RuleFormValues } from '../../model/types'
 import { useRuleForm } from '../../hooks/useRuleForm'
 import { Button } from '@/components/ui/button'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
-import { DestinationList } from './DestinationList'
+import { DestinationList } from '../DestinationList/DestinationList'
 import styles from './RuleFormModal.module.css'
 
 interface RuleFormModalProps {
@@ -15,27 +15,27 @@ interface RuleFormModalProps {
   onClose: () => void
 }
 
-export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps) {
+export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
   const form = useRuleForm(initial)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
-  useEffect(() => {
+  useEffect((): void => {
     dialogRef.current?.showModal()
   }, [])
 
-  useEffect(() => {
+  useEffect((): (() => void) => {
     const dialog = dialogRef.current
-    if (!dialog) return
-    const handler = () => onClose()
+    if (!dialog) return () => undefined
+    const handler = (): void => onClose()
     dialog.addEventListener('close', handler)
     return () => dialog.removeEventListener('close', handler)
   }, [onClose])
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDialogElement>): void => {
     if (e.target === dialogRef.current) onClose()
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
     form.handleSubmit(onSubmit)
   }

@@ -14,8 +14,21 @@ type CreateBodyType  = z.infer<typeof CreateBody>
 type UpdateBodyType  = z.infer<typeof UpdateBody>
 
 /**
+ * HTTP status code mapping for routing rule errors.
+ */
+const getStatusCode = (errorCode: string): number => {
+  switch (errorCode) {
+    case 'RULE_NOT_FOUND': return 404
+    case 'SERVICE_NOT_FOUND': return 404
+    case 'VALIDATION_ERROR': return 400
+    default: return 500
+  }
+}
+
+/**
  * Handlers receive already-validated data — Fastify validates via JSON Schema
  * registered in routes.ts (derived from EndpointContracts).
+ * Handlers process Result<T, E> types from service layer.
  */
 export const makeRoutingRuleHandlers = (routingRulesService: RoutingRuleService) => ({
 
@@ -30,23 +43,41 @@ export const makeRoutingRuleHandlers = (routingRulesService: RoutingRuleService)
     req: FastifyRequest<{ Params: ServiceIdParams; Body: CreateBodyType }>,
     reply: FastifyReply,
   ) => {
-    return reply.status(201).send(
-      routingRulesService.create(req.params.serviceId, { ...req.body, serviceId: req.params.serviceId }),
-    )
+    const result = routingRulesService.create(req.params.serviceId, { ...req.body, serviceId: req.params.serviceId })
+
+    if (result.isErr()) {
+      const error = result.error
+      return reply.status(getStatusCode(error.code)).send({ error: error.code, message: error.message })
+    }
+
+    return reply.status(201).send(result.value)
   },
 
   update: async (
     req: FastifyRequest<{ Params: RuleIdParams; Body: UpdateBodyType }>,
     reply: FastifyReply,
   ) => {
-    return reply.send(routingRulesService.update(req.params.ruleId, req.body))
+    const result = routingRulesService.update(req.params.ruleId, req.body)
+
+    if (result.isErr()) {
+      const error = result.error
+      return reply.status(getStatusCode(error.code)).send({ error: error.code, message: error.message })
+    }
+
+    return reply.send(result.value)
   },
 
   delete: async (
     req: FastifyRequest<{ Params: RuleIdParams }>,
     reply: FastifyReply,
   ) => {
-    routingRulesService.delete(req.params.ruleId)
+    const result = routingRulesService.delete(req.params.ruleId)
+
+    if (result.isErr()) {
+      const error = result.error
+      return reply.status(getStatusCode(error.code)).send({ error: error.code, message: error.message })
+    }
+
     return reply.status(204).send()
   },
 

@@ -13,6 +13,7 @@ export default tseslint.config(
             'fp/no-loops': 'warn',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/explicit-function-return-type': 'warn',
+            'eslint-plugin-react-hooks': 'error'
         },
         languageOptions: {
             parserOptions: {
