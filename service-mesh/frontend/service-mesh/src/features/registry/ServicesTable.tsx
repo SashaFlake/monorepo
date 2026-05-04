@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { ServiceView, InstanceStatus } from '@/features/services/api/types'
@@ -16,6 +17,8 @@ interface ServicesTableProps {
 }
 
 export function ServicesTable({ services, isLoading }: ServicesTableProps): ReactElement {
+  const navigate = useNavigate()
+
   return (
     <Card style={{ padding: 0 }}>
       <div className={s.tableHeader}>
@@ -37,7 +40,13 @@ export function ServicesTable({ services, isLoading }: ServicesTableProps): Reac
           </thead>
           <tbody>
             {services.map((svc) => (
-              <tr key={svc.id} className={s.row}>
+              <tr
+                key={svc.id}
+                className={s.row}
+                onClick={() => {
+                  void navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })
+                }}
+              >
                 <td className={`${s.td} ${s.nameCell}`}>{svc.name}</td>
                 <td className={s.td}>
                   <div className={s.labelsCell}>
