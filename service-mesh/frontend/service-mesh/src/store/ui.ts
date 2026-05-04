@@ -10,8 +10,8 @@ type UIState = {
 
 export const useUIStore = create<UIState>((set) => ({
   sidebarCollapsed: false,
-  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  toggleSidebar: (): void => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
   selectedServiceId: null,
-  setSelectedService: (id) => set({ selectedServiceId: id }),
+  setSelectedService: (id): void => set({ selectedServiceId: id }),
 }))

@@ -1,0 +1,11 @@
+.main {
+  padding: var(--space-6);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--color-text-faint);
+}

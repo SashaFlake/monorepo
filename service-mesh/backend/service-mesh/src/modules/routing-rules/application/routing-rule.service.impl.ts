@@ -1,11 +1,13 @@
+import { ok, err, type Result } from 'neverthrow'
 import { randomUUID } from 'node:crypto'
 import type { RoutingRule, CreateRoutingRuleDto, UpdateRoutingRuleDto } from '../domain/routing-rule.js'
-import { RoutingRuleNotFoundError } from '../domain/errors.js'
+import { routingRuleError, type RoutingRuleError } from '../domain/errors.js'
 import type { RoutingRuleService } from './routing-rule.service.js'
 
 /**
  * In-memory implementation of RoutingRuleService.
  * Stores rules in a Map grouped by serviceId.
+ * Uses Result<T, E> pattern for type-safe error handling.
  */
 export class RoutingRuleServiceImpl implements RoutingRuleService {
   private readonly rules = new Map<string, RoutingRule>()
@@ -16,7 +18,7 @@ export class RoutingRuleServiceImpl implements RoutingRuleService {
       .sort((a, b) => a.priority - b.priority)
   }
 
-  create(serviceId: string, data: CreateRoutingRuleDto): RoutingRule {
+  create(serviceId: string, data: CreateRoutingRuleDto): Result<RoutingRule, RoutingRuleError> {
     const now  = new Date().toISOString()
     const rule: RoutingRule = {
       ...data,
@@ -26,12 +28,14 @@ export class RoutingRuleServiceImpl implements RoutingRuleService {
       updatedAt: now,
     }
     this.rules.set(rule.id, rule)
-    return rule
+    return ok(rule)
   }
 
-  update(ruleId: string, data: UpdateRoutingRuleDto): RoutingRule {
+  update(ruleId: string, data: UpdateRoutingRuleDto): Result<RoutingRule, RoutingRuleError> {
     const existing = this.rules.get(ruleId)
-    if (!existing) throw new RoutingRuleNotFoundError(ruleId)
+    if (!existing) {
+      return err(routingRuleError('RULE_NOT_FOUND', `Routing rule ${ruleId} not found`))
+    }
 
     const updated: RoutingRule = {
       ...existing,
@@ -39,11 +43,14 @@ export class RoutingRuleServiceImpl implements RoutingRuleService {
       updatedAt: new Date().toISOString(),
     }
     this.rules.set(ruleId, updated)
-    return updated
+    return ok(updated)
   }
 
-  delete(ruleId: string): void {
-    if (!this.rules.has(ruleId)) throw new RoutingRuleNotFoundError(ruleId)
+  delete(ruleId: string): Result<void, RoutingRuleError> {
+    if (!this.rules.has(ruleId)) {
+      return err(routingRuleError('RULE_NOT_FOUND', `Routing rule ${ruleId} not found`))
+    }
     this.rules.delete(ruleId)
+    return ok(undefined)
   }
 }
