@@ -1,41 +1,45 @@
-import type { Destination, RuleFormValues } from './types'
+import { Either } from 'effect'
+import type { Destination, RuleFormValues, ValidationError, ValidationResult } from './types'
 
-export type ValidationError = { field: string; message: string }
-export type ValidationResult = { ok: true } | { ok: false; errors: ValidationError[] }
-
-const ok = (): ValidationResult => ({ ok: true })
-const fail = (errors: ValidationError[]): ValidationResult => ({ ok: false, errors })
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 export const sumWeights = (destinations: Destination[]): number =>
   destinations.reduce((acc, d) => acc + d.weightPct, 0)
 
-export const validateWeights = (destinations: Destination[]): ValidationResult => {
+// ── Validators ────────────────────────────────────────────────────────────────
+
+export const validateWeights = (destinations: Destination[]): ValidationResult<Destination[]> => {
   const sum = sumWeights(destinations)
   return sum !== 100
-    ? fail([{ field: 'destinations', message: `Сумма весов = ${sum}%, должно быть 100%` }])
-    : ok()
+    ? Either.left([{ field: 'destinations', message: `Weight sum = ${sum}%, must be 100%` }])
+    : Either.right(destinations)
 }
 
-export const validateRule = (values: RuleFormValues): ValidationResult => {
+export const validateRule = (values: RuleFormValues): ValidationResult<RuleFormValues> => {
   const errors: ValidationError[] = []
 
   if (!values.name.trim())
-    errors.push({ field: 'name', message: 'Название обязательно' })
+    errors.push({ field: 'name', message: 'Name is required' })
 
   if (values.priority < 0 || values.priority > 1000)
-    errors.push({ field: 'priority', message: 'Приоритет: 0–1000' })
+    errors.push({ field: 'priority', message: 'Priority must be 0–1000' })
 
   if (values.destinations.length === 0)
-    errors.push({ field: 'destinations', message: 'Добавьте хотя бы один destination' })
+    errors.push({ field: 'destinations', message: 'Add at least one destination' })
 
-  const emptyVersion = values.destinations.some(d => !d.version?.trim())
-  if (emptyVersion)
-    errors.push({ field: 'destinations', message: 'Укажите версию для каждого destination' })
+  const hasEmptyVersion = values.destinations.some(d => !d.version?.trim())
+  if (hasEmptyVersion)
+    errors.push({ field: 'destinations', message: 'Every destination must have a version' })
 
-  const duplicateVersions = new Set(values.destinations.map(i => i.version)).size === values.destinations.length
-  if (!duplicateVersions) errors.push({ field: "version", message: "Duplicated versions not allowed"})
+  const hasDuplicates = new Set(values.destinations.map(d => d.version)).size !== values.destinations.length
+  if (hasDuplicates)
+    errors.push({ field: 'version', message: 'Duplicate versions are not allowed' })
+
   const weightsResult = validateWeights(values.destinations)
-  if (!weightsResult.ok) errors.push(...weightsResult.errors)
+  if (Either.isLeft(weightsResult))
+    errors.push(...weightsResult.left)
 
-  return errors.length > 0 ? fail(errors) : ok()
+  return errors.length > 0
+    ? Either.left(errors)
+    : Either.right(values)
 }

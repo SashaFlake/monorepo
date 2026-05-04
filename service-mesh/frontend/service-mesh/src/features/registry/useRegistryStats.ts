@@ -32,7 +32,7 @@ const calcStats = (services: ServiceView[]): RegistryStats => {
     totalServices:     services.length,
     totalInstances:    instances.length,
     passingInstances:  instances.filter(i => i.status === 'passing').length,
-    degradedInstances: instances.filter(i => i.status !== 'passing').length,
+    degradedInstances: instances.filter(i => i.status === 'warning').length,
     criticalInstances: instances.filter(i => i.status === 'critical').length,
   }
 }
