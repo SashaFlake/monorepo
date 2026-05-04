@@ -45,6 +45,12 @@
 
 .row {
   border-bottom: 1px solid var(--color-divider);
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.row:hover {
+  background-color: var(--color-surface-offset);
 }
 
 .row:last-child {
