@@ -54,7 +54,6 @@ Each agent has detailed configuration files in the `.claude/` directory:
 - **Backend**: `.claude/backend.md` - Node.js, TypeScript, Functional Programming, DDD
 - **Frontend**: `.claude/frontend.md` - TypeScript, React, Functional Programming, DDD, Local-First
 - **Infra**: `.claude/infra.md` - Terraform, Helm, Kubernetes
-- **Full-Stack**: `.claude/full-stack.md` - System design, API contracts, cross-cutting concerns
 
 Refer to these files for technology-specific guidelines and best practices.
 

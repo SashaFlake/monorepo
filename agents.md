@@ -7,13 +7,13 @@ This document outlines the specialized agents configured for using Claude AI in 
 ### Backend Agent
 - **Role**: Handles Node.js backend development, API endpoints, business logic, and server-side TypeScript code.
 - **Scope**: `backend/` directory, including service-mesh and mock-service.
-- **Skills**: Fastify, TypeScript, REST APIs, functional programing, side-effect control, database interactions, throw free error handling.
+- **Skills**: Fastify, TypeScript, REST APIs, database interactions, error handling.
 - **Configuration**: See `.claude/backend.md` for detailed guidelines.
 
 ### Frontend Agent
 - **Role**: Manages React frontend development, UI components, routing, and client-side TypeScript code.
 - **Scope**: `frontend/service-mesh/` directory.
-- **Skills**: React, TanStack Router, Tailwind CSS, Vite, testing with Vitest, functional programing, side-effect control, local-first development.
+- **Skills**: React, TanStack Router, Tailwind CSS, Vite, testing with Vitest.
 - **Configuration**: See `.claude/frontend.md` for detailed guidelines.
 
 ### Infra Agent
