@@ -68,8 +68,14 @@ export function useRoutingRules(serviceId: string): RoutingRulesState {
     openDelete:  (id): void => setDeleteRule(rules.find(r => r.id === id) ?? null),
     closeDelete: (): void => setDeleteRule(null),
     create:  (values): void => createMutation.mutate(values),
-    update:  (values): void => updateMutation.mutate({ id: editRule!.id, input: values }),
-    remove:  (): void => deleteMutation.mutate(deleteRule!.id),
+    update:  (values): void => {
+      if (!editRule) return
+      updateMutation.mutate({ id: editRule.id, input: values })
+    },
+    remove:  (): void => {
+      if (!deleteRule) return
+      deleteMutation.mutate(deleteRule.id)
+    },
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,

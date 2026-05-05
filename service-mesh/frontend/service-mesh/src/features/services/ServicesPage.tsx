@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { ErrorCard } from '@/components/ui/ErrorCard'
 import { registryApi, registryKeys } from './api/api'
 import type { InstanceStatus } from './api/types'
 import s from './ServicesPage.module.css'
@@ -29,8 +31,31 @@ export function ServicesPage(): ReactElement {
     <>
       <Header title="Services" subtitle="Registered services & instances" />
       <main className={s.main}>
-        {isError && <Card className={`${s.stateCard} ${s.errorCard}`}>⚠️ Cannot reach registry backend</Card>}
-        {isLoading && <Card className={`${s.stateCard} ${s.loadingCard}`}>Loading…</Card>}
+        {isError && <ErrorCard message="Cannot reach registry backend" />}
+        {isLoading && (
+          <Card style={{ padding: 0, overflow: 'hidden' }}>
+            <table className={s.table}>
+              <thead className={s.thead}>
+                <tr>
+                  <th className={s.th}>Name</th>
+                  <th className={s.th}>Labels</th>
+                  <th className={`${s.th} ${s.thRight}`}>Instances</th>
+                  <th className={`${s.th} ${s.thRight}`}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className={s.row}>
+                    <td className={`${s.td} ${s.nameCell}`}><Skeleton width="60%" /></td>
+                    <td className={s.td}><Skeleton width="80%" /></td>
+                    <td className={`${s.td} ${s.tdRight}`}><Skeleton width="40px" /></td>
+                    <td className={`${s.td} ${s.thRight}`}><Skeleton width="60px" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        )}
 
         {!isLoading && !isError && services.length === 0 && (
           <Card><div className={s.empty}>No services registered yet.</div></Card>
