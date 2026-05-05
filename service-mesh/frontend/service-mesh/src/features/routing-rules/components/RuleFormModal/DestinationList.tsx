@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Destination } from '../../model/types'
 import { sumWeights } from '../../model/validation'
 import { Button } from '@/components/ui/button'
