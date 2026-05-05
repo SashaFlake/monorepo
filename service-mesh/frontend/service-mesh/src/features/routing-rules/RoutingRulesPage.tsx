@@ -1,72 +1,59 @@
-import { Plus } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
-import { Card } from '@/components/ui/card'
+import type { ReactElement } from 'react'
 import { Button } from '@/components/ui/button'
 import { useRoutingRules } from './model/useRoutingRules'
 import { RulesTable } from './components/RulesTable/RulesTable'
 import { RuleFormModal } from './components/RuleFormModal/RuleFormModal'
-import { DeleteRuleDialog } from './components/DeleteRuleDialog/DeleteRuleDialog'
 import s from './RoutingRulesPage.module.css'
-import {ReactElement} from "react";
 
-interface Props {
-  serviceId: string
-}
+type Props = { serviceId: string }
 
 export function RoutingRulesPage({ serviceId }: Props): ReactElement {
-  const r = useRoutingRules(serviceId)
+  const {
+    rules, isLoading, isError,
+    createOpen, editRule,
+    openCreate, closeCreate,
+    openEdit, openDelete,
+    create, update, remove,
+    isCreating, isUpdating, isDeleting,
+  } = useRoutingRules(serviceId)
 
   return (
-    <>
-      <Header
-        title="Routing Rules"
-        subtitle="Manage traffic routing rules"
-        action={
-          <Button onClick={r.openCreate}>
-            <Plus size={14} /> New rule
-          </Button>
-        }
+    <div className={s.page}>
+      <div className={s.toolbar}>
+        <Button onClick={openCreate}>New rule</Button>
+      </div>
+
+      {isError   && <div role="alert" className={s.error}>Failed to load routing rules.</div>}
+      {isLoading && <div role="status" className={s.loading}>Loading…</div>}
+
+      <RulesTable
+        rules={rules}
+        onEdit={openEdit}
+        onDelete={(id): void => {
+          const rule = rules.find(r => r.id === id)
+          if (rule) openDelete(rule)
+        }}
+        isPending={isDeleting}
       />
 
-      <main className={s.main}>
-        <Card style={{ padding: 0, overflow: 'hidden' }}>
-          {r.isLoading && <div className={s.loading}>Loading rules…</div>}
-          {r.isError && <div className={s.error}>⚠️ Failed to load routing rules</div>}
-          {!r.isLoading && !r.isError && (
-            <RulesTable
-              rules={r.rules}
-              onEdit={r.openEdit}
-              onDelete={(id) => r.openDelete(id)}
-            />
-          )}
-        </Card>
-      </main>
-
-      {r.createOpen && (
+      {createOpen && (
         <RuleFormModal
-          isPending={r.isCreating}
-          onSubmit={r.create}
-          onClose={r.closeCreate}
+          title="New rule"
+          isSubmitting={isCreating}
+          onSubmit={create}
+          onClose={closeCreate}
         />
       )}
 
-      {r.editRule && (
+      {editRule && (
         <RuleFormModal
-          initial={r.editRule}
-          isPending={r.isUpdating}
-          onSubmit={r.update}
-          onClose={r.closeEdit}
+          title="Edit rule"
+          initial={editRule}
+          isSubmitting={isUpdating}
+          onSubmit={update}
+          onClose={closeCreate}
         />
       )}
-
-      {r.deleteRule && (
-        <DeleteRuleDialog
-          rule={r.deleteRule}
-          isPending={r.isDeleting}
-          onConfirm={r.remove}
-          onCancel={r.closeDelete}
-        />
-      )}
-    </>
+    </div>
   )
 }
