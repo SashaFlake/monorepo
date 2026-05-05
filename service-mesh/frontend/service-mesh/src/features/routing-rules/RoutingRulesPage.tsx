@@ -13,7 +13,7 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
     createOpen, editRule,
     openCreate, closeCreate,
     openEdit, openDelete,
-    create, update, remove,
+    create, update,
     isCreating, isUpdating, isDeleting,
   } = useRoutingRules(serviceId)
 

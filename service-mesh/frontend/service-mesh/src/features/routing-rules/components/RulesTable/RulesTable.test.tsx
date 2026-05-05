@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { RulesTable } from './RulesTable'
 import type { RoutingRule } from '../../model/types'
+import { Destination } from '../../model/types'
 
 const rule = (overrides: Partial<RoutingRule> = {}): RoutingRule => ({
   id: '1',
@@ -9,7 +10,7 @@ const rule = (overrides: Partial<RoutingRule> = {}): RoutingRule => ({
   name: 'test-rule',
   priority: 100,
   match: { pathPrefix: '/api' },
-  destinations: [{ version: 'v1', weightPct: 100 }],
+  destinations: [Destination.unsafe({ version: 'v1', weightPct: 100 })],
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
   ...overrides,
