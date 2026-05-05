@@ -9,28 +9,39 @@ export const endpoint = (path: string): string => `/api/v1${path}`
 
 // ── Typed error ─────────────────────────────────────────────────────────────────
 
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-    public readonly path: string,
-  ) {
-    super(`${status} ${statusText}: ${path}`)
-    this.name = 'ApiError'
-  }
+export type ApiError = {
+  readonly _tag:       'ApiError'
+  readonly status:     number
+  readonly statusText: string
+  readonly path:       string
+  readonly message:    string
 }
+
+export const makeApiError = (
+  status: number,
+  statusText: string,
+  path: string,
+): ApiError => ({
+  _tag:       'ApiError',
+  status,
+  statusText,
+  path,
+  message: `${status} ${statusText}: ${path}`,
+})
+
+export const isApiError = (e: unknown): e is ApiError =>
+  typeof e === 'object' && e !== null && (e as ApiError)._tag === 'ApiError'
 
 // ── Effect-based fetch (primary) ─────────────────────────────────────────────
 //
 // Returns Effect<T, ApiError, never>.
 // Compose with Effect.retry, Effect.timeout, Effect.catchTag, etc.
 //
-// Example with retry + timeout:
-//   apiFetchEffect<Service[]>(endpoint('/services'))
-//     .pipe(
-//       Effect.retry({ times: 3 }),
-//       Effect.timeout('5 seconds'),
-//     )
+// Example:
+//   apiFetchEffect<Service[]>(endpoint('/services')).pipe(
+//     Effect.retry({ times: 3 }),
+//     Effect.timeout('5 seconds'),
+//   )
 
 export const apiFetchEffect = <T>(
   path: string,
@@ -39,19 +50,18 @@ export const apiFetchEffect = <T>(
   Effect.tryPromise({
     try: async () => {
       const res = await fetch(`${BASE}${path}`, init)
-      if (!res.ok) throw new ApiError(res.status, res.statusText, path)
+      if (!res.ok) throw makeApiError(res.status, res.statusText, path)
       return res.json() as Promise<T>
     },
-    catch: (e) => e instanceof ApiError
+    catch: (e) => isApiError(e)
       ? e
-      : new ApiError(0, String(e), path),
+      : makeApiError(0, String(e), path),
   })
 
 // ── Promise-based fetch (compatibility wrapper) ────────────────────────────
 //
-// Thin wrapper around apiFetchEffect for existing api clients.
-// TanStack Query consumes Promise — no migration needed on call sites.
-// Migrate call sites to apiFetchEffect incrementally when retry/timeout
+// Thin wrapper for existing api clients — TanStack Query consumes Promise.
+// Migrate call sites to apiFetchEffect incrementally when retry / timeout
 // or structured error handling is needed per-query.
 
 export const apiFetch = <T>(path: string, init?: RequestInit): Promise<T> =>
