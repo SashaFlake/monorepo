@@ -1,23 +1,22 @@
 import type { ReactElement } from 'react'
 import { Array as A, pipe } from 'effect'
-import { Destination } from '../../model/types'
+import type { DestinationDraft } from '../../model/types'
+import { emptyDestinationDraft } from '../../model/types'
 import { sumWeights } from '../../model/validation'
 import { Button } from '@/components/ui/button'
 import { WeightBar } from '../WeightBar/WeightBar'
 import s from './DestinationList.module.css'
 
 type Props = {
-  destinations: Destination[]
-  onChange: (destinations: Destination[]) => void
+  destinations: DestinationDraft[]
+  onChange: (destinations: DestinationDraft[]) => void
 }
 
 export function DestinationList({ destinations, onChange }: Props): ReactElement {
   const update = (index: number, version: string, weightPct: number): void =>
     onChange(
-      destinations.map((d, idx): Destination =>
-        idx === index
-          ? Destination.unsafe({ serviceId: d.serviceId, version, weightPct })
-          : d
+      destinations.map((d, idx): DestinationDraft =>
+        idx === index ? { serviceId: d.serviceId, version, weightPct } : d
       )
     )
 
@@ -25,7 +24,7 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
     onChange(destinations.filter((_d, idx): boolean => idx !== index))
 
   const add = (): void =>
-    onChange([...destinations, Destination.unsafe({ version: '', weightPct: 0 })])
+    onChange([...destinations, emptyDestinationDraft()])
 
   const sum = sumWeights(destinations)
   const sumOk = sum === 100
