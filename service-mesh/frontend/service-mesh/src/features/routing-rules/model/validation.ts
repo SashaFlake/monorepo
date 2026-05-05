@@ -1,12 +1,12 @@
 import { Either, Array as A, Option } from 'effect'
-import type { Destination, RuleFormValues, ValidationError, ValidationResult } from './types'
+import type { DestinationDraft, RuleFormValues, ValidationError, ValidationResult } from './types'
 
-// ── Helpers ─────────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-export const sumWeights = (destinations: Destination[]): number =>
+export const sumWeights = (destinations: DestinationDraft[]): number =>
   destinations.reduce((acc, d) => acc + d.weightPct, 0)
 
-// ── Atomic validators ───────────────────────────────────────────────────────────
+// ── Atomic validators ────────────────────────────────────────────────────────
 //
 // Each validator returns Option<ValidationError>:
 //   None  — rule passes
@@ -32,9 +32,9 @@ const validateNoDuplicateVersions = (values: RuleFormValues): Option.Option<Vali
     ? Option.some({ field: 'version', message: 'Duplicate versions are not allowed' })
     : Option.none()
 
-// ── Weight validator (exported — also used standalone in useRuleForm) ─────────
+// ── Weight validator ─────────────────────────────────────────────────────────
 
-export const validateWeights = (destinations: Destination[]): ValidationResult<Destination[]> => {
+export const validateWeights = (destinations: DestinationDraft[]): ValidationResult<DestinationDraft[]> => {
   const sum = sumWeights(destinations)
   return sum !== 100
     ? Either.left([{ field: 'destinations', message: `Weight sum = ${sum}%, must be 100%` }])

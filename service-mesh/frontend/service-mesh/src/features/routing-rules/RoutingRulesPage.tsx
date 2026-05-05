@@ -38,8 +38,7 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
 
       {createOpen && (
         <RuleFormModal
-          title="New rule"
-          isSubmitting={isCreating}
+          isPending={isCreating}
           onSubmit={create}
           onClose={closeCreate}
         />
@@ -47,9 +46,8 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
 
       {editRule && (
         <RuleFormModal
-          title="Edit rule"
           initial={editRule}
-          isSubmitting={isUpdating}
+          isPending={isUpdating}
           onSubmit={update}
           onClose={closeCreate}
         />

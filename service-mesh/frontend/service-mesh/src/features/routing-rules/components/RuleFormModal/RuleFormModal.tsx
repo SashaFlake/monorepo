@@ -1,4 +1,4 @@
-import {ReactElement, useEffect, useRef} from 'react'
+import { type ReactElement, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import type { RoutingRule, RuleFormValues } from '../../model/types'
 import { useRuleForm } from '../../hooks/useRuleForm'
@@ -8,15 +8,15 @@ import { RuleMatchFields } from './RuleMatchFields'
 import { DestinationList } from '../DestinationList/DestinationList'
 import styles from './RuleFormModal.module.css'
 
-interface RuleFormModalProps {
-  initial?: RoutingRule
+export interface RuleFormModalProps {
+  initial?:  RoutingRule
   isPending: boolean
-  onSubmit: (values: RuleFormValues) => void
-  onClose: () => void
+  onSubmit:  (values: RuleFormValues) => void
+  onClose:   () => void
 }
 
 export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
-  const form = useRuleForm(initial)
+  const form      = useRuleForm(initial)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect((): void => {
@@ -25,10 +25,10 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
 
   useEffect((): (() => void) => {
     const dialog = dialogRef.current
-    if (!dialog) return () => undefined
+    if (!dialog) return (): void => undefined
     const handler = (): void => onClose()
     dialog.addEventListener('close', handler)
-    return () => dialog.removeEventListener('close', handler)
+    return (): void => { dialog.removeEventListener('close', handler) }
   }, [onClose])
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDialogElement>): void => {
@@ -48,7 +48,6 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
       aria-labelledby="rule-form-title"
     >
       <div className={styles.modal}>
-
         <div className={styles.header}>
           <h2 id="rule-form-title" className={styles.title}>
             {initial ? 'Edit rule' : 'New rule'}
@@ -65,7 +64,6 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
               error={form.fieldError('name')}
               onChange={form.setName}
             />
-
             <RuleMatchFields
               priority={form.rule.priority}
               pathPrefix={form.rule.match.pathPrefix ?? ''}
@@ -73,13 +71,11 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
               onPriorityChange={form.setPriority}
               onPathPrefixChange={form.setPathPrefix}
             />
-
             <DestinationList
               destinations={form.rule.destinations}
               onChange={form.setDestinations}
             />
           </fieldset>
-
           <div className={styles.actions}>
             <Button type="button" variant="ghost" onClick={onClose} disabled={isPending}>Cancel</Button>
             <Button type="submit" disabled={isPending}>
@@ -87,7 +83,6 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
             </Button>
           </div>
         </form>
-
       </div>
     </dialog>
   )

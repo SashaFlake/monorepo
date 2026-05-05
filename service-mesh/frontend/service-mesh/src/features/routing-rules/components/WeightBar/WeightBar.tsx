@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { Array as A } from 'effect'
-import type { Destination } from '../../model/types'
+import type { DestinationDraft } from '../../model/types'
 import styles from './WeightBar.module.css'
 
 const COLORS = [
@@ -12,7 +12,7 @@ const COLORS = [
 ]
 
 interface WeightBarProps {
-  destinations: Readonly<A.NonEmptyArray<Destination>>
+  destinations: Readonly<A.NonEmptyArray<DestinationDraft>>
 }
 
 export function WeightBar({ destinations }: WeightBarProps): ReactElement {
@@ -21,21 +21,21 @@ export function WeightBar({ destinations }: WeightBarProps): ReactElement {
       <div className={styles.track}>
         {destinations.map((item, i) => (
           <div
-            key={item.version ?? i}
+            key={item.version || i}
             className={styles.segment}
-            title={`${item.version ?? 'default'}: ${item.weightPct}%`}
+            title={`${item.version || 'default'}: ${item.weightPct}%`}
             style={{ width: `${item.weightPct}%`, background: COLORS[i % COLORS.length] }}
           />
         ))}
       </div>
       <div className={styles.legend}>
         {destinations.map((item, i) => (
-          <div key={item.version ?? i} className={styles.legendItem}>
+          <div key={item.version || i} className={styles.legendItem}>
             <span
               className={styles.legendDot}
               style={{ background: COLORS[i % COLORS.length] }}
             />
-            <span className={styles.legendVersion}>{item.version ?? 'default'}</span>
+            <span className={styles.legendVersion}>{item.version || 'default'}</span>
             <span className={styles.legendWeight}>{item.weightPct}%</span>
           </div>
         ))}
