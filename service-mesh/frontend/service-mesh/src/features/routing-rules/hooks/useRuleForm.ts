@@ -44,8 +44,8 @@ export type UseRuleFormResult = {
 export function useRuleForm(initial?: RoutingRule): UseRuleFormResult {
   const initialValues = useMemo(
     () => initial ? toFormValues(initial) : defaultValues(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [initial?.id],
+    // eslint-disable-next-line reactHooks/exhaustive-deps
+    [initial?.id], // intentional: recompute only when the rule identity changes, not on every render
   )
 
   const [rule, setRule] = useState<RuleFormValues>(initialValues)

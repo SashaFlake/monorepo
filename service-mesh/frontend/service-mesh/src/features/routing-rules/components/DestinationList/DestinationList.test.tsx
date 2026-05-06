@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
+import type { ReactElement } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DestinationList } from './DestinationList'
 import type { DestinationDraft } from '../../model/types'
 
 vi.mock('../WeightBar/WeightBar', () => ({
-  WeightBar: () => <div data-testid="weight-bar" />,
+  WeightBar: (): ReactElement => <div data-testid="weight-bar" />,
 }))
 
 const make = (version: string, weightPct: number): DestinationDraft => ({
@@ -45,7 +46,7 @@ describe('DestinationList', () => {
       const items = [make('v1', 60), make('v2', 40)]
       render(<DestinationList destinations={items} onChange={onChange} />)
 
-      fireEvent.click(screen.getAllByLabelText('Remove destination')[0]!)
+      fireEvent.click(screen.getAllByLabelText('Remove destination')[0])
 
       const next = onChange.mock.calls[0][0] as DestinationDraft[]
       expect(next).toHaveLength(1)
