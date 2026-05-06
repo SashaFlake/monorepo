@@ -56,6 +56,7 @@
   --color-error-hover:      #da3633;
   --color-error-active:     #b91c1c;
   --color-error-highlight:  rgba(248, 81, 73, 0.12);
+  --color-error-light:      #fef2f2;
 
   --color-orange:           #f0883e;
   --color-orange-hover:     #db6d28;

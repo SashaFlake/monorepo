@@ -1,25 +1,30 @@
 import type { ReactElement } from 'react'
 import { Array as A, pipe } from 'effect'
-import type { Destination } from '../../model/types'
+import type { DestinationDraft } from '../../model/types'
+import { emptyDestinationDraft } from '../../model/types'
 import { sumWeights } from '../../model/validation'
 import { Button } from '@/components/ui/button'
 import { WeightBar } from '../WeightBar/WeightBar'
 import s from './DestinationList.module.css'
 
 type Props = {
-  destinations: Destination[]
-  onChange: (destinations: Destination[]) => void
+  destinations: DestinationDraft[]
+  onChange: (destinations: DestinationDraft[]) => void
 }
 
 export function DestinationList({ destinations, onChange }: Props): ReactElement {
-  const update = (index: number, patch: Partial<Destination>): void =>
-    onChange(destinations.map((d, idx) => idx === index ? { ...d, ...patch } : d))
+  const update = (id: string, patch: Partial<Pick<DestinationDraft, 'version' | 'weightPct'>>): void =>
+    onChange(
+        destinations.map((d): DestinationDraft =>
+            d.id === id ? { ...d, ...patch } : d
+        )
+    )
 
-  const remove = (index: number): void =>
-    onChange(destinations.filter((_, idx) => idx !== index))
+  const remove = (id: string): void =>
+    onChange(destinations.filter((d): boolean => d.id !== id))
 
   const add = (): void =>
-    onChange([...destinations, { version: '', weightPct: 0 }])
+    onChange([...destinations, emptyDestinationDraft()])
 
   const sum = sumWeights(destinations)
   const sumOk = sum === 100
@@ -28,28 +33,32 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
     destinations,
     A.match({
       onEmpty: () => null,
-      onNonEmpty: (nea) => <WeightBar destinations={nea} />
+      onNonEmpty: (nea) => <WeightBar destinations={nea} />,
     })
   )
 
   return (
     <div className={s.list}>
-      {destinations.map((item, index) => (
-        <div key={index} className={s.row}>
+      {destinations.map((item) => (
+        <div key={item.id} className={s.row}>
           <input
             className={s.input}
             placeholder="version"
-            value={item.version ?? ''}
-            onChange={e => update(index, { version: e.target.value })}
+            value={item.version}
+            onChange={(e) => update(item.id, { version: e.target.value  })}
           />
           <input
             type="number"
             className={`${s.input} ${s.inputWeight}`}
             placeholder="%"
             value={item.weightPct}
-            onChange={e => update(index, { weightPct: Number(e.target.value) })}
+            onChange={(e): void => update(item.id, { weightPct: Number(e.target.value)})}
           />
-          <button className={s.removeBtn} onClick={() => remove(index)} aria-label="Remove destination">
+          <button
+            className={s.removeBtn}
+            onClick={(): void => remove(item.id)}
+            aria-label="Remove destination"
+          >
             ✕
           </button>
         </div>

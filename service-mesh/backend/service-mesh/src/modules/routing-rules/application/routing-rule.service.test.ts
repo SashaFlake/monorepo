@@ -2,17 +2,16 @@ import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import type { RoutingRuleService } from './routing-rule.service.js'
 import { RoutingRuleServiceImpl } from './routing-rule.service.impl.js'
-import { RoutingRuleNotFoundError } from '../domain/errors.js'
 
 const SERVICE_A = 'aaaaaaaa-0000-0000-0000-000000000001'
 const SERVICE_B = 'bbbbbbbb-0000-0000-0000-000000000002'
 
 const makeRoutingRule = (overrides = {}) => ({
-  name:        'canary',
-  priority:    10,
-  serviceId:   SERVICE_A,
-  match:       { pathPrefix: '/api/v2' },
-  destination: { version: 'v2', weightPct: 20 },
+  name:         'canary',
+  priority:     10,
+  serviceId:    SERVICE_A,
+  match:        { pathPrefix: '/api/v2' },
+  destinations: [{ version: 'v2', weightPct: 20 }],
   ...overrides,
 })
 
@@ -35,7 +34,7 @@ describe('Routing Rule Management', () => {
       const rules = svc.list(SERVICE_A)
 
       assert.equal(rules.length, 1)
-      assert.equal(rules[0].serviceId, SERVICE_A)
+      assert.equal(rules[0]?.serviceId, SERVICE_A)
     })
 
     it('returns rules ordered by priority ascending so higher-priority rules come first', () => {
@@ -51,7 +50,9 @@ describe('Routing Rule Management', () => {
 
   describe('creating a rule', () => {
     it('assigns a unique id and timestamps to the new rule', () => {
-      const rule = svc.create(SERVICE_A, makeRoutingRule())
+      const result = svc.create(SERVICE_A, makeRoutingRule())
+      assert.ok(result.isOk())
+      const rule = result.value
 
       assert.ok(rule.id)
       assert.equal(rule.serviceId, SERVICE_A)
@@ -60,20 +61,25 @@ describe('Routing Rule Management', () => {
     })
 
     it('makes the rule immediately visible in the list', () => {
-      const created = svc.create(SERVICE_A, makeRoutingRule())
+      const result = svc.create(SERVICE_A, makeRoutingRule())
+      assert.ok(result.isOk())
+      const created = result.value
 
       const listed = svc.list(SERVICE_A)
 
       assert.equal(listed.length, 1)
-      assert.equal(listed[0].id, created.id)
+      assert.equal(listed[0]?.id, created.id)
     })
   })
 
   describe('updating a rule', () => {
     it('changes only the provided fields, leaving the rest intact', () => {
-      const rule = svc.create(SERVICE_A, makeRoutingRule())
+      const createResult = svc.create(SERVICE_A, makeRoutingRule())
+      assert.ok(createResult.isOk())
 
-      const updated = svc.update(rule.id, { priority: 99 })
+      const updateResult = svc.update(createResult.value.id, { priority: 99 })
+      assert.ok(updateResult.isOk())
+      const updated = updateResult.value
 
       assert.equal(updated.priority,  99)
       assert.equal(updated.name,      'canary')   // untouched
@@ -81,37 +87,43 @@ describe('Routing Rule Management', () => {
     })
 
     it('advances updatedAt while keeping createdAt unchanged', async () => {
-      const rule = svc.create(SERVICE_A, makeRoutingRule())
+      const createResult = svc.create(SERVICE_A, makeRoutingRule())
+      assert.ok(createResult.isOk())
+      const rule = createResult.value
+
       await new Promise(r => setTimeout(r, 5))
 
-      const updated = svc.update(rule.id, { priority: 99 })
+      const updateResult = svc.update(rule.id, { priority: 99 })
+      assert.ok(updateResult.isOk())
+      const updated = updateResult.value
 
       assert.equal(updated.createdAt, rule.createdAt)  // unchanged
       assert.ok(updated.updatedAt > rule.updatedAt)    // advanced
     })
 
-    it('throws RoutingRuleNotFoundError when the rule does not exist', () => {
-      assert.throws(
-        () => svc.update('non-existent-id', { priority: 1 }),
-        RoutingRuleNotFoundError,
-      )
+    it('returns Err with RULE_NOT_FOUND when the rule does not exist', () => {
+      const result = svc.update('non-existent-id', { priority: 1 })
+
+      assert.ok(result.isErr())
+      assert.equal(result.error.code, 'RULE_NOT_FOUND')
     })
   })
 
   describe('deleting a rule', () => {
     it('removes the rule so it no longer appears in the list', () => {
-      const rule = svc.create(SERVICE_A, makeRoutingRule())
+      const createResult = svc.create(SERVICE_A, makeRoutingRule())
+      assert.ok(createResult.isOk())
 
-      svc.delete(rule.id)
+      svc.delete(createResult.value.id)
 
       assert.deepEqual(svc.list(SERVICE_A), [])
     })
 
-    it('throws RoutingRuleNotFoundError when the rule does not exist', () => {
-      assert.throws(
-        () => svc.delete('non-existent-id'),
-        RoutingRuleNotFoundError,
-      )
+    it('returns Err with RULE_NOT_FOUND when the rule does not exist', () => {
+      const result = svc.delete('non-existent-id')
+
+      assert.ok(result.isErr())
+      assert.equal(result.error.code, 'RULE_NOT_FOUND')
     })
   })
 })

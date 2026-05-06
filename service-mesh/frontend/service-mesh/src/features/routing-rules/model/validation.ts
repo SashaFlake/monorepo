@@ -1,43 +1,68 @@
-import { Either } from 'effect'
-import type { Destination, RuleFormValues, ValidationError, ValidationResult } from './types'
+import { Either, Array as A, Option } from 'effect'
+import type { DestinationDraft, RuleFormValues, ValidationError, ValidationResult } from './types'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-export const sumWeights = (destinations: Destination[]): number =>
+export const sumWeights = (destinations: DestinationDraft[]): number =>
   destinations.reduce((acc, d) => acc + d.weightPct, 0)
 
-// ── Validators ────────────────────────────────────────────────────────────────
+// ── Atomic validators ────────────────────────────────────────────────────────
+//
+// Each validator returns Option<ValidationError>:
+//   None  — rule passes
+//   Some  — rule fails, carries the error
 
-export const validateWeights = (destinations: Destination[]): ValidationResult<Destination[]> => {
+const validateName = (values: RuleFormValues): Option.Option<ValidationError> =>
+  !values.name.trim()
+    ? Option.some({ field: 'name', message: 'Name is required' })
+    : Option.none()
+
+const validatePriority = (values: RuleFormValues): Option.Option<ValidationError> =>
+  values.priority < 0 || values.priority > 1000
+    ? Option.some({ field: 'priority', message: 'Priority must be 0–1000' })
+    : Option.none()
+
+const validateDestinationsNotEmpty = (values: RuleFormValues): Option.Option<ValidationError> =>
+  values.destinations.length === 0
+    ? Option.some({ field: 'destinations', message: 'Add at least one destination' })
+    : Option.none()
+
+const validateNoDuplicateVersions = (values: RuleFormValues): Option.Option<ValidationError> =>
+  new Set(values.destinations.map(d => d.version)).size !== values.destinations.length
+    ? Option.some({ field: 'version', message: 'Duplicate versions are not allowed' })
+    : Option.none()
+
+// ── Weight validator ─────────────────────────────────────────────────────────
+
+export const validateWeights = (destinations: DestinationDraft[]): ValidationResult<DestinationDraft[]> => {
   const sum = sumWeights(destinations)
   return sum !== 100
     ? Either.left([{ field: 'destinations', message: `Weight sum = ${sum}%, must be 100%` }])
     : Either.right(destinations)
 }
 
+// ── Composed rule validator ───────────────────────────────────────────────────
+//
+// Pipeline:
+//   1. Run all atomic validators → Option<ValidationError>[]
+//   2. A.filterMap(identity) → keep only Some, unwrap → ValidationError[]
+//   3. Merge with weight errors
+//   4. Fold → Either.left(errors) | Either.right(values)
+
+const RULE_VALIDATORS: ReadonlyArray<(v: RuleFormValues) => Option.Option<ValidationError>> = [
+  validateName,
+  validatePriority,
+  validateDestinationsNotEmpty,
+  validateNoDuplicateVersions,
+]
+
 export const validateRule = (values: RuleFormValues): ValidationResult<RuleFormValues> => {
-  const errors: ValidationError[] = []
+  const fieldErrors = A.filterMap(RULE_VALIDATORS, validator => validator(values))
 
-  if (!values.name.trim())
-    errors.push({ field: 'name', message: 'Name is required' })
+  const weightResult = validateWeights(values.destinations)
+  const weightErrors = Either.isLeft(weightResult) ? weightResult.left : []
 
-  if (values.priority < 0 || values.priority > 1000)
-    errors.push({ field: 'priority', message: 'Priority must be 0–1000' })
-
-  if (values.destinations.length === 0)
-    errors.push({ field: 'destinations', message: 'Add at least one destination' })
-
-  const hasEmptyVersion = values.destinations.some(d => !d.version?.trim())
-  if (hasEmptyVersion)
-    errors.push({ field: 'destinations', message: 'Every destination must have a version' })
-
-  const hasDuplicates = new Set(values.destinations.map(d => d.version)).size !== values.destinations.length
-  if (hasDuplicates)
-    errors.push({ field: 'version', message: 'Duplicate versions are not allowed' })
-
-  const weightsResult = validateWeights(values.destinations)
-  if (Either.isLeft(weightsResult))
-    errors.push(...weightsResult.left)
+  const errors: ValidationError[] = [...fieldErrors, ...weightErrors]
 
   return errors.length > 0
     ? Either.left(errors)

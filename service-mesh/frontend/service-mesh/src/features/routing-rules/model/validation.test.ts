@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { Either } from 'effect'
 import { sumWeights, validateWeights, validateRule } from './validation'
-import { Destination } from './types'
-import type { RuleFormValues } from './types'
+import type { DestinationDraft, RuleFormValues } from './types'
 
 const dest = ({
   serviceId,
@@ -12,7 +11,12 @@ const dest = ({
   serviceId?: string
   version: string
   weightPct?: number
-}): Destination => Destination.unsafe({ serviceId, version, weightPct })
+}): DestinationDraft => ({
+  id: crypto.randomUUID(),
+  serviceId,
+  version,
+  weightPct,
+})
 
 const validForm = (overrides?: Partial<RuleFormValues>): RuleFormValues => ({
   name: 'api-split',
@@ -22,14 +26,14 @@ const validForm = (overrides?: Partial<RuleFormValues>): RuleFormValues => ({
   ...overrides,
 })
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+// ── helpers ──────────────────────────────────────────────────────────────────────────
 
-const isOk  = <A>(r: Either.Either<A, unknown>): r is Either.Right<unknown, A> => Either.isRight(r)
+const isOk   = <A>(r: Either.Either<A, unknown>): r is Either.Right<unknown, A> => Either.isRight(r)
 const isFail = <E>(r: Either.Either<unknown, E>): r is Either.Left<E, unknown>  => Either.isLeft(r)
 const errors = <E>(r: Either.Either<unknown, E[]>): E[] =>
   Either.isLeft(r) ? r.left : []
 
-// ── traffic distribution ──────────────────────────────────────────────────────
+// ── traffic distribution ────────────────────────────────────────────────────────────
 
 describe('traffic distribution', () => {
   it('sums traffic share across all destinations', () => {
@@ -57,7 +61,7 @@ describe('traffic distribution', () => {
   })
 })
 
-// ── routing rule form ─────────────────────────────────────────────────────────
+// ── routing rule form ────────────────────────────────────────────────────────────
 
 describe('routing rule form', () => {
   it('allows saving a fully configured rule', () => {

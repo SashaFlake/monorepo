@@ -1,2 +1,69 @@
-/* re-exported from parent — actual styles stay in original file during migration */
-@import '../DestinationList.module.css';
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.input {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  transition: border-color var(--transition-interactive);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.inputWeight {
+  flex: 0 0 5rem;
+  text-align: right;
+}
+
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  transition: color var(--transition-interactive), background var(--transition-interactive);
+}
+
+.removeBtn:hover {
+  color: var(--color-error);
+  background: var(--color-error-highlight);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+}
+
+.sum {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.sumOk {
+  color: var(--color-success);
+}
+
+.sumError {
+  color: var(--color-error);
+}
