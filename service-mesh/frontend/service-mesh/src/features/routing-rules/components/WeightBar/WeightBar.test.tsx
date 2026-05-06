@@ -3,7 +3,12 @@ import { render, screen } from '@testing-library/react'
 import { WeightBar } from './WeightBar'
 import type { DestinationDraft } from '../../model/types'
 
-const dest = (version: string, weightPct: number): DestinationDraft => ({ version, weightPct })
+let _seq = 0
+const dest = (version: string, weightPct: number): DestinationDraft => ({
+  id: `dest-${++_seq}`,
+  version,
+  weightPct,
+})
 
 describe('WeightBar', () => {
   it('lists each version in the legend', () => {
