@@ -8,9 +8,15 @@ vi.mock('../WeightBar/WeightBar', () => ({
   WeightBar: (): ReactElement => <div data-testid="weight-bar" />,
 }))
 
-let _seq = 0
+const makeCounter = (): (() => string) => {
+  let n = 0
+  return () => { n += 1; return `test-id-${n}` }
+}
+
+const nextId = makeCounter()
+
 const make = (version: string, weightPct: number): DestinationDraft => ({
-  id:        `test-id-${++_seq}`,
+  id:        nextId(),
   serviceId: undefined,
   version,
   weightPct,
