@@ -17,3 +17,17 @@ export const routingRuleError = (
   code: RoutingRuleErrorCode,
   message: string,
 ): RoutingRuleError => ({ code, message })
+
+/**
+ * Error class for cases where a rule with the given id does not exist.
+ * Kept as a class for future throw-based adapters (e.g. HTTP controllers
+ * that translate domain errors to HTTP status codes via instanceof checks).
+ * Tests use Result.isErr() + error.code instead of assert.throws.
+ */
+export class RoutingRuleNotFoundError extends Error {
+  readonly code = 'RULE_NOT_FOUND' as const
+  constructor(ruleId: string) {
+    super(`Routing rule ${ruleId} not found`)
+    this.name = 'RoutingRuleNotFoundError'
+  }
+}
