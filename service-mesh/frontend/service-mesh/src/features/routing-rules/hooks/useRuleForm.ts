@@ -33,7 +33,7 @@ const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a,
   a.priority === b.priority &&
   a.match.pathPrefix === b.match.pathPrefix &&
   a.destinations.length === b.destinations.length &&
-  A.every(a.destinations, (d, i) => DestinationDraftEq(d, b.destinations[i]!))
+  A.zip(a.destinations, b.destinations).every(([da, db]) => DestinationDraftEq(da, db))
 )
 
 // ── Public contract ───────────────────────────────────────────────────────────

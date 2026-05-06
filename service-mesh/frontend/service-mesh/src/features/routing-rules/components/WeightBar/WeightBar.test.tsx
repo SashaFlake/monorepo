@@ -3,15 +3,8 @@ import { render, screen } from '@testing-library/react'
 import { WeightBar } from './WeightBar'
 import type { DestinationDraft } from '../../model/types'
 
-const makeCounter = (): (() => string) => {
-  let n = 0
-  return () => { n += 1; return `dest-${n}` }
-}
-
-const nextId = makeCounter()
-
 const dest = (version: string, weightPct: number): DestinationDraft => ({
-  id: nextId(),
+  id: crypto.randomUUID(),
   version,
   weightPct,
 })
