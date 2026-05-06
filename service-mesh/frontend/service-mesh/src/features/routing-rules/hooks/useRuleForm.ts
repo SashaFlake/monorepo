@@ -5,7 +5,6 @@ import { validateRule, sumWeights } from '../model/validation'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
 
-// Destination → DestinationDraft: strip _brand, keep data fields
 const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   name:         rule.name,
   priority:     rule.priority,
@@ -22,10 +21,14 @@ const defaultValues = (): RuleFormValues => ({
   destinations: [],
 })
 
+const deepEqual = (a: unknown, b: unknown): boolean =>
+  JSON.stringify(a) === JSON.stringify(b)
+
 // ── Public contract ───────────────────────────────────────────────────────────
 
 export type UseRuleFormResult = {
   rule:            RuleFormValues
+  isDirty:         boolean
   fieldError:      (field: string) => string | undefined
   weightSum:       number
   weightValid:     boolean
@@ -39,10 +42,16 @@ export type UseRuleFormResult = {
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useRuleForm(initial?: RoutingRule): UseRuleFormResult {
-  const [rule, setRule] = useState<RuleFormValues>(
-    initial ? toFormValues(initial) : defaultValues()
+  const initialValues = useMemo(
+    () => initial ? toFormValues(initial) : defaultValues(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [initial?.id],
   )
+
+  const [rule, setRule] = useState<RuleFormValues>(initialValues)
   const [submitAttempted, setSubmitAttempted] = useState(false)
+
+  const isDirty = useMemo(() => !deepEqual(rule, initialValues), [rule, initialValues])
 
   const validationResult = useMemo(() => validateRule(rule), [rule])
 
@@ -73,7 +82,7 @@ export function useRuleForm(initial?: RoutingRule): UseRuleFormResult {
   }
 
   return {
-    rule, fieldError, weightSum, weightValid,
+    rule, isDirty, fieldError, weightSum, weightValid,
     setName, setPriority, setPathPrefix, setDestinations, handleSubmit,
   }
 }
