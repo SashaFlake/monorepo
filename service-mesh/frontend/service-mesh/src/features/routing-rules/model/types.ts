@@ -1,6 +1,6 @@
 import { Either, Equivalence } from 'effect'
 
-// ── Validation primitives ────────────────────────────────────────────────────────────────────────
+// ── Validation primitives ────────────────────────────────────────────────────────────
 
 export type ValidationError  = { field: string; message: string }
 export type ValidationResult<A> = Either.Either<A, ValidationError[]>
@@ -12,10 +12,10 @@ export type ValidationResult<A> = Either.Either<A, ValidationError[]>
 // `id` is a stable client-side key for React reconciliation.
 
 export type DestinationDraft = {
-  id:        string
+  id:         string
   serviceId?: string
-  version:   string
-  weightPct: number
+  version:    string
+  weightPct:  number
 }
 
 export const emptyDestinationDraft = (): DestinationDraft => ({
@@ -27,7 +27,7 @@ export const emptyDestinationDraft = (): DestinationDraft => ({
 // Equivalence for isDirty comparison — ignores the stable `id` field
 export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
   Equivalence.make((a, b) =>
-    a.version === b.version &&
+    a.version   === b.version   &&
     a.weightPct === b.weightPct &&
     a.serviceId === b.serviceId
   )
@@ -36,9 +36,11 @@ export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
 //
 // Опак-тип: создать Destination можно только через Destination.create().
 // Невалидный объект (пустая version, вес вне 0–100) не может быть построен.
+// `id` наследуется из DestinationDraft — это позволяет передавать Destination туда, где ожидается DestinationDraft.
 
 export type Destination = {
   readonly _brand:     'Destination'
+  readonly id:         string
   readonly serviceId?: string
   readonly version:    string
   readonly weightPct:  number
