@@ -13,15 +13,15 @@ type Props = {
 }
 
 export function DestinationList({ destinations, onChange }: Props): ReactElement {
-  const update = (index: number, version: string, weightPct: number): void =>
+  const update = (id: string, version: string, weightPct: number): void =>
     onChange(
-      destinations.map((d, idx): DestinationDraft =>
-        idx === index ? { serviceId: d.serviceId, version, weightPct } : d
+      destinations.map((d): DestinationDraft =>
+        d.id === id ? { ...d, version, weightPct } : d
       )
     )
 
-  const remove = (index: number): void =>
-    onChange(destinations.filter((_d, idx): boolean => idx !== index))
+  const remove = (id: string): void =>
+    onChange(destinations.filter((d): boolean => d.id !== id))
 
   const add = (): void =>
     onChange([...destinations, emptyDestinationDraft()])
@@ -39,24 +39,24 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
 
   return (
     <div className={s.list}>
-      {destinations.map((item, index) => (
-        <div key={index} className={s.row}>
+      {destinations.map((item) => (
+        <div key={item.id} className={s.row}>
           <input
             className={s.input}
             placeholder="version"
             value={item.version}
-            onChange={(e): void => update(index, e.target.value, item.weightPct)}
+            onChange={(e): void => update(item.id, e.target.value, item.weightPct)}
           />
           <input
             type="number"
             className={`${s.input} ${s.inputWeight}`}
             placeholder="%"
             value={item.weightPct}
-            onChange={(e): void => update(index, item.version, Number(e.target.value))}
+            onChange={(e): void => update(item.id, item.version, Number(e.target.value))}
           />
           <button
             className={s.removeBtn}
-            onClick={(): void => remove(index)}
+            onClick={(): void => remove(item.id)}
             aria-label="Remove destination"
           >
             ✕

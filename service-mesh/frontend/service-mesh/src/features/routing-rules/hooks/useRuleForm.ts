@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Either } from 'effect'
+import { Array as A, Either, Equivalence } from 'effect'
 import type { RoutingRule, RuleFormValues, DestinationDraft } from '../model/types'
+import { DestinationDraftEq } from '../model/types'
 import { validateRule, sumWeights } from '../model/validation'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
@@ -10,7 +11,12 @@ const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   priority:     rule.priority,
   match:        rule.match,
   destinations: rule.destinations.map(
-    ({ serviceId, version, weightPct }): DestinationDraft => ({ serviceId, version, weightPct })
+    ({ serviceId, version, weightPct }): DestinationDraft => ({
+      id:        crypto.randomUUID(),
+      serviceId,
+      version,
+      weightPct,
+    })
   ),
 })
 
@@ -21,8 +27,14 @@ const defaultValues = (): RuleFormValues => ({
   destinations: [],
 })
 
-const deepEqual = (a: unknown, b: unknown): boolean =>
-  JSON.stringify(a) === JSON.stringify(b)
+// Structural equality for RuleFormValues — ignores DestinationDraft.id (stable key, not user data)
+const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a, b) =>
+  a.name === b.name &&
+  a.priority === b.priority &&
+  a.match.pathPrefix === b.match.pathPrefix &&
+  a.destinations.length === b.destinations.length &&
+  A.every(a.destinations, (d, i) => DestinationDraftEq(d, b.destinations[i]!))
+)
 
 // ── Public contract ───────────────────────────────────────────────────────────
 
@@ -45,13 +57,13 @@ export function useRuleForm(initial?: RoutingRule): UseRuleFormResult {
   const initialValues = useMemo(
     () => initial ? toFormValues(initial) : defaultValues(),
     // eslint-disable-next-line reactHooks/exhaustive-deps
-    [initial?.id], // intentional: recompute only when the rule identity changes, not on every render
+    [initial?.id], // intentional: recompute only when the rule identity changes
   )
 
   const [rule, setRule] = useState<RuleFormValues>(initialValues)
   const [submitAttempted, setSubmitAttempted] = useState(false)
 
-  const isDirty = useMemo(() => !deepEqual(rule, initialValues), [rule, initialValues])
+  const isDirty = useMemo(() => !RuleFormEq(rule, initialValues), [rule, initialValues])
 
   const validationResult = useMemo(() => validateRule(rule), [rule])
 
