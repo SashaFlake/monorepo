@@ -15,17 +15,17 @@ const postRoutingRule = (app: FastifyInstance, serviceId: string, overrides = {}
     method:  'POST',
     url:     `/api/v1/services/${serviceId}/routing-rules`,
     payload: {
-      name:        'canary',
-      priority:    10,
-      match:       { pathPrefix: '/api/v2' },
-      destination: { version: 'v2', weightPct: 20 },
+      name:         'canary',
+      priority:     10,
+      match:        { pathPrefix: '/api/v2' },
+      destinations: [{ version: 'v2', weightPct: 100 }],
       ...overrides,
     },
   })
 
 const body = <T>(res: { body: string }): T => JSON.parse(res.body)
 
-// ── Tests ────────────────────────────────────────────────────────────────────
+// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('Routing Rule Management — HTTP API', () => {
   let app: FastifyInstance
@@ -73,13 +73,29 @@ describe('Routing Rule Management — HTTP API', () => {
       const res = await app.inject({
         method:  'POST',
         url:     `/api/v1/services/${serviceId}/routing-rules`,
-        payload: { priority: 10, match: {}, destination: { weightPct: 50 } },
+        payload: { priority: 10, match: {}, destinations: [{ version: 'v1', weightPct: 100 }] },
       })
       assert.equal(res.statusCode, 400)
     })
 
-    it('rejects weightPct above 100 with 400', async () => {
-      const res = await postRoutingRule(app, serviceId, { destination: { weightPct: 999 } })
+    it('rejects destinations whose weightPct sum is not 100 with 400', async () => {
+      const res = await postRoutingRule(app, serviceId, {
+        destinations: [{ version: 'v1', weightPct: 60 }, { version: 'v2', weightPct: 60 }],
+      })
+      assert.equal(res.statusCode, 400)
+    })
+
+    it('rejects a weightPct above 100 on a single destination with 400', async () => {
+      const res = await postRoutingRule(app, serviceId, {
+        destinations: [{ version: 'v1', weightPct: 101 }],
+      })
+      assert.equal(res.statusCode, 400)
+    })
+
+    it('rejects duplicate destination versions with 400', async () => {
+      const res = await postRoutingRule(app, serviceId, {
+        destinations: [{ version: 'v1', weightPct: 50 }, { version: 'v1', weightPct: 50 }],
+      })
       assert.equal(res.statusCode, 400)
     })
   })
@@ -100,13 +116,13 @@ describe('Routing Rule Management — HTTP API', () => {
       assert.equal(rule.name,     'canary')  // untouched
     })
 
-    it('rejects a negative weightPct with 400', async () => {
+    it('rejects destinations whose weightPct sum is not 100 with 400', async () => {
       const { id } = body<{ id: string }>(await postRoutingRule(app, serviceId))
 
       const res = await app.inject({
         method:  'PUT',
         url:     `/api/v1/routing-rules/${id}`,
-        payload: { destination: { weightPct: -1 } },
+        payload: { destinations: [{ version: 'v1', weightPct: 40 }, { version: 'v2', weightPct: 40 }] },
       })
       assert.equal(res.statusCode, 400)
     })
