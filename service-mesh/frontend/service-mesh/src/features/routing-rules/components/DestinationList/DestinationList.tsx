@@ -13,11 +13,11 @@ type Props = {
 }
 
 export function DestinationList({ destinations, onChange }: Props): ReactElement {
-  const update = (id: string, version: string, weightPct: number): void =>
+  const update = (id: string, patch: Partial<Pick<DestinationDraft, 'version' | 'weightPct'>>): void =>
     onChange(
-      destinations.map((d): DestinationDraft =>
-        d.id === id ? { ...d, version, weightPct } : d
-      )
+        destinations.map((d): DestinationDraft =>
+            d.id === id ? { ...d, ...patch } : d
+        )
     )
 
   const remove = (id: string): void =>
@@ -45,14 +45,14 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
             className={s.input}
             placeholder="version"
             value={item.version}
-            onChange={(e): void => update(item.id, e.target.value, item.weightPct)}
+            onChange={(e) => update(item.id, { version: e.target.value  })}
           />
           <input
             type="number"
             className={`${s.input} ${s.inputWeight}`}
             placeholder="%"
             value={item.weightPct}
-            onChange={(e): void => update(item.id, item.version, Number(e.target.value))}
+            onChange={(e): void => update(item.id, { weightPct: Number(e.target.value)})}
           />
           <button
             className={s.removeBtn}

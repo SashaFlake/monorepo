@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildApp } from '../../../presentation/app.js'
+import { buildApp } from '@/presentation/app.js'
 import type { FastifyInstance } from 'fastify'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
