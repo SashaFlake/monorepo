@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { useRoutingRules } from './model/useRoutingRules'
 import { RulesTable } from './components/RulesTable/RulesTable'
 import { RuleFormModal } from './components/RuleFormModal/RuleFormModal'
+import { DeleteRuleDialog } from './components/DeleteRuleDialog/DeleteRuleDialog'
 import s from './RoutingRulesPage.module.css'
 
 type Props = { serviceId: string }
@@ -10,10 +11,11 @@ type Props = { serviceId: string }
 export function RoutingRulesPage({ serviceId }: Props): ReactElement {
   const {
     rules, isLoading, isError,
-    createOpen, editRule,
+    createOpen, editRule, deleteRule,
     openCreate, closeCreate,
-    openEdit, openDelete,
-    create, update,
+    openEdit, closeEdit,
+    openDelete, closeDelete,
+    create, update, remove,
     isCreating, isUpdating, isDeleting,
   } = useRoutingRules(serviceId)
 
@@ -49,7 +51,16 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
           initial={editRule}
           isPending={isUpdating}
           onSubmit={update}
-          onClose={closeCreate}
+          onClose={closeEdit}
+        />
+      )}
+
+      {deleteRule && (
+        <DeleteRuleDialog
+          rule={deleteRule}
+          isPending={isDeleting}
+          onConfirm={remove}
+          onCancel={closeDelete}
         />
       )}
     </div>
