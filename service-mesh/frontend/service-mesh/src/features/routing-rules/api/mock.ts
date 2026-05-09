@@ -9,8 +9,8 @@ export const MOCK_RULES: RoutingRule[] = [
     priority: 100,
     match: { pathPrefix: '/api/v1/*' },
     destinations: [
-      Destination.unsafe({ version: 'v2', weightPct: 80 }),
-      Destination.unsafe({ version: 'v1', weightPct: 20 }),
+      Destination.unsafe({ id: crypto.randomUUID(), version: 'v2', weightPct: 80 }),
+      Destination.unsafe({ id: crypto.randomUUID(), version: 'v1', weightPct: 20 }),
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -22,7 +22,7 @@ export const MOCK_RULES: RoutingRule[] = [
     priority: 10,
     match: { pathPrefix: '/health' },
     destinations: [
-      Destination.unsafe({ version: 'v1', weightPct: 100 }),
+      Destination.unsafe({ id: crypto.randomUUID(), version: 'v1', weightPct: 100 }),
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
