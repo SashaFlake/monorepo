@@ -1,60 +1,56 @@
 import type { ReactElement } from 'react'
+import { Button } from '@/shared/ui'
 import { Trash2 } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogActions,
-  AlertDialogCancel,
-  AlertDialogAction,
-  Button,
-} from '@/shared/ui'
-import type { RoutingRule } from '../../domain/types'
-import s from './DeleteRuleDialog.module.css'
+import type { RoutingRule } from '../../model/types'
+import styles from './DeleteRuleDialog.module.css'
 
 interface DeleteRuleDialogProps {
-  rule:       RoutingRule
-  isPending:  boolean
-  onConfirm:  () => void
-  onCancel:   () => void
+  rule: RoutingRule
+  isPending: boolean
+  onConfirm: () => void
+  onCancel: () => void
 }
 
 export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: DeleteRuleDialogProps): ReactElement {
-  // Mounted only while open: any close intent (Escape, Cancel) maps to onCancel.
-  const handleOpenChange = (open: boolean): void => {
-    if (!open && !isPending) onCancel()
-  }
-
   return (
-    <AlertDialog open onOpenChange={handleOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader icon={<Trash2 size={18} />} iconVariant="danger">
-          <AlertDialogTitle>Delete rule?</AlertDialogTitle>
-        </AlertDialogHeader>
+    <div className={styles.overlay} onClick={onCancel}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-desc"
+        className={styles.dialog}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className={styles.header}>
+          <div className={styles.iconWrap}>
+            <Trash2 size={18} />
+          </div>
+          <h2 id="delete-dialog-title" className={styles.title}>
+            Delete rule?
+          </h2>
+        </div>
 
-        <AlertDialogDescription>
-          You are about to delete rule <strong className={s.ruleName}>“{rule.name}”</strong>.
+        <p id="delete-dialog-desc" className={styles.description}>
+          You are about to delete rule{' '}
+          <strong className={styles.ruleName}>“{rule.name}”</strong>.
           {' '}This will remove it from traffic routing.
-        </AlertDialogDescription>
+        </p>
 
-        <AlertDialogActions>
-          <AlertDialogCancel asChild>
-            <Button variant="ghost" disabled={isPending}>Cancel</Button>
-          </AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button
-              variant="danger"
-              onClick={onConfirm}
-              disabled={isPending}
-              aria-busy={isPending}
-            >
-              {isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </AlertDialogAction>
-        </AlertDialogActions>
-      </AlertDialogContent>
-    </AlertDialog>
+        <div className={styles.actions}>
+          <Button variant="ghost" onClick={onCancel} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={onConfirm}
+            disabled={isPending}
+            aria-busy={isPending}
+          >
+            {isPending ? 'Deleting…' : 'Delete'}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
