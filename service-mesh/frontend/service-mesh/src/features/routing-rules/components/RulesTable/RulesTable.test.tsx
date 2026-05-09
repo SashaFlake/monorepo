@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { RulesTable } from './RulesTable'
 import type { RoutingRule } from '../../model/types'
 import { Destination } from '../../model/types'
@@ -34,9 +34,11 @@ describe('RulesTable', () => {
     const rules = [rule({ name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={vi.fn()} />)
     fireEvent.click(screen.getByLabelText('Delete rule my-rule'))
-    const dialog = screen.getByRole('dialog')
-    expect(dialog).toBeInTheDocument()
-    expect(within(dialog).getByText(/my-rule/)).toBeInTheDocument()
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+    // Title and rule name both reference the rule; assert via the dialog
+    // description specifically to avoid the table cell that also contains it.
+    const description = screen.getByText(/about to delete rule/i)
+    expect(description).toHaveTextContent('my-rule')
   })
 
   it('calls onDelete with correct id on confirm', () => {
@@ -55,7 +57,7 @@ describe('RulesTable', () => {
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={onDelete} />)
     fireEvent.click(screen.getByLabelText('delete rule my-rule', { exact: false }))
     fireEvent.click(screen.getByText('Cancel'))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(onDelete).not.toHaveBeenCalled()
   })
 

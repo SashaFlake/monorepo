@@ -1,60 +1,6 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: oklch(0 0 0 / 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-
-.dialog {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  width: min(420px, calc(100vw - var(--space-8)));
-  box-shadow: var(--shadow-lg);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.iconWrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  background: var(--color-error-highlight);
-  color: var(--color-error);
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.description {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-6);
-  line-height: 1.5;
-}
+/* Inline emphasis for the rule name inside the dialog description.
+   Layout/box styles for the dialog itself live in @/shared/ui/AlertDialog. */
 
 .ruleName {
   color: var(--color-text);
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
 }
