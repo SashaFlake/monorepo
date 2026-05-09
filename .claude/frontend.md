@@ -7,7 +7,7 @@
 - **Programming Paradigm**: Functional Programming
 - **State Management**: Zustand for global state, React Query for server state
 - **Routing**: TanStack Router
-- **Styling**: Tailwind CSS
+- **Styling**: CSS custom properties (vanilla CSS)
 - **Local-First**: IndexedDB with idb-keyval for offline-first functionality
 - **Testing**: Vitest with React Testing Library
 
@@ -18,7 +18,7 @@
 - Use TypeScript strict mode with proper type definitions
 - Implement local-first architecture with offline capabilities
 - Use React Query for server state synchronization
-- Style with utility-first Tailwind CSS classes
+- Style with CSS custom properties and vanilla CSS
 - Ensure accessibility (WCAG 2.1 AA compliance)
 
 ## Project Structure
@@ -41,7 +41,7 @@
 - Implement proper error boundaries
 - Write comprehensive unit and integration tests
 - Follow React performance best practices
-- Ensure responsive design with Tailwind
+- Ensure responsive design with CSS custom properties
 - Implement proper loading states and error handling
 - Use semantic HTML and ARIA attributes
 
@@ -49,7 +49,7 @@
 ```
 As the Frontend Agent, [task description].
 Use React functional components, TypeScript, DDD principles, and local-first architecture.
-Implement with TanStack Router, Zustand, and Tailwind CSS.
+Implement with TanStack Router and Zustand.
 File: frontend/service-mesh/src/[module]/[layer]/[file].tsx
 ```
 

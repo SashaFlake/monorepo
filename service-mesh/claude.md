@@ -5,7 +5,7 @@ This document provides instructions and guidelines for using Claude AI effective
 ## Project Overview
 - **Type**: Monorepo with backend (Node.js/TypeScript), frontend (React/TypeScript), and infrastructure components.
 - **Languages**: TypeScript, JavaScript
-- **Frameworks**: Node.js (backend) with Fastify, React (frontend), Express.js, TanStack Router, Tailwind CSS
+- **Frameworks**: Node.js (backend) with Fastify, React (frontend), Express.js, TanStack Router
 - **Tools**: Docker, Helm, Terraform, Prometheus, Grafana
 
 ## Claude Usage Guidelines
@@ -28,7 +28,7 @@ This document provides instructions and guidelines for using Claude AI effective
 - Use React functional components with hooks.
 - Implement proper state management with Zustand or React Query as appropriate.
 - Use TanStack Router for routing.
-- Style with Tailwind CSS classes.
+- Style with CSS custom properties and vanilla CSS.
 - Ensure components are accessible and responsive.
 - Write unit tests with Vitest and React Testing Library.
 

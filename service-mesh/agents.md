@@ -13,7 +13,7 @@ This document outlines the specialized agents configured for using Claude AI in 
 ### Frontend Agent
 - **Role**: Manages React frontend development, UI components, routing, and client-side TypeScript code.
 - **Scope**: `frontend/service-mesh/` directory.
-- **Skills**: React, TanStack Router, Tailwind CSS, Vite, testing with Vitest.
+- **Skills**: React, TanStack Router, Vite, CSS custom properties, testing with Vitest.
 - **Configuration**: See `.claude/frontend.md` for detailed guidelines.
 
 ### Infra Agent
