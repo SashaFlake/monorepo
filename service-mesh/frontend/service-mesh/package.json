@@ -11,8 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "lint": "tsr generate && eslint src",
+    "lint:fix": "tsr generate && eslint src --fix"
   },
   "dependencies": {
     "@tanstack/query-async-storage-persister": "^5.62.0",
