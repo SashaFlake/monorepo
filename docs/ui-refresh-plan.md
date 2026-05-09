@@ -128,6 +128,15 @@ Bundle impact (примерно, gzip):
 
 ## Пошаговый план миграции (мелкие PR — как требует ваш space)
 
+### Лимит размера PR
+
+Правило, зафиксированное после ретро по PR #44 / #45:
+
+- **≤ 300 строк ручного кода на PR** (insertions + deletions без `package-lock.json`, без сгенерированных файлов вроде `routeTree.gen.ts`, без чисто документационных markdown-файлов).
+- Если изменение крупнее — режем на stacked PR (`base` друг на друга), каждый ревьюится изолированно.
+- Lockfile коммитится тем же PR, что и зависимости, чтобы CI работал — но в счёт строк не идёт.
+- Для оценки: `gh pr view N --json files -q '.files[] | "\(.additions)+\(.deletions)-\t\(.path)"' | sort -rn`.
+
 ### PR 1 — Чистка и фундамент (2–3 часа)
 
 - [ ] Удалить дубли регистра имён: оставить либо `Button.tsx`/`Card.tsx`/`Badge.tsx` (PascalCase), либо `button.tsx`/… В коде сейчас импортируется lowercase — оставляем lowercase, переименование оставляем на потом.
@@ -145,7 +154,11 @@ Bundle impact (примерно, gzip):
 
 **Что выигрываем:** −80 строк ручного кода + правильный focus trap + ESC/overlay из коробки + a11y без правок.
 
-### PR 3 — TanStack Form + effect/Schema (3 часа)
+### PR 3 — TanStack Form + effect/Schema
+
+Разбит на 3 stacked PR (каждый ≤ 300 строк):
+
+#### PR 3a — `shared/form/schemaResolver` + Schema-описание правила (≈ 1 час)
 
 - [ ] Создать `shared/form/schemaResolver.ts`:
   ```ts
@@ -159,11 +172,28 @@ Bundle impact (примерно, gzip):
         : undefined
     }
   ```
-- [ ] В `features/routing-rules/domain/schema.ts` описать `RoutingRuleSchema` через `Schema.Struct` с `Schema.filter` для priority/weights/duplicates.
-- [ ] Перевести `useRuleForm` на `useForm` из TanStack Form. `validation.ts` → один `Schema.filter`, `useRuleForm.ts` удалить целиком.
-- [ ] Field‑компоненты `RuleNameField`/`RuleMatchFields` принимают `field` API от TanStack Form вместо props‑дрилла.
+- [ ] Юнит-тесты резолвера (happy path + 2-3 case'а с ошибками).
+- [ ] В `features/routing-rules/model/schema.ts` (пока ещё `model/`) описать `RoutingRuleSchema` через `Schema.Struct` с `Schema.filter` для priority/weights/duplicates. Старый `validation.ts` пока живёт параллельно — его не трогаем.
 
-**Что выигрываем:** −120 строк, единая схема, dirty/touched/errors из коробки, нет ручного `submitAttempted`.
+Выхлоп: новый файл + тесты, нигде не используется. Безопасно ревьюить отдельно.
+
+#### PR 3b — `useRuleForm` на TanStack Form (≈ 1.5 часа)
+
+- [ ] Установить `@tanstack/react-form`.
+- [ ] Перевести `useRuleForm` на `useForm` из TanStack Form, валидатор — `schemaValidator(RoutingRuleSchema)`.
+- [ ] Удалить старый `useRuleForm.ts` и `validation.ts` (логика ушла в Schema).
+- [ ] Field-компоненты `RuleNameField` / `RuleMatchFields` принимают `field` API вместо props-дрилла.
+- [ ] Обновить тесты `RuleFormModal` / `DestinationList`.
+
+Выхлоп: −120 строк ручного кода, dirty/touched/errors из коробки, нет ручного `submitAttempted`.
+
+#### PR 3c — Переименование `model/` → `domain/` (≈ 30 минут)
+
+- [ ] `git mv features/routing-rules/model features/routing-rules/domain`.
+- [ ] Обновить импорты (`from '../../model/...'` → `from '../../domain/...'`).
+- [ ] Подровнять под DDD-таргет (`feature/{domain,application,infrastructure,ui}/`).
+
+Выхлоп: чистый rename-PR, нулевой риск, легко ревьюится.
 
 ### PR 4 — TanStack Table (2 часа)
 
