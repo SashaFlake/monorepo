@@ -1,12 +1,18 @@
-import { type ReactElement, useEffect, useRef, useCallback } from 'react'
-import { X } from 'lucide-react'
+import { type ReactElement } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogActions,
+  DialogCloseIconButton,
+  Button,
+} from '@/shared/ui'
 import type { RoutingRule, RuleFormValues } from '../../model/types'
 import { useRuleForm } from '../../hooks/useRuleForm'
-import { Button } from '@/shared/ui'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
 import { DestinationList } from '../DestinationList/DestinationList'
-import styles from './RuleFormModal.module.css'
 
 export interface RuleFormModalProps {
   initial?:  RoutingRule
@@ -18,35 +24,22 @@ export interface RuleFormModalProps {
 const DISCARD_MESSAGE = 'You have unsaved changes. Discard them?'
 
 export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
-  const form      = useRuleForm(initial)
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  const form = useRuleForm(initial)
 
-  // Guard: ask confirmation when form has unsaved changes
-  const requestClose = useCallback((): void => {
+  // The component is mounted only when it should be open, so the dialog is
+  // considered open as long as we render. Any close intent — overlay click,
+  // Escape, the close button, the Cancel action — funnels through this
+  // single guard which performs the dirty check.
+  const requestClose = (): void => {
     if (form.isDirty && !window.confirm(DISCARD_MESSAGE)) return
     onClose()
-  }, [form.isDirty, onClose])
+  }
 
-  useEffect((): void => {
-    dialogRef.current?.showModal()
-  }, [])
-
-  useEffect((): (() => void) => {
-    const dialog = dialogRef.current
-    if (!dialog) return (): void => undefined
-
-    // Intercept native close (Escape key) to apply dirty check
-    const handleCancel = (e: Event): void => {
-      e.preventDefault()
-      requestClose()
-    }
-
-    dialog.addEventListener('cancel', handleCancel)
-    return (): void => { dialog.removeEventListener('cancel', handleCancel) }
-  }, [requestClose])
-
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDialogElement>): void => {
-    if (e.target === dialogRef.current) requestClose()
+  // Radix calls onOpenChange(false) for overlay click and Escape; we
+  // delegate to requestClose. Returning is enough — there is no native
+  // <dialog> cancel event to preventDefault on.
+  const handleOpenChange = (open: boolean): void => {
+    if (!open) requestClose()
   }
 
   const handleSubmit = (e: React.FormEvent): void => {
@@ -55,21 +48,12 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
   }
 
   return (
-    <dialog
-      ref={dialogRef}
-      className={styles.dialog}
-      onClick={handleOverlayClick}
-      aria-labelledby="rule-form-title"
-    >
-      <div className={styles.modal}>
-        <div className={styles.header}>
-          <h2 id="rule-form-title" className={styles.title}>
-            {initial ? 'Edit rule' : 'New rule'}
-          </h2>
-          <button type="button" className={styles.closeBtn} onClick={requestClose} aria-label="Close">
-            <X size={16} />
-          </button>
-        </div>
+    <Dialog open onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{initial ? 'Edit rule' : 'New rule'}</DialogTitle>
+          <DialogCloseIconButton label="Close" />
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <fieldset disabled={isPending} style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -90,14 +74,16 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
               onChange={form.setDestinations}
             />
           </fieldset>
-          <div className={styles.actions}>
-            <Button type="button" variant="ghost" onClick={requestClose} disabled={isPending}>Cancel</Button>
+          <DialogActions>
+            <Button type="button" variant="ghost" onClick={requestClose} disabled={isPending}>
+              Cancel
+            </Button>
             <Button type="submit" disabled={isPending}>
               {isPending ? 'Saving…' : initial ? 'Save' : 'Create'}
             </Button>
-          </div>
+          </DialogActions>
         </form>
-      </div>
-    </dialog>
+      </DialogContent>
+    </Dialog>
   )
 }

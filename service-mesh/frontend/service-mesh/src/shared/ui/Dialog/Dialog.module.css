@@ -1,0 +1,99 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: oklch(0 0 0 / 0.4);
+  z-index: 50;
+
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.content {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: min(560px, calc(100vw - var(--space-8)));
+  max-height: calc(100dvh - var(--space-16));
+  overflow-y: auto;
+  padding: var(--space-6);
+
+  /* Reset focus-visible so Radix' default outline does not show on the wrapper. */
+  outline: none;
+}
+
+.contentSm {
+  width: min(420px, calc(100vw - var(--space-8)));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.headerWithIcon {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-6);
+  line-height: 1.5;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-interactive), background var(--transition-interactive);
+}
+
+.closeBtn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-offset);
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+}
+
+.actionsCompact {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
