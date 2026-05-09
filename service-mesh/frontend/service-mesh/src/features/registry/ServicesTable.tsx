@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Badge, Card } from '@/shared/ui'
 import type { ServiceView, InstanceStatus } from '@/features/services/api/types'
 import s from './ServicesTable.module.css'
 import {ReactElement} from "react";

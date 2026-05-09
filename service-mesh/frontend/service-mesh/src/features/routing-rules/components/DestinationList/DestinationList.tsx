@@ -3,7 +3,7 @@ import { Array as A, pipe } from 'effect'
 import type { DestinationDraft } from '../../model/types'
 import { emptyDestinationDraft } from '../../model/types'
 import { sumWeights } from '../../model/validation'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/ui'
 import { WeightBar } from '../WeightBar/WeightBar'
 import s from './DestinationList.module.css'
 

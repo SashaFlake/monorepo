@@ -3,3 +3,6 @@ dist
 .env
 .env.local
 *.tsbuildinfo
+
+# TanStack Router generated route tree
+src/routeTree.gen.ts

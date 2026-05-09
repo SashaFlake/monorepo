@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/ui'
 import { Trash2 } from 'lucide-react'
 import type { RoutingRule } from '../../model/types'
 import styles from './DeleteRuleDialog.module.css'
