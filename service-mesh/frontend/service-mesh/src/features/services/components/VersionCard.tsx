@@ -1,5 +1,5 @@
 import { ReactElement, useState } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card } from '@/shared/ui'
 import { ManifestPanel, OpenApiPanel, InstancesPanel } from './index'
 import type { ServiceVersion } from '../api/types'
 import s from '../ServiceDetailPage.module.css'

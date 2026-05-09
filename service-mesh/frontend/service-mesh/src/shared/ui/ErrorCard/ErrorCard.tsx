@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode } from 'react'
-import { Card } from './card'
-import { Button } from './button'
+import { Card } from '../Card'
+import { Button } from '../Button'
 import s from './ErrorCard.module.css'
 
 interface ErrorCardProps {

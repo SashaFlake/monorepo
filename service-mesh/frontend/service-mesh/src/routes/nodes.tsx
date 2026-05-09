@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Header } from '@/components/layout/Header'
-import { Card } from '@/components/ui/card'
+import { Card } from '@/shared/ui'
 import s from './placeholder.module.css'
 import {ReactElement} from "react";
 

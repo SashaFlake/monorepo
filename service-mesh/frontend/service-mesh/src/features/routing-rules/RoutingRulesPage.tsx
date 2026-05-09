@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/ui'
 import { useRoutingRules } from './model/useRoutingRules'
 import { RulesTable } from './components/RulesTable/RulesTable'
 import { RuleFormModal } from './components/RuleFormModal/RuleFormModal'

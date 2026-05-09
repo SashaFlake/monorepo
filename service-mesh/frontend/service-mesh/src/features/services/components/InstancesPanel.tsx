@@ -1,5 +1,5 @@
 import { ReactElement } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/shared/ui'
 import type { ServiceVersion, InstanceStatus } from '../api/types'
 import s from '../ServiceDetailPage.module.css'
 
