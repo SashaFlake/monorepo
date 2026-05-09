@@ -31,10 +31,7 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
       <RulesTable
         rules={rules}
         onEdit={openEdit}
-        onDelete={(id): void => {
-          const rule = rules.find(r => r.id === id)
-          if (rule) openDelete(rule)
-        }}
+        onDelete={openDelete}
         isPending={isDeleting}
       />
 

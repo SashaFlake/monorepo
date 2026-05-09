@@ -12,7 +12,7 @@ export const routingKeys = {
   list: (serviceId: string) => ['routing-rules', serviceId] as const,
 }
 
-// ── API client ──────────────────────────────────────────────────────────────────────────
+// ── API client ────────────────────────────────────────────────────────────────
 
 export const routingRulesApi = {
   list: (serviceId: string): Promise<RoutingRule[]> =>
