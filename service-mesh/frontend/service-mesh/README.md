@@ -8,7 +8,7 @@ Control plane admin interface.
 - **TanStack Router** — type-safe file-based routing
 - **TanStack Query** + localStorage persist — local-first cache
 - **Zustand** — UI state (sidebar, selections)
-- **Tailwind v4** — utility CSS
+- **CSS custom properties** — vanilla CSS styling
 - **Lucide React** — icons
 
 ## Getting Started

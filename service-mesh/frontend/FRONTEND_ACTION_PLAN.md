@@ -1,7 +1,7 @@
 # Frontend Action Plan
 
 > Code review проведён агентом 2026-05-04.  
-> Стек: React 19 + Vite 6 + TanStack Router + TanStack Query + Tailwind 4 + TypeScript 5.7 + Effect.
+> Стек: React 19 + Vite 6 + TanStack Router + TanStack Query + TypeScript 5.7 + Effect.
 
 ---
 

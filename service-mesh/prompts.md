@@ -30,7 +30,7 @@ File: backend/service-mesh/src/shared/[middleware].ts
 ### React Component
 ```
 As the Frontend Agent, create a new React functional component for [component purpose].
-Use TypeScript, hooks, and Tailwind CSS for styling. Include proper prop types and default values.
+Use TypeScript, hooks, and CSS custom properties for styling. Include proper prop types and default values.
 File: frontend/service-mesh/src/components/[component].tsx
 ```
 
