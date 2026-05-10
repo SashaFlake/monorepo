@@ -1,4 +1,5 @@
-import { Either, Equivalence } from 'effect'
+import {Array as A, Either, Equivalence} from 'effect'
+// import {validateWeights} from "@/features/routing-rules";
 
 // ── Validation primitives ────────────────────────────────────────────────────────────
 
@@ -32,6 +33,24 @@ export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
     a.serviceId === b.serviceId
   )
 
+// Pure helper: total traffic share allocated across destinations.
+// Lives here next to DestinationDraft because it is a property of the type,
+// not validation logic.
+export const sumWeights = (destinations: ReadonlyArray<DestinationDraft>): number =>
+    destinations.reduce((acc, d) => acc + d.weightPct, 0)
+//
+// export const validateRule = (values: RuleFormValues): ValidationResult<RuleFormValues> => {
+//   const fieldErrors = A.filterMap(RULE_VALIDATORS, validator => validator(values))
+//
+//   const weightResult = validateWeights(values.destinations)
+//   const weightErrors = Either.isLeft(weightResult) ? weightResult.left : []
+//
+//   const errors: ValidationError[] = [...fieldErrors, ...weightErrors]
+//
+//   return errors.length > 0
+//       ? Either.left(errors)
+//       : Either.right(values)
+// }
 // ── Destination ───────────────────────────────────────────────────────────────────────────
 //
 // Опак-тип: создать Destination можно только через Destination.create().
