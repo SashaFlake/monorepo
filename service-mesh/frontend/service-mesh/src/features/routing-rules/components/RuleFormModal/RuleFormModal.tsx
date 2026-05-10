@@ -24,7 +24,7 @@ export interface RuleFormModalProps {
 const DISCARD_MESSAGE = 'You have unsaved changes. Discard them?'
 
 export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
-  const { form, isDirty } = useRuleForm(initial)
+  const { form, isDirty } = useRuleForm(initial, onSubmit)
 
   const requestClose = (): void => {
     if (isDirty && !window.confirm(DISCARD_MESSAGE)) return

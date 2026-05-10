@@ -41,7 +41,10 @@ const validate = schemaValidator(RuleFormSchema)
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
-export function useRuleForm(initial?: RoutingRule) {
+export function useRuleForm(
+  initial: RoutingRule | undefined,
+  onSubmit: (values: RuleFormValues) => void,
+) {
   const initialValues = useMemo(
     () => (initial ? toFormValues(initial) : defaultValues()),
     // eslint-disable-next-line reactHooks/exhaustive-deps
@@ -50,7 +53,7 @@ export function useRuleForm(initial?: RoutingRule) {
 
   const form = useForm({
     defaultValues: initialValues,
-    onSubmit: async ({ value }) => value,
+    onSubmit: async ({ value }) => onSubmit(value),
   })
 
   const isDirty = useMemo(
