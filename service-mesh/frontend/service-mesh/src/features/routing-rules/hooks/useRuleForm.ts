@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Array as A, Either, Equivalence } from 'effect'
 import type { RoutingRule, RuleFormValues, DestinationDraft } from '../model/types'
 import { DestinationDraftEq } from '../model/types'
-import { validateRule, sumWeights } from '../model/validation'
+import { validateRule, sumWeights } from '../model/types'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
 
