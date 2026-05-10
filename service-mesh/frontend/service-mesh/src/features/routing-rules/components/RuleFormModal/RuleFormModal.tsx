@@ -24,27 +24,21 @@ export interface RuleFormModalProps {
 const DISCARD_MESSAGE = 'You have unsaved changes. Discard them?'
 
 export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
-  const form = useRuleForm(initial)
+  const { form, isDirty } = useRuleForm(initial)
 
-  // The component is mounted only when it should be open, so the dialog is
-  // considered open as long as we render. Any close intent — overlay click,
-  // Escape, the close button, the Cancel action — funnels through this
-  // single guard which performs the dirty check.
   const requestClose = (): void => {
-    if (form.isDirty && !window.confirm(DISCARD_MESSAGE)) return
+    if (isDirty && !window.confirm(DISCARD_MESSAGE)) return
     onClose()
   }
 
-  // Radix calls onOpenChange(false) for overlay click and Escape; we
-  // delegate to requestClose. Returning is enough — there is no native
-  // <dialog> cancel event to preventDefault on.
   const handleOpenChange = (open: boolean): void => {
     if (!open) requestClose()
   }
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
-    form.handleSubmit(onSubmit)
+    e.stopPropagation()
+    void form.handleSubmit()
   }
 
   return (
@@ -57,23 +51,33 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
 
         <form onSubmit={handleSubmit}>
           <fieldset disabled={isPending} style={{ border: 'none', padding: 0, margin: 0 }}>
-            <RuleNameField
-              value={form.rule.name}
-              error={form.fieldError('name')}
-              onChange={form.setName}
-            />
-            <RuleMatchFields
-              priority={form.rule.priority}
-              pathPrefix={form.rule.match.pathPrefix ?? ''}
-              priorityError={form.fieldError('priority')}
-              onPriorityChange={form.setPriority}
-              onPathPrefixChange={form.setPathPrefix}
-            />
-            <DestinationList
-              destinations={form.rule.destinations}
-              onChange={form.setDestinations}
-            />
+            <form.Field name="name">
+              {field => <RuleNameField field={field} />}
+            </form.Field>
+
+            <form.Field name="priority">
+              {priorityField => (
+                <form.Field name="match">
+                  {pathPrefixField => (
+                    <RuleMatchFields
+                      priorityField={priorityField}
+                      pathPrefixField={pathPrefixField}
+                    />
+                  )}
+                </form.Field>
+              )}
+            </form.Field>
+
+            <form.Field name="destinations">
+              {field => (
+                <DestinationList
+                  destinations={field.state.value}
+                  onChange={field.handleChange}
+                />
+              )}
+            </form.Field>
           </fieldset>
+
           <DialogActions>
             <Button type="button" variant="ghost" onClick={requestClose} disabled={isPending}>
               Cancel
