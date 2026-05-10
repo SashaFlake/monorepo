@@ -1,24 +1,25 @@
 import type { ReactElement } from 'react'
-import type { FieldApi } from '@tanstack/react-form'
+import type { AnyFieldApi } from '@tanstack/react-form'
 import type { RuleFormValues } from '../../model/types'
 import s from './RuleFormFields.module.css'
 
 interface RuleMatchFieldsProps {
-  priorityField:   FieldApi<RuleFormValues, 'priority', undefined, undefined, number>
-  pathPrefixField: FieldApi<RuleFormValues, 'match', undefined, undefined, RuleFormValues['match']>
+  priorityField:   AnyFieldApi
+  pathPrefixField: AnyFieldApi
 }
 
 export function RuleMatchFields({ priorityField, pathPrefixField }: RuleMatchFieldsProps): ReactElement {
   const priorityError = priorityField.state.meta.errors[0]
+  const matchValue = pathPrefixField.state.value as RuleFormValues['match']
 
   return (
     <div className={s.matchGrid}>
       <div>
-        <label className={s.label} htmlFor={priorityField.name}>Priority</label>
+        <label className={s.label} htmlFor={String(priorityField.name)}>Priority</label>
         <input
-          id={priorityField.name}
+          id={String(priorityField.name)}
           type="number"
-          value={priorityField.state.value}
+          value={priorityField.state.value as number}
           onChange={e => priorityField.handleChange(Number(e.target.value))}
           onBlur={priorityField.handleBlur}
           className={s.input}
@@ -32,12 +33,9 @@ export function RuleMatchFields({ priorityField, pathPrefixField }: RuleMatchFie
         <input
           id="match.pathPrefix"
           type="text"
-          value={pathPrefixField.state.value.pathPrefix ?? ''}
+          value={matchValue.pathPrefix ?? ''}
           onChange={e =>
-            pathPrefixField.handleChange({
-              ...pathPrefixField.state.value,
-              pathPrefix: e.target.value,
-            })
+            pathPrefixField.handleChange({ ...matchValue, pathPrefix: e.target.value })
           }
           onBlur={pathPrefixField.handleBlur}
           placeholder="/api/v2"
