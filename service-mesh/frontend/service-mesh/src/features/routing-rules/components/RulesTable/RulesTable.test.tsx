@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { RulesTable } from './RulesTable'
-import type { RoutingRule } from '../../model/types'
-import { Destination } from '../../model/types'
+import type { RoutingRule } from '../../domain/types'
+import { Destination } from '../../domain/types'
 
 const rule = (overrides: Partial<RoutingRule> = {}): RoutingRule => ({
   id: '1',

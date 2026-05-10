@@ -1,5 +1,5 @@
-import { Destination } from '../model/types'
-import type { RoutingRule } from '../model/types'
+import { Destination } from '../domain/types'
+import type { RoutingRule } from '../domain/types'
 
 export const MOCK_RULES: RoutingRule[] = [
   {
