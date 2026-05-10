@@ -71,8 +71,8 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
             <form.Field name="destinations">
               {field => (
                 <DestinationList
-                  destinations={field.state.value}
-                  onChange={field.handleChange}
+                  destinations={field.state.value as RuleFormValues['destinations']}
+                  onChange={val => field.handleChange(val)}
                 />
               )}
             </form.Field>
