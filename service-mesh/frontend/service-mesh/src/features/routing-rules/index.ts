@@ -1,4 +1,4 @@
-export * from './domain/types'
+export * from './model/types'
 export { routingRulesApi, routingKeys } from './api/api'
-export { useRoutingRules } from './domain/useRoutingRules'
+export { useRoutingRules } from './model/useRoutingRules'
 export { RoutingRulesPage } from './RoutingRulesPage'
