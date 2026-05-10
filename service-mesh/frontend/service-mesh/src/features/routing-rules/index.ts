@@ -1,5 +1,5 @@
 export * from './model/types'
-export * from './model/validation'
+export { sumWeights, validateWeights, validateRule } from './model/validation'
 export { routingRulesApi, routingKeys } from './api/api'
 export { useRoutingRules } from './model/useRoutingRules'
 export { RoutingRulesPage } from './RoutingRulesPage'

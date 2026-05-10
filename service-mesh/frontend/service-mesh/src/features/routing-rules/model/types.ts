@@ -1,16 +1,11 @@
-import {Array as A, Either, Equivalence} from 'effect'
-// import {validateWeights} from "@/features/routing-rules";
+import { Either, Equivalence } from 'effect'
 
-// ── Validation primitives ────────────────────────────────────────────────────────────
+// ── Validation primitives ────────────────────────────────────────────────────────────────────
 
 export type ValidationError  = { field: string; message: string }
 export type ValidationResult<A> = Either.Either<A, ValidationError[]>
 
-// ── DestinationDraft ──────────────────────────────────────────────────────────────────────
-//
-// Raw mutable form row — user is still typing, data is not yet validated.
-// Lives only inside RuleFormValues; never reaches the API or domain logic.
-// `id` is a stable client-side key for React reconciliation.
+// ── DestinationDraft ───────────────────────────────────────────────────────────────────────────────
 
 export type DestinationDraft = {
   id:         string
@@ -25,7 +20,6 @@ export const emptyDestinationDraft = (): DestinationDraft => ({
   weightPct: 0,
 })
 
-// Equivalence for isDirty comparison — ignores the stable `id` field
 export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
   Equivalence.make((a, b) =>
     a.version   === b.version   &&
@@ -33,29 +27,10 @@ export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
     a.serviceId === b.serviceId
   )
 
-// Pure helper: total traffic share allocated across destinations.
-// Lives here next to DestinationDraft because it is a property of the type,
-// not validation logic.
 export const sumWeights = (destinations: ReadonlyArray<DestinationDraft>): number =>
-    destinations.reduce((acc, d) => acc + d.weightPct, 0)
-//
-// export const validateRule = (values: RuleFormValues): ValidationResult<RuleFormValues> => {
-//   const fieldErrors = A.filterMap(RULE_VALIDATORS, validator => validator(values))
-//
-//   const weightResult = validateWeights(values.destinations)
-//   const weightErrors = Either.isLeft(weightResult) ? weightResult.left : []
-//
-//   const errors: ValidationError[] = [...fieldErrors, ...weightErrors]
-//
-//   return errors.length > 0
-//       ? Either.left(errors)
-//       : Either.right(values)
-// }
-// ── Destination ───────────────────────────────────────────────────────────────────────────
-//
-// Опак-тип: создать Destination можно только через Destination.create().
-// Невалидный объект (пустая version, вес вне 0–100) не может быть построен.
-// `id` наследуется из DestinationDraft — это позволяет передавать Destination туда, где ожидается DestinationDraft.
+  destinations.reduce((acc, d) => acc + d.weightPct, 0)
+
+// ── Destination ──────────────────────────────────────────────────────────────────────────────────────
 
 export type Destination = {
   readonly _brand:     'Destination'
@@ -79,28 +54,23 @@ export const Destination = {
       : Either.right({ _brand: 'Destination' as const, ...raw })
   },
 
-  // Используется в тестах и моках — обходит валидацию для уже доверенных данных
   unsafe: (raw: DestinationDraft): Destination =>
     ({ _brand: 'Destination' as const, ...raw }),
 }
 
-// ── RuleMatch ──────────────────────────────────────────────────────────────────────────────
+// ── RuleMatch ──────────────────────────────────────────────────────────────────────────────────────────
 
 export type RuleMatch = {
   pathPrefix?: string
   headers?:    Record<string, string>
 }
 
-// ── RoutingRule ────────────────────────────────────────────────────────────────────────────
-//
-// Приходит с сервера — бэкенд отвечает за валидность.
-// Smart Constructor не нужен.
+// ── RoutingRule ────────────────────────────────────────────────────────────────────────────────────
 
 export type RoutingRule = {
   id:           string
   serviceId:    string
   name:         string
-  /** 0–1000, меньше = выше приоритет */
   priority:     number
   match:        RuleMatch
   destinations: Destination[]
@@ -108,10 +78,7 @@ export type RoutingRule = {
   updatedAt:    string
 }
 
-// ── RuleFormValues ─────────────────────────────────────────────────────────────────────────
-//
-// Промежуточный тип для формы — destinations здесь сырые (ещё не валидированы).
-// После validateRule превращается в Either<ValidationError[], RuleFormValues>.
+// ── RuleFormValues ──────────────────────────────────────────────────────────────────────────────────
 
 export type RuleFormValues = {
   name:         string
