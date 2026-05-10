@@ -1,20 +1,21 @@
 import type { ReactElement } from 'react'
-import type { AnyFieldApi } from '@tanstack/react-form'
+import type { FieldApi } from '@tanstack/react-form'
+import type { RuleFormValues } from '../../model/types'
 import s from './RuleFormFields.module.css'
 
 interface RuleNameFieldProps {
-  field: AnyFieldApi
+  field: FieldApi<RuleFormValues, 'name', undefined, undefined, string>
 }
 
 export function RuleNameField({ field }: RuleNameFieldProps): ReactElement {
   const error = field.state.meta.errors[0]
   return (
     <div className={s.field}>
-      <label className={s.label} htmlFor={String(field.name)}>Rule name</label>
+      <label className={s.label} htmlFor={field.name}>Rule name</label>
       <input
-        id={String(field.name)}
+        id={field.name}
         type="text"
-        value={field.state.value as string}
+        value={field.state.value}
         onChange={e => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         placeholder="e.g. canary-v2"
