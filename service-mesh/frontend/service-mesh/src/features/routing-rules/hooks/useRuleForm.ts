@@ -29,7 +29,6 @@ const defaultValues = (): RuleFormValues => ({
   destinations: [],
 })
 
-// Structural equality — ignores DestinationDraft.id (stable key, not user data)
 const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a, b) =>
   a.name === b.name &&
   a.priority === b.priority &&
@@ -38,7 +37,6 @@ const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a,
   A.zip(a.destinations, b.destinations).every(([da, db]) => DestinationDraftEq(da, db))
 )
 
-// Memoised validator — avoids recreating Schema.decodeUnknownEither on every render
 const validate = schemaValidator(RuleFormSchema)
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -47,28 +45,19 @@ export function useRuleForm(initial?: RoutingRule) {
   const initialValues = useMemo(
     () => (initial ? toFormValues(initial) : defaultValues()),
     // eslint-disable-next-line reactHooks/exhaustive-deps
-    [initial?.id], // intentional: recompute only when rule identity changes
+    [initial?.id],
   )
 
-  const form = useForm<RuleFormValues>({
+  const form = useForm({
     defaultValues: initialValues,
-    validators: {
-      onChange: ({ value }) => {
-        const errors = validate(value)
-        if (errors.length === 0) return undefined
-        // Return first error message; field-level errors bubble via field.state.meta.errors
-        return errors[0].message
-      },
-    },
+    onSubmit: async ({ value }) => value,
   })
 
-  // isDirty based on structural equality with initial values (same semantics as before)
   const isDirty = useMemo(
     () => !RuleFormEq(form.state.values, initialValues),
     [form.state.values, initialValues],
   )
 
-  // Field-level error helper — reads from schema validator for a specific field name
   const fieldError = (field: string): string | undefined => {
     if (!form.state.isSubmitted && !form.state.isTouched) return undefined
     const errors = validate(form.state.values)
