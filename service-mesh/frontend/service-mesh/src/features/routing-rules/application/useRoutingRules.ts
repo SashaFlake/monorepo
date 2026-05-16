@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { routingRulesApi, routingKeys } from '../api/api'
-import type { RoutingRule, RuleFormValues } from './types'
+import { routingRulesApi, routingKeys } from '../infrastructure/api'
+import type { RoutingRule, RuleFormValues } from '../domain/types'
 
 export type RoutingRulesState = {
   rules: RoutingRule[]

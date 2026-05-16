@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { RoutingRulesPage } from '@/features/routing-rules/RoutingRulesPage'
+import { RoutingRulesPage } from '../features/routing-rules/ui/RoutingRulesPage'
 
 export const Route = createFileRoute('/services/$serviceId/routing-rules')({
   component: function RoutingRulesRoute() {
