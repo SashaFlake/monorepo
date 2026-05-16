@@ -1,36 +1,58 @@
-import {ReactElement} from "react";
-import styles from "@/features/routing-rules/ui/RulesTable/RulesTable.module.css";
+import {
+    flexRender,
+    getCoreRowModel,
+    useReactTable,
+    type ColumnDef,
+    type RowData,
+} from '@tanstack/react-table'
+import type { ReactElement } from 'react'
+import s from './DataTable.module.css'
 
-type ColumnDef = {
-    styles: CSSModuleClasses,
-    name: string,
-}
-type DataType = {
-    id: string,
-    name: string,
+type DataTableProps<TData extends RowData> = {
+    data: TData[]
+    columns: ColumnDef<TData>[]
 }
 
-export function DataTable(columns: ColumnDef[], data: DataType[]): ReactElement {
+export const DataTable = <TData extends RowData>({
+                                                     data,
+                                                     columns,
+                                                 }: DataTableProps<TData>): ReactElement => {
+    const table = useReactTable<TData>({
+        data,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+    })
+
     return (
-        <>
-            <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                <thead>
-                <tr style={{borderBottom: '1px solid var(--color-border)'}}>
-                    {columns
-                        .map(column =>
-                            <th key={column.name} className={column.styles.th}>{column.name}</th>)}
+        <table className={s.table}>
+            <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id} className={s.headerRow}>
+                    {headerGroup.headers.map((header) => (
+                        <th key={header.id} className={s.th}>
+                            {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                )}
+                        </th>
+                    ))}
                 </tr>
-                </thead>
-                <tbody>
-                {data.map(item =>
-                        <tr key={item.id} className={styles.row}>
-                            <td className={`${styles.td} ${styles.tdMono}`}>{item.name}</td>
-                            {}
-                        </tr>
-                    )
-                }
-                </tbody>
-            </table>
-        </>
+            ))}
+            </thead>
+
+            <tbody>
+            {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className={s.row}>
+                    {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id} className={s.td}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                    ))}
+                </tr>
+            ))}
+            </tbody>
+        </table>
     )
 }
