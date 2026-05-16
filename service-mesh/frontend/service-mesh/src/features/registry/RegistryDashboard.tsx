@@ -5,7 +5,9 @@ import { StatsGrid } from './StatsGrid'
 import { ServicesTable } from './ServicesTable'
 import s from './RegistryDashboard.module.css'
 import {ReactElement} from "react";
+import {useNavigate} from "@tanstack/react-router";
 
+const navigate = useNavigate()
 export function RegistryDashboard(): ReactElement {
   const { stats, services, isLoading, isError, updatedAt } = useRegistryStats()
 
@@ -24,7 +26,11 @@ export function RegistryDashboard(): ReactElement {
           </Card>
         )}
 
-        <ServicesTable services={services} isLoading={isLoading} />
+        <ServicesTable services={services}
+                       onRowClick={(svc) => {
+            void navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })
+            }}
+        />
       </main>
     </>
   )
