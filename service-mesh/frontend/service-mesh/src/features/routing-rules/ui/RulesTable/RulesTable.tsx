@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { useState } from 'react'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/shared/ui'
 import type { RoutingRule } from '../../domain/types'
@@ -77,10 +77,7 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
 
   return (
     <>
-      <DataTable
-        data={rules}
-        columns={columns as ColumnDef<RoutingRule>[]}
-      />
+      <DataTable data={rules} columns={columns} />
 
       {confirmRule && (
         <DeleteRuleDialog
