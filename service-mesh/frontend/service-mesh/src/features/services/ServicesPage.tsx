@@ -1,17 +1,11 @@
+import { ReactElement } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
-import { Badge, Card, ErrorCard, Skeleton } from '@/shared/ui'
+import { Card, ErrorCard, Skeleton } from '@/shared/ui'
 import { registryApi, registryKeys } from './api/api'
-import type { InstanceStatus } from './api/types'
+import { ServicesTable } from './components/ServicesTable/ServicesTable'
 import s from './ServicesPage.module.css'
-import {ReactElement} from "react";
-
-const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
-  passing:  'success',
-  warning:  'warning',
-  critical: 'error',
-}
 
 export function ServicesPage(): ReactElement {
   const navigate = useNavigate()
@@ -29,6 +23,7 @@ export function ServicesPage(): ReactElement {
       <Header title="Services" subtitle="Registered services & instances" />
       <main className={s.main}>
         {isError && <ErrorCard message="Cannot reach registry backend" />}
+
         {isLoading && (
           <Card style={{ padding: 0, overflow: 'hidden' }}>
             <table className={s.table}>
@@ -60,40 +55,12 @@ export function ServicesPage(): ReactElement {
 
         {!isLoading && !isError && services.length > 0 && (
           <Card style={{ padding: 0, overflow: 'hidden' }}>
-            <table className={s.table}>
-              <thead className={s.thead}>
-                <tr>
-                  <th className={s.th}>Name</th>
-                  <th className={s.th}>Labels</th>
-                  <th className={`${s.th} ${s.thRight}`}>Instances</th>
-                  <th className={`${s.th} ${s.thRight}`}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {services.map((svc) => (
-                  <tr
-                    key={svc.id}
-                    className={s.row}
-                    onClick={() => {
-                      void navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })
-                    }}
-                  >
-                    <td className={`${s.td} ${s.nameCell}`}>{svc.name}</td>
-                    <td className={s.td}>
-                      <div className={s.labelsCell}>
-                        {Object.entries(svc.labels).map(([k, v]) => (
-                          <span key={k} className={s.label}>{k}={v}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className={`${s.td} ${s.tdRight}`}>{svc.instances.length}</td>
-                    <td className={`${s.td} ${s.thRight}`}>
-                      <Badge variant={STATUS_VARIANT[svc.worstStatus]}>{svc.worstStatus}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ServicesTable
+              services={services}
+              onRowClick={(svc) => {
+                void navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })
+              }}
+            />
           </Card>
         )}
       </main>

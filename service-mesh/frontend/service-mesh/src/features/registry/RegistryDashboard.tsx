@@ -1,14 +1,14 @@
+import { ReactElement } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/shared/ui'
 import { useRegistryStats } from './useRegistryStats'
 import { StatsGrid } from './StatsGrid'
 import { ServicesTable } from './ServicesTable'
 import s from './RegistryDashboard.module.css'
-import {ReactElement} from "react";
-import {useNavigate} from "@tanstack/react-router";
 
-const navigate = useNavigate()
 export function RegistryDashboard(): ReactElement {
+  const navigate = useNavigate()
   const { stats, services, isLoading, isError, updatedAt } = useRegistryStats()
 
   return (
@@ -26,10 +26,11 @@ export function RegistryDashboard(): ReactElement {
           </Card>
         )}
 
-        <ServicesTable services={services}
-                       onRowClick={(svc) => {
+        <ServicesTable
+          services={services}
+          onRowClick={(svc) => {
             void navigate({ to: '/services/$serviceId', params: { serviceId: svc.id } })
-            }}
+          }}
         />
       </main>
     </>
