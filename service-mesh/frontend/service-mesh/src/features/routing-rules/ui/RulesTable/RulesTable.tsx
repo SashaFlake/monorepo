@@ -17,57 +17,40 @@ type Props = {
 
 const col = createColumnHelper<RoutingRule>()
 
-const columns: ColumnDef<RoutingRule, unknown>[] = [
-  col.accessor('name', {
-    header: 'Name',
-  }),
-  col.accessor('priority', {
-    header: 'Priority',
-    cell: ({ getValue }) => (
-      <span className={styles.tdMono}>{getValue() as number}</span>
-    ),
-  }),
-  col.accessor(row => row.match.pathPrefix ?? '\u2014', {
-    id: 'match',
-    header: 'Match',
-    cell: ({ getValue }) => (
-      <span className={styles.tdMono}>{getValue() as string}</span>
-    ),
-  }),
-  col.accessor('destinations', {
-    header: 'Destinations',
-    cell: ({ row }) => (
-      <div className={styles.destinations}>
-        {row.original.destinations.map((d, i) => (
-          <span key={i} className={styles.destChip}>
-            {d.version || 'default'} {d.weightPct}%
-          </span>
-        ))}
-      </div>
-    ),
-  }),
-  col.display({
-    id: 'actions',
-    header: '',
-    cell: ({ row }) => (
-      <div className={styles.tdActions}>
-        <Button variant='ghost' onClick={() => void 0} aria-label={`Edit rule ${row.original.name}`}>
-          <Pencil size={14} />
-        </Button>
-        <Button variant='ghost' onClick={() => void 0} aria-label={`Delete rule ${row.original.name}`}>
-          <Trash2 size={14} />
-        </Button>
-      </div>
-    ),
-  }),
-]
-
 export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props): ReactElement {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const confirmRule = rules.find(r => r.id === confirmId)
 
-  const actionColumns: ColumnDef<RoutingRule, unknown>[] = [
-    ...columns.slice(0, 4),
+  const columns = [
+    col.accessor('name', {
+      header: 'Name',
+    }),
+    col.accessor('priority', {
+      header: 'Priority',
+      cell: ({ row }) => (
+        <span className={styles.tdMono}>{row.original.priority}</span>
+      ),
+    }),
+    col.accessor(row => row.match.pathPrefix ?? '\u2014', {
+      id: 'match',
+      header: 'Match',
+      cell: ({ row }) => (
+        <span className={styles.tdMono}>{row.original.match.pathPrefix ?? '\u2014'}</span>
+      ),
+    }),
+    col.display({
+      id: 'destinations',
+      header: 'Destinations',
+      cell: ({ row }) => (
+        <div className={styles.destinations}>
+          {row.original.destinations.map((d, i) => (
+            <span key={i} className={styles.destChip}>
+              {d.version || 'default'} {d.weightPct}%
+            </span>
+          ))}
+        </div>
+      ),
+    }),
     col.display({
       id: 'actions',
       header: '',
@@ -94,7 +77,10 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
 
   return (
     <>
-      <DataTable data={rules} columns={actionColumns} />
+      <DataTable
+        data={rules}
+        columns={columns as ColumnDef<RoutingRule>[]}
+      />
 
       {confirmRule && (
         <DeleteRuleDialog
