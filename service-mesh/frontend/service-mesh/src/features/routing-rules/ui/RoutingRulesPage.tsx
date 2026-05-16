@@ -1,9 +1,9 @@
 import type { ReactElement } from 'react'
 import { Button } from '@/shared/ui'
-import { useRoutingRules } from './domain/useRoutingRules'
-import { RulesTable } from './components/RulesTable/RulesTable'
-import { RuleFormModal } from './components/RuleFormModal/RuleFormModal'
-import { DeleteRuleDialog } from './components/DeleteRuleDialog/DeleteRuleDialog'
+import { useRoutingRules } from '@/features/routing-rules'
+import { RulesTable } from './RulesTable/RulesTable'
+import { RuleFormModal } from './RuleFormModal/RuleFormModal'
+import { DeleteRuleDialog } from './DeleteRuleDialog/DeleteRuleDialog'
 import s from './RoutingRulesPage.module.css'
 
 type Props = { serviceId: string }

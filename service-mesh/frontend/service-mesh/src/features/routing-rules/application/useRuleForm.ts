@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { Equivalence, Array as A } from 'effect'
-import { schemaValidator } from '@/shared/form/schemaResolver'
+import { schemaValidator } from '@/shared/form/schemaResolver.ts'
 import { RuleFormSchema } from '../domain/schema'
 import type { RoutingRule, RuleFormValues, DestinationDraft } from '../domain/types'
 import { DestinationDraftEq } from '../domain/types'
