@@ -2,7 +2,7 @@
 // Типы домена живут в ../model/types.ts
 // HTTP-helper импортируется из lib/http.ts — единый fetch для всего приложения
 
-import { apiFetch, endpoint } from '@/lib/http'
+import { apiFetch, endpoint } from '@/lib/http.ts'
 import type { RoutingRule, RuleFormValues } from '../domain/types'
 
 // ── Query keys ───────────────────────────────────────────────────────────────────────────

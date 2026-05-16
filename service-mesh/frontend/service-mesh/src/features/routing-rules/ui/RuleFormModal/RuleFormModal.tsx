@@ -9,7 +9,7 @@ import {
   Button,
 } from '@/shared/ui'
 import type { RoutingRule, RuleFormValues } from '../../domain/types'
-import { useRuleForm } from '../../hooks/useRuleForm'
+import { useRuleForm } from '../../application/useRuleForm'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
 import { DestinationList } from '../DestinationList/DestinationList'

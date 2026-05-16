@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { routingRulesApi, routingKeys } from '../api/api'
+import { routingRulesApi, routingKeys } from '../infrastructure/api'
 import type { RuleFormValues } from './types'
 import type { RoutingRulesUIState } from './useRoutingRulesUI'
 
