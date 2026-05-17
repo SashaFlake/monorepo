@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { Array as A } from 'effect'
-import type { DestinationDraft } from '../../model/types'
+import type { DestinationDraft } from '../../domain/types'
 import styles from './WeightBar.module.css'
 
 const COLORS = [
