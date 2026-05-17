@@ -1,22 +1,18 @@
 import { ReactElement } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { Card, ErrorCard, Skeleton } from '@/shared/ui'
-import { registryApi, registryKeys } from './api/api'
+import { useServicesList } from './api/useServicesList'
+import { ServicesTable } from '@/features/registry/ServicesTable'
 import s from './ServicesPage.module.css'
-import {ServicesTable} from "@/features/registry/ServicesTable.tsx";
+
+// Column count matches ServicesTable columns: Name, Labels, Instances, Status
+const SKELETON_COLS = 4
+const SKELETON_ROWS = 5
 
 export function ServicesPage(): ReactElement {
   const navigate = useNavigate()
-  const { data, isLoading, isError } = useQuery({
-    queryKey: registryKeys.list(),
-    queryFn:  registryApi.listServices,
-    refetchInterval: 10_000,
-    staleTime: 5_000,
-  })
-
-  const services = data ?? []
+  const { services, isLoading, isError } = useServicesList()
 
   return (
     <>
@@ -29,19 +25,19 @@ export function ServicesPage(): ReactElement {
             <table className={s.table}>
               <thead className={s.thead}>
                 <tr>
-                  <th className={s.th}>Name</th>
-                  <th className={s.th}>Labels</th>
-                  <th className={`${s.th} ${s.thRight}`}>Instances</th>
-                  <th className={`${s.th} ${s.thRight}`}>Status</th>
+                  {Array.from({ length: SKELETON_COLS }).map((_, i) => (
+                    <th key={i} className={s.th}><Skeleton width="60%" /></th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {Array.from({ length: 5 }).map((_, i) => (
+                {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
                   <tr key={i} className={s.row}>
-                    <td className={`${s.td} ${s.nameCell}`}><Skeleton width="60%" /></td>
-                    <td className={s.td}><Skeleton width="80%" /></td>
-                    <td className={`${s.td} ${s.tdRight}`}><Skeleton width="40px" /></td>
-                    <td className={`${s.td} ${s.thRight}`}><Skeleton width="60px" /></td>
+                    {Array.from({ length: SKELETON_COLS }).map((_, j) => (
+                      <td key={j} className={s.td}>
+                        <Skeleton width={j === 2 ? '40px' : j === 3 ? '60px' : `${60 + j * 10}%`} />
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { registryApi, registryKeys } from '@/features/services/api/api'
+import { useServicesList } from '@/features/services/api/useServicesList'
 import type { ServiceView } from '@/features/services/api/types'
 
 export type RegistryStats = {
@@ -38,14 +37,7 @@ const calcStats = (services: ServiceView[]): RegistryStats => {
 }
 
 export function useRegistryStats(): UseRegistryStatsResult {
-  const { data, isLoading, isError, dataUpdatedAt } = useQuery({
-    queryKey: registryKeys.list(),
-    queryFn:  registryApi.listServices,
-    refetchInterval: 10_000,
-    staleTime: 5_000,
-  })
-
-  const services = data ?? []
+  const { services, isLoading, isError, updatedAt: dataUpdatedAt } = useServicesList()
 
   return {
     stats:     isLoading ? EMPTY_STATS : calcStats(services),
