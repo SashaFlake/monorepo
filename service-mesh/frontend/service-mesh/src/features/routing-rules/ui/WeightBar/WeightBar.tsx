@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { Array as A } from 'effect'
 import type { DestinationDraft } from '../../domain/types'
+import { Tooltip } from '@/shared/ui'
 import styles from './WeightBar.module.css'
 
 const COLORS = [
@@ -20,12 +21,16 @@ export function WeightBar({ destinations }: WeightBarProps): ReactElement {
     <div className={styles.root}>
       <div className={styles.track}>
         {destinations.map((item, i) => (
-          <div
+          <Tooltip
             key={item.version || i}
-            className={styles.segment}
-            title={`${item.version || 'default'}: ${item.weightPct}%`}
-            style={{ width: `${item.weightPct}%`, background: COLORS[i % COLORS.length] }}
-          />
+            content={`${item.version || 'default'}: ${item.weightPct}%`}
+            side="top"
+          >
+            <div
+              className={styles.segment}
+              style={{ width: `${item.weightPct}%`, background: COLORS[i % COLORS.length] }}
+            />
+          </Tooltip>
         ))}
       </div>
       <div className={styles.legend}>
