@@ -13,38 +13,39 @@ const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = 
 
 const col = createColumnHelper<ServiceView>()
 const columns = [
-    col.display({
-        id: 'name',
-        header: 'Name',
-        cell: ({row}) => <span className={s.nameCell}>{row.original.name}</span>,
-    }),
-    col.display({
-        id: 'labels',
-        header: 'Labels',
-        cell: ({row}) => (
-            <div className={s.labelsCell}>
-                {Object.entries(row.original.labels).map(([k, v]) => (
-                    <span key={k} className={s.label}>{k}={v}</span>
-                ))}
-            </div>
-        ),
-    }),
-    col.display({
-        id: 'instances',
-        header: 'Instances',
-        cell: ({row}) =>
-            <span className={s.tdRight}>{row.original.instances.length}</span>,
-    }),
-    col.display({
-        id: 'status',
-        header: 'Status',
-        cell: ({row}) => (
-            <span className={s.tdRight}>
-              <Badge variant={STATUS_VARIANT[row.original.worstStatus]}>{row.original.worstStatus}
-              </Badge>
-            </span>
-        ),
-    }),
+  col.accessor('name', {
+    header: 'Name',
+    enableSorting: true,
+    cell: ({ row }) => <span className={s.nameCell}>{row.original.name}</span>,
+  }),
+  col.display({
+    id: 'labels',
+    header: 'Labels',
+    enableSorting: false,
+    cell: ({ row }) => (
+      <div className={s.labelsCell}>
+        {Object.entries(row.original.labels).map(([k, v]) => (
+          <span key={k} className={s.label}>{k}={v}</span>
+        ))}
+      </div>
+    ),
+  }),
+  col.accessor(row => row.instances.length, {
+    id: 'instances',
+    header: 'Instances',
+    enableSorting: true,
+    sortDescFirst: true,
+    cell: ({ row }) => <span className={s.tdRight}>{row.original.instances.length}</span>,
+  }),
+  col.accessor('worstStatus', {
+    header: 'Status',
+    enableSorting: true,
+    cell: ({ row }) => (
+      <span className={s.tdRight}>
+        <Badge variant={STATUS_VARIANT[row.original.worstStatus]}>{row.original.worstStatus}</Badge>
+      </span>
+    ),
+  }),
 ]
 type Props = {
   services: ServiceView[]

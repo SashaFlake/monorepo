@@ -16,6 +16,31 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  user-select: none;
+}
+
+.thSortable {
+  cursor: pointer;
+}
+
+.thSortable:hover {
+  color: var(--color-text);
+}
+
+.thInner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sortIcon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+}
+
+.sortIconIdle {
+  opacity: 0.4;
 }
 
 .row {

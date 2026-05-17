@@ -24,16 +24,20 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
   const columns = [
     col.accessor('name', {
       header: 'Name',
+      enableSorting: true,
     }),
     col.accessor('priority', {
       header: 'Priority',
+      enableSorting: true,
+      sortDescFirst: true,
       cell: ({ row }) => (
         <span className={styles.tdMono}>{row.original.priority}</span>
       ),
     }),
-    col.accessor(row => row.match.pathPrefix ?? '\u2014', {
+    col.accessor(row => row.match.pathPrefix ?? '', {
       id: 'match',
       header: 'Match',
+      enableSorting: true,
       cell: ({ row }) => (
         <span className={styles.tdMono}>{row.original.match.pathPrefix ?? '\u2014'}</span>
       ),
@@ -41,6 +45,7 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
     col.display({
       id: 'destinations',
       header: 'Destinations',
+      enableSorting: false,
       cell: ({ row }) => (
         <div className={styles.destinations}>
           {row.original.destinations.map((d, i) => (
@@ -54,6 +59,7 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
     col.display({
       id: 'actions',
       header: '',
+      enableSorting: false,
       cell: ({ row }) => (
         <div className={styles.tdActions}>
           <Tooltip content={`Edit "${row.original.name}"`} side="top">
