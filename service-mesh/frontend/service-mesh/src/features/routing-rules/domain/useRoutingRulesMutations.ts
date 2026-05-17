@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { routingRulesApi, routingKeys } from '../infrastructure/api'
 import type { RuleFormValues } from './types'
 import type { RoutingRulesUIState } from './useRoutingRulesUI'
@@ -24,20 +25,38 @@ export function useRoutingRulesMutations(
   const createMutation = useMutation({
     mutationFn: (input: RuleFormValues) => routingRulesApi.create(serviceId, input),
     onSettled:  () => { void invalidate() },
-    onSuccess:  () => ui.closeCreate(),
+    onSuccess:  () => {
+      ui.closeCreate()
+      toast.success('Routing rule created')
+    },
+    onError: () => {
+      toast.error('Failed to create routing rule')
+    },
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: RuleFormValues }) =>
       routingRulesApi.update(id, input),
     onSettled: () => { void invalidate() },
-    onSuccess: () => ui.closeEdit(),
+    onSuccess: () => {
+      ui.closeEdit()
+      toast.success('Routing rule updated')
+    },
+    onError: () => {
+      toast.error('Failed to update routing rule')
+    },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => routingRulesApi.delete(id),
     onSettled:  () => { void invalidate() },
-    onSuccess:  () => ui.closeDelete(),
+    onSuccess:  () => {
+      ui.closeDelete()
+      toast.success('Routing rule deleted')
+    },
+    onError: () => {
+      toast.error('Failed to delete routing rule')
+    },
   })
 
   return {
