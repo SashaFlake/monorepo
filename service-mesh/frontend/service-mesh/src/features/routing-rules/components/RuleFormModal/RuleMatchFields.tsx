@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import type { AnyFieldApi } from '@tanstack/react-form'
-import type { RuleFormValues } from '../../model/types'
+import type { RuleFormValues } from '../../domain/types'
 import s from './RuleFormFields.module.css'
 
 interface RuleMatchFieldsProps {
