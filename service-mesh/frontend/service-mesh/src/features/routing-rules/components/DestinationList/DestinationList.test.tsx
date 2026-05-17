@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import type { ReactElement } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DestinationList } from './DestinationList'
-import type { DestinationDraft } from '../../model/types'
+import type { DestinationDraft } from '../../domain/types'
 
 vi.mock('../WeightBar/WeightBar', () => ({
   WeightBar: (): ReactElement => <div data-testid="weight-bar" />,
