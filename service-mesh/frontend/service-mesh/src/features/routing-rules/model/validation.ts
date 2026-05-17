@@ -1,12 +1,12 @@
 import { Either, Array as A, Option } from 'effect'
 import type { DestinationDraft, RuleFormValues, ValidationError, ValidationResult } from './types'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────────
 
 export const sumWeights = (destinations: DestinationDraft[]): number =>
   destinations.reduce((acc, d) => acc + d.weightPct, 0)
 
-// ── Atomic validators ────────────────────────────────────────────────────────
+// ── Atomic validators ───────────────────────────────────────────────────────────────
 //
 // Each validator returns Option<ValidationError>:
 //   None  — rule passes
@@ -32,7 +32,7 @@ const validateNoDuplicateVersions = (values: RuleFormValues): Option.Option<Vali
     ? Option.some({ field: 'version', message: 'Duplicate versions are not allowed' })
     : Option.none()
 
-// ── Weight validator ─────────────────────────────────────────────────────────
+// ── Weight validator ───────────────────────────────────────────────────────────────────
 
 export const validateWeights = (destinations: DestinationDraft[]): ValidationResult<DestinationDraft[]> => {
   const sum = sumWeights(destinations)
@@ -41,7 +41,7 @@ export const validateWeights = (destinations: DestinationDraft[]): ValidationRes
     : Either.right(destinations)
 }
 
-// ── Composed rule validator ───────────────────────────────────────────────────
+// ── Composed rule validator ───────────────────────────────────────────────────────────────
 //
 // Pipeline:
 //   1. Run all atomic validators → Option<ValidationError>[]

@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react'
-import { Array as A, Either, Equivalence } from 'effect'
+import { useMemo } from 'react'
+import { useForm } from '@tanstack/react-form'
+import { Equivalence, Array as A } from 'effect'
+import { schemaValidator } from '@/shared/form/schemaResolver'
+import { RuleFormSchema } from '../model/schema'
 import type { RoutingRule, RuleFormValues, DestinationDraft } from '../model/types'
 import { DestinationDraftEq } from '../model/types'
-import { validateRule, sumWeights } from '../model/validation'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
 
@@ -27,7 +29,6 @@ const defaultValues = (): RuleFormValues => ({
   destinations: [],
 })
 
-// Structural equality for RuleFormValues — ignores DestinationDraft.id (stable key, not user data)
 const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a, b) =>
   a.name === b.name &&
   a.priority === b.priority &&
@@ -36,65 +37,35 @@ const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a,
   A.zip(a.destinations, b.destinations).every(([da, db]) => DestinationDraftEq(da, db))
 )
 
-// ── Public contract ───────────────────────────────────────────────────────────
-
-export type UseRuleFormResult = {
-  rule:            RuleFormValues
-  isDirty:         boolean
-  fieldError:      (field: string) => string | undefined
-  weightSum:       number
-  weightValid:     boolean
-  setName:         (name: string)                      => void
-  setPriority:     (priority: number)                  => void
-  setPathPrefix:   (val: string)                       => void
-  setDestinations: (destinations: DestinationDraft[]) => void
-  handleSubmit:    (onSubmit: (v: RuleFormValues) => void) => void
-}
+const validate = schemaValidator(RuleFormSchema)
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
-export function useRuleForm(initial?: RoutingRule): UseRuleFormResult {
+export function useRuleForm(
+  initial: RoutingRule | undefined,
+  onSubmit: (values: RuleFormValues) => void,
+) {
   const initialValues = useMemo(
-    () => initial ? toFormValues(initial) : defaultValues(),
+    () => (initial ? toFormValues(initial) : defaultValues()),
     // eslint-disable-next-line reactHooks/exhaustive-deps
-    [initial?.id], // intentional: recompute only when the rule identity changes
+    [initial?.id],
   )
 
-  const [rule, setRule] = useState<RuleFormValues>(initialValues)
-  const [submitAttempted, setSubmitAttempted] = useState(false)
+  const form = useForm({
+    defaultValues: initialValues,
+    onSubmit: async ({ value }) => onSubmit(value),
+  })
 
-  const isDirty = useMemo(() => !RuleFormEq(rule, initialValues), [rule, initialValues])
-
-  const validationResult = useMemo(() => validateRule(rule), [rule])
-
-  const errorMap = useMemo(() =>
-    Either.isLeft(validationResult)
-      ? Object.fromEntries(validationResult.left.map(e => [e.field, e.message]))
-      : {},
-    [validationResult]
+  const isDirty = useMemo(
+    () => !RuleFormEq(form.state.values, initialValues),
+    [form.state.values, initialValues],
   )
 
-  const weightSum   = sumWeights(rule.destinations)
-  const weightValid = weightSum === 100
-
-  const fieldError = (field: string): string | undefined =>
-    submitAttempted ? errorMap[field] : undefined
-
-  const setName         = (name: string): void          => setRule(r => ({ ...r, name }))
-  const setPriority     = (priority: number): void      => setRule(r => ({ ...r, priority }))
-  const setPathPrefix   = (val: string): void           => setRule(r => ({ ...r, match: { ...r.match, pathPrefix: val } }))
-  const setDestinations = (destinations: DestinationDraft[]): void => setRule(r => ({ ...r, destinations }))
-
-  const handleSubmit = (onSubmit: (v: RuleFormValues) => void): void => {
-    setSubmitAttempted(true)
-    Either.match(validationResult, {
-      onLeft:  () => { /* errors shown via fieldError */ },
-      onRight: onSubmit,
-    })
+  const fieldError = (field: string): string | undefined => {
+    if (!form.state.isSubmitted && !form.state.isTouched) return undefined
+    const errors = validate(form.state.values)
+    return errors.find(e => e.field === field)?.message
   }
 
-  return {
-    rule, isDirty, fieldError, weightSum, weightValid,
-    setName, setPriority, setPathPrefix, setDestinations, handleSubmit,
-  }
+  return { form, isDirty, fieldError }
 }
