@@ -27,3 +27,15 @@ export {
   AlertDialogCancel,
   AlertDialogAction,
 } from './AlertDialog'
+
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from './Tabs'
+
+export {
+  Tooltip,
+  TooltipProvider,
+} from './Tooltip'

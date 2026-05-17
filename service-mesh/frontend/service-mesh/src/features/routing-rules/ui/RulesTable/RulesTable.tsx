@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Trash2, Pencil } from 'lucide-react'
-import { Button } from '@/shared/ui'
+import { Button, Tooltip } from '@/shared/ui'
 import type { RoutingRule } from '../../domain/types'
 import { DeleteRuleDialog } from '../DeleteRuleDialog/DeleteRuleDialog'
 import { DataTable } from '@/shared/table/DataTable'
@@ -56,12 +56,24 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
       header: '',
       cell: ({ row }) => (
         <div className={styles.tdActions}>
-          <Button variant='ghost' onClick={() => onEdit(row.original)} aria-label={`Edit rule ${row.original.name}`}>
-            <Pencil size={14} />
-          </Button>
-          <Button variant='ghost' onClick={() => setConfirmId(row.original.id)} aria-label={`Delete rule ${row.original.name}`}>
-            <Trash2 size={14} />
-          </Button>
+          <Tooltip content={`Edit "${row.original.name}"`} side="top">
+            <Button
+              variant='ghost'
+              onClick={() => onEdit(row.original)}
+              aria-label={`Edit rule ${row.original.name}`}
+            >
+              <Pencil size={14} />
+            </Button>
+          </Tooltip>
+          <Tooltip content={`Delete "${row.original.name}"`} side="top">
+            <Button
+              variant='ghost'
+              onClick={() => setConfirmId(row.original.id)}
+              aria-label={`Delete rule ${row.original.name}`}
+            >
+              <Trash2 size={14} />
+            </Button>
+          </Tooltip>
         </div>
       ),
     }),
@@ -70,7 +82,7 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
   if (rules.length === 0) {
     return (
       <div role='status' style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        No routing rules yet. Click \u201cNew rule\u201d to create one.
+        No routing rules yet. Click New rule to create one.
       </div>
     )
   }
