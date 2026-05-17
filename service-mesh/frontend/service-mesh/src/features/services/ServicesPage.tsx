@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { Card, ErrorCard, Skeleton } from '@/shared/ui'
 import { registryApi, registryKeys } from './api/api'
-import { ServicesTable } from './components/ServicesTable/ServicesTable'
 import s from './ServicesPage.module.css'
+import {ServicesTable} from "@/features/registry/ServicesTable.tsx";
 
 export function ServicesPage(): ReactElement {
   const navigate = useNavigate()
