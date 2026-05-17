@@ -70,7 +70,7 @@ export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props
   if (rules.length === 0) {
     return (
       <div role='status' style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        No routing rules yet. Click \u201cNew rule\u201d to create one.
+        No routing rules yet. Click New rule to create one.
       </div>
     )
   }
