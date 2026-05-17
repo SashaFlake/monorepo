@@ -1,5 +1,5 @@
 import { Header } from '@/components/layout/Header'
-import { Card } from '@/components/ui/card'
+import { Card } from '@/shared/ui'
 import { useRegistryStats } from './useRegistryStats'
 import { StatsGrid } from './StatsGrid'
 import { ServicesTable } from './ServicesTable'

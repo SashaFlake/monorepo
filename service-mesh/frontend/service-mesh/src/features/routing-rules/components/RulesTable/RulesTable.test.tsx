@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { RulesTable } from './RulesTable'
 import type { RoutingRule } from '../../model/types'
 import { Destination } from '../../model/types'
@@ -34,8 +34,9 @@ describe('RulesTable', () => {
     const rules = [rule({ name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={vi.fn()} />)
     fireEvent.click(screen.getByLabelText('Delete rule my-rule'))
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText(/my-rule/)).toBeInTheDocument()
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByText(/my-rule/)).toBeInTheDocument()
   })
 
   it('calls onDelete with correct id on confirm', () => {

@@ -3,4 +3,6 @@ dist
 .env
 .env.local
 *.tsbuildinfo
-package-lock.json
+
+# TanStack Router generated route tree
+src/routeTree.gen.ts
