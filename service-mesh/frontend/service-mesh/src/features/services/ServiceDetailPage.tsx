@@ -4,6 +4,7 @@ import {ReactElement, useState} from 'react'
 import type { ReactNode } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Badge, Card } from '@/shared/ui'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui'
 import { RoutingRulesPage } from '../routing-rules/ui/RoutingRulesPage'
 import { registryApi, registryKeys } from './api/api'
 import type { InstanceStatus, ServiceVersion, OpenApiDoc } from './api/types'
@@ -175,47 +176,40 @@ function InstancesPanel({ version }: { version: ServiceVersion }): ReactElement 
   )
 }
 
-type VersionTab = 'manifest' | 'openapi' | 'instances'
-
 function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): ReactElement {
-  const [tab, setTab] = useState<VersionTab>('manifest')
-  const tabs: { id: VersionTab; label: string }[] = [
-    { id: 'manifest',  label: 'Manifest' },
-    { id: 'openapi',   label: 'OpenAPI' },
-    { id: 'instances', label: `Instances (${version.instanceCount})` },
-  ]
   return (
     <Card style={{ padding: 0, overflow: 'hidden' }}>
       <div className={s.versionHeader}>
         <span className={s.versionName}>v{version.version}</span>
         <span className={s.versionCount}>{version.instanceCount} instance{version.instanceCount !== 1 ? 's' : ''}</span>
       </div>
-      <div className={s.versionTabBar}>
-        {tabs.map(t => (
-          <button key={t.id} className={s.versionTabBtn} data-active={tab === t.id} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div className={s.versionBody}>
-        {tab === 'manifest'  && <ManifestPanel version={version} />}
-        {tab === 'openapi'   && <OpenApiPanel serviceId={serviceId} version={version.version} />}
-        {tab === 'instances' && <InstancesPanel version={version} />}
-      </div>
+
+      <Tabs defaultValue="manifest">
+        <TabsList variant="card">
+          <TabsTrigger value="manifest">Manifest</TabsTrigger>
+          <TabsTrigger value="openapi">OpenAPI</TabsTrigger>
+          <TabsTrigger value="instances">Instances ({version.instanceCount})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="manifest">
+          <div className={s.versionBody}>
+            <ManifestPanel version={version} />
+          </div>
+        </TabsContent>
+        <TabsContent value="openapi">
+          <div className={s.versionBody}>
+            <OpenApiPanel serviceId={serviceId} version={version.version} />
+          </div>
+        </TabsContent>
+        <TabsContent value="instances">
+          <InstancesPanel version={version} />
+        </TabsContent>
+      </Tabs>
     </Card>
   )
 }
 
-type PageTab = 'overview' | 'routing-rules'
-
-const PAGE_TABS: { id: PageTab; label: string }[] = [
-  { id: 'overview',      label: 'Overview' },
-  { id: 'routing-rules', label: 'Routing Rules' },
-]
-
 export function ServiceDetailPage({ serviceId }: { serviceId: string }): ReactElement {
-  const [pageTab, setPageTab] = useState<PageTab>('overview')
-
   const { data, isLoading, isError } = useQuery({
     queryKey: registryKeys.versions(serviceId),
     queryFn:  () => registryApi.getServiceVersions(serviceId),
@@ -238,26 +232,27 @@ export function ServiceDetailPage({ serviceId }: { serviceId: string }): ReactEl
         }
       />
 
-      <div className={s.tabBar}>
-        {PAGE_TABS.map(t => (
-          <button key={t.id} className={s.tabBtn} data-active={pageTab === t.id} onClick={() => setPageTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="routing-rules">Routing Rules</TabsTrigger>
+        </TabsList>
 
-      {pageTab === 'overview' && (
-        <main className={s.main}>
-          {isError && <Card className={`${s.stateCard} ${s.errorCard}`}>⚠️ Could not load service</Card>}
-          {isLoading && <Card className={`${s.stateCard} ${s.loadingCard}`}>Loading…</Card>}
-          {!isLoading && !isError && (data?.versions.length ?? 0) === 0 && (
-            <Card className={s.emptyCard}>No instances registered — no versions to show.</Card>
-          )}
-          {data?.versions.map(v => <VersionCard key={v.version} version={v} serviceId={serviceId} />)}
-        </main>
-      )}
+        <TabsContent value="overview">
+          <main className={s.main}>
+            {isError && <Card className={`${s.stateCard} ${s.errorCard}`}>⚠️ Could not load service</Card>}
+            {isLoading && <Card className={`${s.stateCard} ${s.loadingCard}`}>Loading…</Card>}
+            {!isLoading && !isError && (data?.versions.length ?? 0) === 0 && (
+              <Card className={s.emptyCard}>No instances registered — no versions to show.</Card>
+            )}
+            {data?.versions.map(v => <VersionCard key={v.version} version={v} serviceId={serviceId} />)}
+          </main>
+        </TabsContent>
 
-      {pageTab === 'routing-rules' && <RoutingRulesPage serviceId={serviceId} />}
+        <TabsContent value="routing-rules">
+          <RoutingRulesPage serviceId={serviceId} />
+        </TabsContent>
+      </Tabs>
     </>
   )
 }
