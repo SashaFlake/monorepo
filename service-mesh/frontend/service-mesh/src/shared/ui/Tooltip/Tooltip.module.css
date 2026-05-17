@@ -1,0 +1,38 @@
+/* ─── Content ────────────────────────────────────────────────────────────── */
+
+.content {
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-tooltip-bg, oklch(0.2 0 0));
+  color: var(--color-tooltip-text, oklch(0.95 0 0));
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  max-width: 240px;
+  white-space: nowrap;
+
+  /* Entrance animation */
+  animation: tooltipIn 120ms ease;
+
+  /* Ensure tooltip floats above everything */
+  z-index: 100;
+
+  /* Reset focus outline that Radix may inject */
+  outline: none;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ─── Arrow ──────────────────────────────────────────────────────────────── */
+
+.arrow {
+  fill: var(--color-tooltip-bg, oklch(0.2 0 0));
+}
