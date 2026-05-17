@@ -1,25 +1,23 @@
 import { QueryClient } from '@tanstack/react-query'
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { persistQueryClient } from '@tanstack/react-query-persist-client'
+import { persister } from './persister'
 
+// gcTime must be greater than staleTime so entries are not evicted from the
+// in-memory cache before the async IDB persister has a chance to write them.
+// Rule of thumb: gcTime >= maxAge used in persistQueryClient below.
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,       // 30s — data is fresh
-      gcTime: 1000 * 60 * 60, // 1h — keep in cache
+      staleTime: 30_000,            // 30s — data is fresh
+      gcTime: 1000 * 60 * 60 * 24, // 24h — matches maxAge, prevents premature eviction
       retry: 2,
       refetchOnWindowFocus: true,
     },
   },
 })
 
-// Persist cache in localStorage for local-first behaviour.
-// Can be swapped for an idb-keyval persister for larger payloads.
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
-  key: 'sm-query-cache',
-})
-
+// Persist to IndexedDB via idb-keyval (no 5 MB cap, non-blocking).
+// Falls back to localStorage when VITE_IDB_PERSIST=false (see persister.ts).
 void persistQueryClient({
   queryClient,
   persister,
