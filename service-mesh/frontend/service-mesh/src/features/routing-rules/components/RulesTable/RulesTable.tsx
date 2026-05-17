@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/shared/ui'
-import type { RoutingRule } from '../../model/types'
+import type { RoutingRule } from '../../domain/types'
 import { DeleteRuleDialog } from '../DeleteRuleDialog/DeleteRuleDialog'
 import styles from './RulesTable.module.css'
 

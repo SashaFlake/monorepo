@@ -3,7 +3,7 @@
 // HTTP-helper импортируется из lib/http.ts — единый fetch для всего приложения
 
 import { apiFetch, endpoint } from '@/lib/http'
-import type { RoutingRule, RuleFormValues } from '../model/types'
+import type { RoutingRule, RuleFormValues } from '../domain/types'
 
 // ── Query keys ───────────────────────────────────────────────────────────────────────────
 

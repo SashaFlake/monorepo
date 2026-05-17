@@ -2,9 +2,9 @@ import { useMemo } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { Equivalence, Array as A } from 'effect'
 import { schemaValidator } from '@/shared/form/schemaResolver'
-import { RuleFormSchema } from '../model/schema'
-import type { RoutingRule, RuleFormValues, DestinationDraft } from '../model/types'
-import { DestinationDraftEq } from '../model/types'
+import { RuleFormSchema } from '../domain/schema'
+import type { RoutingRule, RuleFormValues, DestinationDraft } from '../domain/types'
+import { DestinationDraftEq } from '../domain/types'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
 
