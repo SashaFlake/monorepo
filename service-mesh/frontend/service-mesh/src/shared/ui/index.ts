@@ -27,3 +27,10 @@ export {
   AlertDialogCancel,
   AlertDialogAction,
 } from './AlertDialog'
+
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from './Tabs'
