@@ -66,6 +66,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'Glob паттерн для файлов',
             },
+            skip_cleanup: {
+              type: 'boolean',
+              description: 'Не удалять точки файлов, не попавших в pattern',
+            },
           },
         },
       },
@@ -132,6 +136,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
       const result = await indexer.indexProject(
         args.pattern ? String(args.pattern) : '**/*',
+        Boolean(args.skip_cleanup),
       );
       saveCache();
       return {
