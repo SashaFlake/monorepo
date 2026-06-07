@@ -1,13 +1,8 @@
 import { ReactElement } from 'react'
 import { Badge } from '@/shared/ui'
-import type { ServiceVersion, InstanceStatus } from '../api/types'
-import s from '../ServiceDetailPage.module.css'
-
-const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
-  passing:  'success',
-  warning:  'warning',
-  critical: 'error',
-}
+import type { ServiceVersion } from '../../domain/types'
+import { STATUS_VARIANT } from './ServiceDetailPage'
+import s from './ServiceDetailPage.module.css'
 
 export function InstancesPanel({ version }: { version: ServiceVersion }): ReactElement {
   return (

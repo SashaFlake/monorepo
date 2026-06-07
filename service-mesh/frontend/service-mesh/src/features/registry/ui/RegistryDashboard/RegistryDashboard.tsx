@@ -2,9 +2,9 @@ import { ReactElement } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/shared/ui'
-import { useRegistryStats } from './useRegistryStats'
-import { StatsGrid } from './StatsGrid'
-import { ServicesTable } from './ServicesTable'
+import { useRegistryStats } from '../../application/useRegistryStats.application'
+import { StatsGrid } from '../StatsGrid/StatsGrid'
+import { ServicesTable } from '../ServicesTable/ServicesTable'
 import s from './RegistryDashboard.module.css'
 
 export function RegistryDashboard(): ReactElement {

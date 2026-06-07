@@ -1,22 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { registryApi, registryKeys } from '@/features/services/api/api'
-import type { ServiceView } from '@/features/services/api/types'
-
-export type RegistryStats = {
-  totalServices:     number
-  totalInstances:    number
-  passingInstances:  number
-  degradedInstances: number
-  criticalInstances: number
-}
-
-export type UseRegistryStatsResult = {
-  stats:     RegistryStats
-  services:  ServiceView[]
-  isLoading: boolean
-  isError:   boolean
-  updatedAt: string | null
-}
+import { registryApi, registryKeys } from '../infrastructure/registry.infrastructure'
+import type { ServiceView } from '@/features/services/domain/types'
+import type { RegistryStats, UseRegistryStatsResult } from '../domain/types'
 
 const EMPTY_STATS: RegistryStats = {
   totalServices:     0,

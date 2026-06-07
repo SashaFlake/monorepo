@@ -1,20 +1,14 @@
 import { ReactElement } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { Card, ErrorCard, Skeleton } from '@/shared/ui'
-import { registryApi, registryKeys } from './api/api'
+import { ServicesTable } from '@/features/registry'
+import { useServices } from '../../application/useServices.application'
 import s from './ServicesPage.module.css'
-import {ServicesTable} from "@/features/registry/ServicesTable.tsx";
 
 export function ServicesPage(): ReactElement {
   const navigate = useNavigate()
-  const { data, isLoading, isError } = useQuery({
-    queryKey: registryKeys.list(),
-    queryFn:  registryApi.listServices,
-    refetchInterval: 10_000,
-    staleTime: 5_000,
-  })
+  const { data, isLoading, isError } = useServices()
 
   const services = data ?? []
 
