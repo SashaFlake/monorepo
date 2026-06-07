@@ -3,6 +3,7 @@
 // Типы домена — в ../domain/types.ts
 // HTTP-helper — из lib/http.ts
 
+import { Schema } from 'effect'
 import { apiFetch, apiFetchVoid, endpoint } from '@/lib/http'
 import type {
   ServiceView,
