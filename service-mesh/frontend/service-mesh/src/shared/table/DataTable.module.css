@@ -31,6 +31,10 @@
   background: var(--color-surface-offset);
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 .td {
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-sm);

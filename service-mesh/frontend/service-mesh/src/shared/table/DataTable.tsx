@@ -9,8 +9,7 @@ import type {ReactElement} from 'react'
 import s from './DataTable.module.css'
 
 type DataTableProps<TData extends RowData> = {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    columns: ColumnDef<TData, any>[]
+    columns: ColumnDef<TData>[]
     data: TData[]
     onRowClick?: (row: TData) => void
 }
@@ -49,9 +48,8 @@ export const DataTable = <TData extends RowData>({
             {table.getRowModel().rows.map((row) => (
                 <tr
                     key={row.id}
-                    className={s.row}
+                    className={`${s.row} ${onRowClick ? s.clickable : ''}`}
                     onClick={() => onRowClick?.(row.original)}
-                    style={onRowClick ? { cursor: 'pointer' } : undefined}
                 >
                     {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className={s.td}>
