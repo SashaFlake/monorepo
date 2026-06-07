@@ -57,3 +57,9 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
