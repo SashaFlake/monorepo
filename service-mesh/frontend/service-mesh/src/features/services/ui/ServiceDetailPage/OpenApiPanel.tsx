@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Schema } from 'effect'
-import { servicesApi, servicesKeys } from '../../infrastructure/services.infrastructure'
+import { useServiceOpenApi } from '../../application/useServiceOpenApi.application'
 import s from './ServiceDetailPage.module.css'
 
 const HTTP_METHOD_COLOR: Record<string, string> = {
@@ -45,12 +44,7 @@ const OpenApiDocSchema = Schema.Struct({
 })
 
 export function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): React.ReactElement {
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: servicesKeys.openapi(serviceId, version),
-    queryFn:  () => servicesApi.getServiceOpenApi(serviceId, version),
-    retry: false,
-    staleTime: 30_000,
-  })
+  const { data, isLoading, isError, error } = useServiceOpenApi(serviceId, version)
 
   if (isLoading) return <div className={s.openapiLoading}>Fetching OpenAPI from instance…</div>
   if (isError) return (
