@@ -16,6 +16,7 @@
 - [File Naming Conventions](#file-naming-conventions)
 - [Common Patterns](#common-patterns)
 - [Anti-Patterns](#anti-patterns)
+- [Open Tasks & Issues Tracking](#open-tasks--issues-tracking)
 - [Entry Points for Common Tasks](#entry-points-for-common-tasks)
 - [Environment Setup](#environment-setup)
 - [Agent Configuration Files](#agent-configuration-files)
@@ -607,10 +608,31 @@ export const deriveStatus = (
 
 ---
 
+## Open Tasks & Issues Tracking
+
+Open tasks, audits, and action plans are stored as **markdown files in the repo** (not in an external issue tracker). When starting work, read these files first to understand the current backlog and compliance gaps.
+
+| File | Purpose | State |
+|---|---|---|
+| `docs/issues/open-issues.md` | Mirror of GitHub Issues (#57–#69). Contains structured issue descriptions with **State:** `open` / `done` / `closed`. | **Primary source** |
+| `frontend/FRONTEND_AUDIT.md` | Compliance audit against AGENTS.md for the frontend. Lists 16 non-compliance items (critical / medium / minor). | Reference |
+| `backend/BACKEND_AUDIT.md` | Compliance audit against AGENTS.md for the backend. Lists 16 non-compliance items (critical / medium / minor). | Reference |
+| `frontend/FRONTEND_ACTION_PLAN.md` | Prioritized action plan from a code review (2026-05-04). 9 tasks rated 🔴 now / 🟡 sprint / 🟠 later / 🔵 long-term. | Reference |
+| `docs/superpowers/plans/` | Design specs and deeper analysis (e.g. RAG usage statistics, type-safety violations, OpenAPI refactoring). | Reference |
+
+**How to use:**
+1. Check `docs/issues/open-issues.md` for the canonical list of open GitHub issues.
+2. Cross-reference with `FRONTEND_AUDIT.md` and `BACKEND_AUDIT.md` for detailed file-level findings.
+3. Use `FRONTEND_ACTION_PLAN.md` for prioritized frontend fixes.
+4. Update these files when an issue is resolved (change **State:** to `done` or add a note).
+
+---
+
 ## Entry Points for Common Tasks
 
 | Task | Where to Start | Key Files |
 |---|---|---|
+| **Find open tasks / issues** | `docs/issues/open-issues.md` | Also see `frontend/FRONTEND_AUDIT.md`, `backend/BACKEND_AUDIT.md`, `frontend/FRONTEND_ACTION_PLAN.md`, and `docs/superpowers/plans/` |
 | Add a new domain entity | `backend/service-mesh/src/modules/[context]/domain/` | `model.ts`, `errors.ts` |
 | Add a new use case | `backend/service-mesh/src/modules/[context]/application/` | `*.service.ts`, `*.service.impl.ts` |
 | Add a new infrastructure adapter | `backend/service-mesh/src/modules/[context]/infrastructure/` | Repository interface + implementation |

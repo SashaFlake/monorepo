@@ -1,6 +1,6 @@
 # Backend Audit — Non-Compliance with AGENTS.md Requirements
 
-> Audit date: 2026-06-07
+> Audit date: 2026-06-08 (updated)
 > Scope: `backend/service-mesh/`, `backend/mock-service/`
 > Criteria: AGENTS.md (DDD, FP, neverthrow, Zod, naming conventions, JSDoc, tests, etc.)
 
@@ -16,6 +16,8 @@
 
 **AGENTS.md requirement:** «Branded types for IDs: `type ServiceId = string & { readonly _brand: 'ServiceId' }`. Branded type constructors (`serviceId()`, `instanceId()`) prevent raw strings from leaking into domain logic.»
 
+**Tracking:** Issue #59
+
 ---
 
 ### 2. Use of `z.any()` in Zod Contracts
@@ -29,6 +31,8 @@
 
 **AGENTS.md requirement:** «Anti-Pattern: Use `any`. Destroys type safety. Correct Approach: Use `unknown` with Zod/Schema parsing.»
 
+**Tracking:** Issue #58
+
 ---
 
 ### 3. Complete Absence of Tests in the `registry` Module
@@ -41,6 +45,8 @@
 - `presentation/*.http.test.ts`
 
 **AGENTS.md requirement:** «Minimum coverage target: 80%. Tests co-located.»
+
+**Tracking:** Issue #60
 
 ---
 
@@ -96,6 +102,8 @@
 
 **AGENTS.md requirement:** «Repository Pattern and Infrastructure Boundaries — The application layer owns the storage contract. Infrastructure implements it. Future: PostgreSQL persistence is out of MVP scope but must fit the existing repository interface without changing domain or application layers.»
 
+**Tracking:** Issue #57
+
 ---
 
 ### 7. Application Service Methods Return Non-Result Types
@@ -105,6 +113,8 @@
 - `backend/service-mesh/src/modules/routing-rules/application/routing-rule.service.ts` — `list(serviceId: string): RoutingRule[]` (not `Result`)
 
 **AGENTS.md requirement:** «Application services return `Result<T, ErrorType>`. All use-case methods should return `Result`.»
+
+**Tracking:** Issue #59
 
 ---
 
@@ -119,6 +129,8 @@
   - `as InstanceView`
 
 **AGENTS.md requirement:** «Parse, don't validate. Decode at the boundary. Anti-Pattern: Use `any`.»
+
+**Tracking:** Issue #58
 
 ---
 
@@ -141,6 +153,8 @@
 **Problem:** Domain types are declared as `interface` with **mutable** fields (no `readonly`).
 
 **AGENTS.md requirement:** «All value objects are immutable.»
+
+**Tracking:** Issue #61
 
 ---
 
@@ -180,9 +194,21 @@ Expected network/registration errors are handled via `throw` instead of `Result<
 
 ---
 
+### 14. `recordHealthCheck` Silently Swallows "instance not found"
+
+**Where:** `backend/service-mesh/src/modules/registry/application/registry.service.ts`
+
+**Problem:** `recordHealthCheck()` returns `void` and does nothing when the instance doesn't exist. Missing else branch — error swallowed.
+
+**AGENTS.md requirement:** «No exceptions for expected errors. Return `Result<T, E>` via neverthrow.»
+
+**Tracking:** Issue #61
+
+---
+
 ## 🟢 Minor Non-Compliance Issues
 
-### 14. Inconsistent Validation Approach in Registry Routes
+### 15. Inconsistent Validation Approach in Registry Routes
 
 **Where:** `backend/service-mesh/src/modules/registry/presentation/routes.ts`
 
@@ -192,7 +218,7 @@ Expected network/registration errors are handled via `throw` instead of `Result<
 
 ---
 
-### 15. `try/catch` for Upstream Fetch in Handler
+### 16. `try/catch` for Upstream Fetch in Handler
 
 **Where:** `backend/service-mesh/src/modules/registry/presentation/handlers/service.handlers.ts` — `getOpenApi`
 
@@ -202,7 +228,7 @@ Expected network/registration errors are handled via `throw` instead of `Result<
 
 ---
 
-### 16. Retry Logic via `for` in `mock-service`
+### 17. Retry Logic via `for` in `mock-service`
 
 **Where:** `backend/mock-service/src/index.ts`
 
@@ -216,6 +242,6 @@ Expected network/registration errors are handled via `throw` instead of `Result<
 
 | Level | Count | Examples |
 |---|---|---|
-| 🔴 Critical | ~15 | Missing branded types in routing-rules; `z.any()` in contracts; absence of tests in registry; naming convention violations; missing JSDoc; missing Repository pattern; non-Result return types |
-| 🟡 Medium | ~8 | `console.error` in `env.ts`; `for...of` instead of reduce; unsafe `as` in mock-service; mutable `interface` in routing-rules domain; `throw` in mock-service; no env validation in mock-service |
-| 🟢 Minor | ~3 | Inconsistent validation in registry routes; `try/catch` in handler; retry loop in mock-service |
+| 🔴 Critical | 8 | Missing branded types in routing-rules; `z.any()` in contracts; absence of tests in registry; naming convention violations; missing JSDoc; missing Repository pattern; non-Result return types; unsafe `as` assertions |
+| 🟡 Medium | 6 | `console.error` in `env.ts`; `for...of` instead of reduce; `throw` in mock-service; mutable `interface` in routing-rules domain; no env validation in mock-service; `recordHealthCheck` swallows errors |
+| 🟢 Minor | 3 | Inconsistent validation in registry routes; `try/catch` in handler; retry loop in mock-service |
