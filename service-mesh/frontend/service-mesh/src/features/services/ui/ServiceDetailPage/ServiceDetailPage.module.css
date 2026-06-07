@@ -361,3 +361,11 @@
   color: var(--color-text-faint);
   font-size: var(--text-sm);
 }
+
+.cardFlush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.healthOk   { color: var(--color-success); }
+.healthFail { color: var(--color-error); }

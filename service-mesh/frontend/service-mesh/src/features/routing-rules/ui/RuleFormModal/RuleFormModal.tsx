@@ -13,6 +13,7 @@ import { useRuleForm } from '../../application/useRuleForm'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
 import { DestinationList } from '../DestinationList/DestinationList'
+import s from './RuleFormModal.module.css'
 
 export interface RuleFormModalProps {
   initial?:  RoutingRule
@@ -50,7 +51,7 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <fieldset disabled={isPending} style={{ border: 'none', padding: 0, margin: 0 }}>
+          <fieldset disabled={isPending} className={s.fieldsetReset}>
             <form.Field name="name">
               {field => <RuleNameField field={field} />}
             </form.Field>

@@ -35,6 +35,14 @@
   overflow: hidden;
 }
 
+.logoIcon {
+  flex-shrink: 0;
+}
+
+.navIcon {
+  flex-shrink: 0;
+}
+
 .nav {
   flex: 1;
   padding: var(--space-3) var(--space-2);

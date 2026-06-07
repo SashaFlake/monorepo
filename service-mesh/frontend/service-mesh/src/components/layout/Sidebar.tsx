@@ -25,7 +25,7 @@ export function Sidebar(): ReactElement {
   return (
     <aside className={s.sidebar} data-collapsed={sidebarCollapsed}>
       <div className={s.logo}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-label="Service Mesh" style={{ flexShrink: 0 }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-label="Service Mesh" className={s.logoIcon}>
           <circle cx="12" cy="12" r="3" fill="var(--color-primary)" />
           <circle cx="4"  cy="5"  r="2" fill="var(--color-primary)" opacity="0.6" />
           <circle cx="20" cy="5"  r="2" fill="var(--color-primary)" opacity="0.6" />
@@ -44,7 +44,7 @@ export function Sidebar(): ReactElement {
           <Link key={to} to={to} className={s.navLink}>
             {({ isActive }) => (
               <div className={s.navItem} data-active={isActive}>
-                <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                <Icon size={16} strokeWidth={1.75} className={s.navIcon} />
                 {!sidebarCollapsed && label}
               </div>
             )}

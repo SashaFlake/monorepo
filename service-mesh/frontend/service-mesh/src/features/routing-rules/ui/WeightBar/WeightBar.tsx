@@ -4,14 +4,6 @@ import type { DestinationDraft } from '../../domain/types'
 import { Tooltip } from '@/shared/ui'
 import styles from './WeightBar.module.css'
 
-const COLORS = [
-  'var(--color-primary)',
-  'var(--color-blue)',
-  'var(--color-success)',
-  'var(--color-orange)',
-  'var(--color-purple)',
-]
-
 interface WeightBarProps {
   destinations: Readonly<A.NonEmptyArray<DestinationDraft>>
 }
@@ -28,7 +20,8 @@ export function WeightBar({ destinations }: WeightBarProps): ReactElement {
           >
             <div
               className={styles.segment}
-              style={{ width: `${item.weightPct}%`, background: COLORS[i % COLORS.length] }}
+              data-color-index={i % 5}
+              style={{ '--segment-width': `${item.weightPct}%` } as React.CSSProperties}
             />
           </Tooltip>
         ))}
@@ -38,7 +31,7 @@ export function WeightBar({ destinations }: WeightBarProps): ReactElement {
           <div key={item.version || i} className={styles.legendItem}>
             <span
               className={styles.legendDot}
-              style={{ background: COLORS[i % COLORS.length] }}
+              data-color-index={i % 5}
             />
             <span className={styles.legendVersion}>{item.version || 'default'}</span>
             <span className={styles.legendWeight}>{item.weightPct}%</span>
