@@ -1,5 +1,5 @@
 # Открытые GitHub Issues — SashaFlake/monorepo
-Всего открытых: 7
+Всего открытых: 5 (все backend)
 ---
 
 ## [Issue #57] [Backend] Missing Repository Pattern — application layer tightly coupled to in-memory Maps
