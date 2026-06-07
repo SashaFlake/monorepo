@@ -1,35 +1,5 @@
-# GitHub Issues #51–#68 — SashaFlake/monorepo
-Всего в диапазоне: 18 issues/PRs
----
-
-## [PR #51] routing rules model renamed to domain
-- **State:** closed
-- **Created:** 2026-05-17 | **URL:** https://github.com/SashaFlake/monorepo/pull/51
----
-
-## [PR #52] 34 frontend rename model and sharpen ddd target
-- **State:** closed
-- **Created:** 2026-05-17 | **URL:** https://github.com/SashaFlake/monorepo/pull/52
----
-
-## [PR #53] 30 frontend shared UI structure
-- **State:** closed
-- **Created:** 2026-05-17 | **URL:** https://github.com/SashaFlake/monorepo/pull/53
----
-
-## [PR #54] 33 frontend validation remove
-- **State:** closed
-- **Created:** 2026-05-17 | **URL:** https://github.com/SashaFlake/monorepo/pull/54
----
-
-## [PR #55] 35 frontend tan stack table
-- **State:** closed
-- **Created:** 2026-05-17 | **URL:** https://github.com/SashaFlake/monorepo/pull/55
----
-
-## [PR #56] 37 frontend tooltip
-- **State:** closed
-- **Created:** 2026-05-17 | **URL:** https://github.com/SashaFlake/monorepo/pull/56
+# Открытые GitHub Issues — SashaFlake/monorepo
+Всего открытых: 11
 ---
 
 ## [Issue #57] [Backend] Missing Repository Pattern — application layer tightly coupled to in-memory Maps
@@ -532,11 +502,6 @@ AGENTS.md explicitly states: «Entities per file: 1 aggregate root or major func
 
 - AGENTS.md: "Entities per file: 1 aggregate root or major function — Extract into separate files."
 - AGENTS.md: "File size limit: ≤ 300 lines — Split into multiple files."
----
-
-## [PR #67] Add RAG MCP server implementation and AGENTS.md overhaul
-- **State:** closed
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/pull/67
 ---
 
 ## [PR #68] 62 frontend ddd restructure
