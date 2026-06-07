@@ -19,6 +19,8 @@ import { Indexer } from './indexer.js';
 import { OllamaClient } from './ollama.js';
 import { QdrantClient } from './qdrant.js';
 import { SearchEngine } from './search.js';
+import { StatsEventEmitter } from './events.js';
+import { StatsCollector } from './stats.js';
 import { findProjectRoot, loadJson, saveJson } from './utils.js';
 
 const server = new Server(
@@ -29,6 +31,8 @@ const server = new Server(
 const ollama = new OllamaClient(OLLAMA_URL, OLLAMA_MODEL);
 const qdrant = new QdrantClient(QDRANT_URL, COLLECTION_NAME, VECTOR_DIM);
 const cache = new Map<string, number[]>();
+const events = new StatsEventEmitter();
+const stats = new StatsCollector(path.join(DB_PATH, 'rag-stats.sqlite'), events);
 
 function loadCache(): void {
   const data = loadJson<Record<string, number[]>>(CACHE_PATH);
@@ -120,11 +124,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const toolName = request.params.name;
   const args = (request.params.arguments ?? {}) as Record<string, unknown>;
 
-  if (toolName === 'index_project') {
+  return stats.withStats(toolName, args, async () => {
+    if (toolName === 'index_project') {
     const projectRoot = args.path
       ? path.resolve(String(args.path))
       : findProjectRoot(process.cwd());
-    const indexer = new Indexer(projectRoot, ollama, qdrant, cache);
+    const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
     const result = await indexer.indexProject(
       args.pattern ? String(args.pattern) : '**/*',
     );
@@ -144,7 +149,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new Error('Параметр path обязателен');
     }
     const projectRoot = findProjectRoot(process.cwd());
-    const indexer = new Indexer(projectRoot, ollama, qdrant, cache);
+    const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
     const chunks = await indexer.indexFile(String(args.path));
     saveCache();
     return {
@@ -161,7 +166,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (!args.query) {
       throw new Error('Параметр query обязателен');
     }
-    const engine = new SearchEngine(qdrant, ollama, cache);
+    const engine = new SearchEngine(qdrant, ollama, cache, events);
     const results = await engine.search(
       String(args.query),
       Number(args.limit) || 5,
@@ -234,7 +239,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   }
 
-  throw new Error(`Неизвестный инструмент: ${toolName}`);
+    throw new Error(`Неизвестный инструмент: ${toolName}`);
+  });
 });
 
 async function main(): Promise<void> {

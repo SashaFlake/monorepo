@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@/test/render'
 import { RulesTable } from './RulesTable'
 import type { RoutingRule } from '../../domain/types'
 import { Destination } from '../../domain/types'
@@ -34,7 +34,7 @@ describe('RulesTable', () => {
     const rules = [rule({ name: 'my-rule' })]
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={vi.fn()} />)
     fireEvent.click(screen.getByLabelText('Delete rule my-rule'))
-    const dialog = screen.getByRole('dialog')
+    const dialog = screen.getByRole('alertdialog')
     expect(dialog).toBeInTheDocument()
     expect(within(dialog).getByText(/my-rule/)).toBeInTheDocument()
   })
@@ -55,7 +55,7 @@ describe('RulesTable', () => {
     render(<RulesTable rules={rules} onEdit={vi.fn()} onDelete={onDelete} />)
     fireEvent.click(screen.getByLabelText('delete rule my-rule', { exact: false }))
     fireEvent.click(screen.getByText('Cancel'))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(onDelete).not.toHaveBeenCalled()
   })
 

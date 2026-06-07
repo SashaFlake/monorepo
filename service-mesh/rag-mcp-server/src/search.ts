@@ -1,12 +1,14 @@
 import type { OllamaClient } from './ollama.js';
 import type { QdrantClient } from './qdrant.js';
 import type { SearchResult } from './types.js';
+import type { StatsEventEmitter } from './events.js';
 
 export class SearchEngine {
   constructor(
     private readonly qdrant: QdrantClient,
     private readonly ollama: OllamaClient,
     private readonly cache: Map<string, number[]>,
+    private readonly events?: StatsEventEmitter,
   ) {}
 
   async search(
@@ -15,6 +17,9 @@ export class SearchEngine {
     roleFilter?: string,
     pathFilter?: string,
   ): Promise<SearchResult[]> {
+    this.events?.emitSearchStarted({ query, limit, roleFilter, pathFilter });
+    const start = Date.now();
+
     const queryVector = await this.ollama.getEmbedding(query);
     const scored = await this.qdrant.search(
       queryVector,
@@ -71,6 +76,13 @@ export class SearchEngine {
         break;
       }
     }
+
+    this.events?.emitSearchCompleted({
+      query,
+      resultsCount: results.length,
+      vectorCandidates: scored.length,
+      durationMs: Date.now() - start,
+    });
 
     return results;
   }

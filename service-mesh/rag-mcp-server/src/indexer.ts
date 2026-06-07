@@ -13,6 +13,7 @@ import { chunkFile } from './chunker.js';
 import type { OllamaClient } from './ollama.js';
 import type { QdrantClient } from './qdrant.js';
 import type { IndexState, QdrantPoint } from './types.js';
+import type { StatsEventEmitter } from './events.js';
 import { isIgnored, loadGitignore, loadJson, saveJson, shouldIndex } from './utils.js';
 
 export class Indexer {
@@ -21,11 +22,15 @@ export class Indexer {
     private readonly ollama: OllamaClient,
     private readonly qdrant: QdrantClient,
     private readonly cache: Map<string, number[]>,
+    private readonly events?: StatsEventEmitter,
   ) {}
 
   async indexProject(
     pattern = '**/*',
   ): Promise<{ indexed: number; chunks: number; skipped: number }> {
+    this.events?.emitIndexStarted({ eventType: 'project' });
+    const start = Date.now();
+
     const gitignorePatterns = loadGitignore(this.projectRoot);
     const ignorePatterns = [...DEFAULT_IGNORE_PATTERNS, ...gitignorePatterns];
 
@@ -127,10 +132,22 @@ export class Indexer {
     saveJson(STATE_PATH, state);
     this.saveCache();
 
+    const durationMs = Date.now() - start;
+    this.events?.emitIndexCompleted({
+      eventType: 'project',
+      filesCount: indexed,
+      chunksCount: totalChunks,
+      skippedCount: skipped,
+      durationMs,
+    });
+
     return { indexed, chunks: totalChunks, skipped };
   }
 
   async indexFile(relPath: string): Promise<number> {
+    this.events?.emitIndexStarted({ eventType: 'file', filePath: relPath });
+    const start = Date.now();
+
     const fullPath = path.join(this.projectRoot, relPath);
     const resolvedFull = path.resolve(fullPath);
     const resolvedRoot = path.resolve(this.projectRoot);
@@ -190,6 +207,13 @@ export class Indexer {
     state.files[relPath] = { mtime: stat.mtimeMs, chunkCount: chunks.length };
     saveJson(STATE_PATH, state);
     this.saveCache();
+
+    this.events?.emitIndexCompleted({
+      eventType: 'file',
+      filePath: relPath,
+      chunksCount: chunks.length,
+      durationMs: Date.now() - start,
+    });
 
     return chunks.length;
   }
