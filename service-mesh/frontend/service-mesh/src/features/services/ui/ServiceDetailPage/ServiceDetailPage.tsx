@@ -9,14 +9,28 @@ import type { InstanceStatus } from '../../domain/types'
 import { VersionCard } from './VersionCard'
 import s from './ServiceDetailPage.module.css'
 
-const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
+/**
+ * Maps an {@link InstanceStatus} to the visual Badge variant used across
+ * the service detail page.
+ *
+ * @sideEffects none
+ */
+export const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
   passing:  'success',
   warning:  'warning',
   critical: 'error',
 }
 
-export { STATUS_VARIANT }
-
+/**
+ * Detail page for a single service.
+ *
+ * Displays an overview tab with version cards and a routing-rules tab that
+ * embeds the {@link RoutingRulesPage} for the service.
+ *
+ * @param serviceId - Identifier of the service to display
+ * @returns The service detail page element
+ * @sideEffects Calls {@link useServiceDetail} (TanStack Query subscription).
+ */
 export function ServiceDetailPage({ serviceId }: { serviceId: string }): ReactElement {
   const { data, isLoading, isError } = useServiceDetail(serviceId)
 

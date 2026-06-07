@@ -7,6 +7,17 @@ import { StatsGrid } from '../StatsGrid/StatsGrid'
 import { ServicesTable } from '../ServicesTable/ServicesTable'
 import s from './RegistryDashboard.module.css'
 
+/**
+ * Dashboard page for the Control Plane registry overview.
+ *
+ * Displays aggregate statistics, an error banner when the backend is
+ * unreachable, and a clickable table of services that navigates to the
+ * service detail page.
+ *
+ * @returns The dashboard page element
+ * @sideEffects Calls {@link useRegistryStats} (TanStack Query subscription)
+ *              and {@link useNavigate} (router side effect on row click).
+ */
 export function RegistryDashboard(): ReactElement {
   const navigate = useNavigate()
   const { stats, services, isLoading, isError, updatedAt } = useRegistryStats()

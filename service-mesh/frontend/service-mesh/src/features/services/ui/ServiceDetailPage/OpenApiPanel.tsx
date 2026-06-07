@@ -4,12 +4,38 @@ import { useServiceOpenApi } from '../../application/useServiceOpenApi.applicati
 import { OpenApiDocSchema, OpenApiOperationSchema } from '../../domain/schema'
 import s from './ServiceDetailPage.module.css'
 
+/**
+ * Inferred TypeScript type of a decoded OpenAPI operation.
+ */
 type OpenApiOperation = Schema.Schema.Type<typeof OpenApiOperationSchema>
 
+/**
+ * OpenAPI route enriched with its HTTP method and path.
+ */
 type OpenApiRoute = OpenApiOperation & { method: string; path: string }
 
+/**
+ * Type guard that narrows an unknown operation value to {@link OpenApiOperation}.
+ *
+ * @param value - Value to inspect
+ * @returns `true` when the value matches {@link OpenApiOperationSchema}
+ * @sideEffects none
+ */
 const isOpenApiOperation = Schema.is(OpenApiOperationSchema)
 
+/**
+ * Renders the OpenAPI document exposed by a service version.
+ *
+ * Fetches `/services/{serviceId}/openapi?version={version}`, decodes the
+ * response through {@link OpenApiDocSchema}, and lists the documented routes
+ * in a table. Displays loading, error, and empty states.
+ *
+ * @param serviceId - Identifier of the service that owns the OpenAPI endpoint
+ * @param version   - Service version whose OpenAPI document to display
+ * @returns The OpenAPI panel element
+ * @sideEffects Calls {@link useServiceOpenApi} (TanStack Query subscription)
+ *              and decodes the document with Effect Schema on render.
+ */
 export function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): React.ReactElement {
   const { data, isLoading, isError, error } = useServiceOpenApi(serviceId, version)
 

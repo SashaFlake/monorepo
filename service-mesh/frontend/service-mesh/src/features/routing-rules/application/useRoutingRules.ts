@@ -3,6 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { routingRulesApi, routingKeys } from '../infrastructure/api'
 import type { RoutingRule, RuleFormValues } from '../domain/types'
 
+/**
+ * Combined server + UI state returned by {@link useRoutingRules}.
+ *
+ * @deprecated The UI-state portion (`createOpen`, `editRule`, `deleteRule` and
+ *             their open/close helpers) should move to a Zustand slice so that
+ *             the application layer only manages server state. Kept here for
+ *             backwards compatibility while the refactor is in progress.
+ */
 export type RoutingRulesState = {
   rules: RoutingRule[]
   isLoading: boolean
@@ -27,6 +35,15 @@ export type RoutingRulesState = {
   isDeleting: boolean
 }
 
+/**
+ * Application hook that loads routing rules for a service and exposes
+ * create/update/delete mutations plus modal visibility state.
+ *
+ * @param serviceId - Identifier of the service whose rules should be loaded
+ * @returns Combined server and UI state (see {@link RoutingRulesState})
+ * @sideEffects Subscribes to a TanStack Query observer, performs HTTP requests,
+ *              and mutates local React state for modal visibility.
+ */
 export function useRoutingRules(serviceId: string): RoutingRulesState {
   const qc = useQueryClient()
 

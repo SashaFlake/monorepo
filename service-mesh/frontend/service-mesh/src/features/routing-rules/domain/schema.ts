@@ -18,6 +18,11 @@ import { Schema } from 'effect'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * String schema that rejects blank or whitespace-only values.
+ *
+ * @sideEffects none
+ */
 const NonBlankString = Schema.String.pipe(
   Schema.filter(s => s.trim().length > 0 || 'must not be blank'),
 )
@@ -39,6 +44,8 @@ export const RuleMatchSchema = Schema.Struct({
 /**
  * Schema for a single destination draft in the rule form.
  *
+ * Enforces per-destination invariants: non-blank version and weight in 0..100.
+ *
  * @sideEffects none
  */
 export const DestinationDraftSchema = Schema.Struct({
@@ -54,6 +61,13 @@ export const DestinationDraftSchema = Schema.Struct({
 
 /**
  * Schema for the complete rule form, enforcing all domain invariants.
+ *
+ * Validates that:
+ *   - `name` is non-blank
+ *   - `priority` is an integer between 0 and 1000
+ *   - `destinations` is non-empty
+ *   - no two destinations share the same version
+ *   - destination weights sum to exactly 100
  *
  * @sideEffects none
  */
@@ -83,7 +97,14 @@ export const RuleFormSchema = Schema.Struct({
   ),
 })
 
+/**
+ * Encoded (wire) type of {@link RuleFormSchema}.
+ */
 export type RuleFormSchemaInput = Schema.Schema.Encoded<typeof RuleFormSchema>
+
+/**
+ * Decoded (domain) type of {@link RuleFormSchema}.
+ */
 export type RuleFormSchemaOutput = Schema.Schema.Type<typeof RuleFormSchema>
 
 // ── API schemas ──────────────────────────────────────────────────────────────

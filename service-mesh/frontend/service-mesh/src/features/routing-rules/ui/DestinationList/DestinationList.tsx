@@ -7,11 +7,27 @@ import { Button } from '@/shared/ui'
 import { WeightBar } from '../WeightBar/WeightBar'
 import s from './DestinationList.module.css'
 
+/**
+ * Props for {@link DestinationList}.
+ */
 type Props = {
+  /** Current destination drafts in the form. */
   destinations: DestinationDraft[]
+
+  /** Called with the updated array whenever the user edits, adds, or removes a row. */
   onChange: (destinations: DestinationDraft[]) => void
 }
 
+/**
+ * Editable list of routing destinations with a live weight-sum indicator
+ * and a visual weight bar.
+ *
+ * @param destinations - Current destination drafts
+ * @param onChange     - Change handler
+ * @returns The destination list element
+ * @sideEffects Calls `emptyDestinationDraft()` (and therefore `crypto.randomUUID()`)
+ *              when the user clicks "Add destination".
+ */
 export function DestinationList({ destinations, onChange }: Props): ReactElement {
   const update = (id: string, patch: Partial<Pick<DestinationDraft, 'version' | 'weightPct'>>): void =>
     onChange(

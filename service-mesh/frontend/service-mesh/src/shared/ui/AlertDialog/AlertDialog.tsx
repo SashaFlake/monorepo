@@ -31,12 +31,29 @@ import s from './AlertDialog.module.css'
  *   </AlertDialog>
  */
 
+/**
+ * Props for {@link AlertDialog}.
+ */
 export type AlertDialogProps = {
+  /** Whether the dialog is currently open. */
   open:           boolean
+
+  /** Called when the dialog requests to open or close. */
   onOpenChange:   (open: boolean) => void
+
+  /** Dialog content, usually {@link AlertDialogContent}. */
   children:       ReactNode
 }
 
+/**
+ * Root component that controls alert dialog visibility.
+ *
+ * @param open         - Current open state
+ * @param onOpenChange - Open state change handler
+ * @param children     - Dialog content
+ * @returns The alert dialog root element
+ * @sideEffects none
+ */
 export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps): ReactElement {
   return (
     <RadixAlertDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -45,9 +62,18 @@ export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps):
   )
 }
 
+/**
+ * Modal container with overlay and focus trap.
+ *
+ * `aria-labelledby` and `aria-describedby` are wired automatically by Radix
+ * when {@link AlertDialogTitle} and {@link AlertDialogDescription} are rendered
+ * inside.
+ *
+ * @param children - Dialog body content
+ * @returns The alert dialog content element
+ * @sideEffects Mounts a Radix portal and focus trap.
+ */
 export function AlertDialogContent({ children }: { children: ReactNode }): ReactElement {
-  // aria-labelledby and aria-describedby are wired automatically by Radix
-  // when <AlertDialogTitle>/<AlertDialogDescription> are rendered inside.
   return (
     <RadixAlertDialog.Portal>
       <RadixAlertDialog.Overlay className={s.overlay}>
@@ -59,17 +85,39 @@ export function AlertDialogContent({ children }: { children: ReactNode }): React
   )
 }
 
+/**
+ * Visual variant for the optional header icon.
+ */
 type IconVariant = 'danger'
 
+/**
+ * Props for {@link AlertDialogHeader}.
+ */
+type AlertDialogHeaderProps = {
+  /** Header content, typically {@link AlertDialogTitle}. */
+  children:      ReactNode
+
+  /** Optional icon rendered above the title. */
+  icon?:         ReactNode
+
+  /** Visual variant applied to the icon wrapper. */
+  iconVariant?:  IconVariant
+}
+
+/**
+ * Header section of an alert dialog, optionally decorated with an icon.
+ *
+ * @param children     - Header content
+ * @param icon         - Optional icon element
+ * @param iconVariant  - Optional icon variant
+ * @returns The alert dialog header element
+ * @sideEffects none
+ */
 export function AlertDialogHeader({
   children,
   icon,
   iconVariant,
-}: {
-  children:      ReactNode
-  icon?:         ReactNode
-  iconVariant?:  IconVariant
-}): ReactElement {
+}: AlertDialogHeaderProps): ReactElement {
   return (
     <div className={s.header}>
       {icon ? (
@@ -82,24 +130,48 @@ export function AlertDialogHeader({
   )
 }
 
+/**
+ * Accessible title rendered as an `<h2>`.
+ *
+ * Radix auto-generates an id and wires it as `aria-labelledby` on the dialog
+ * content.
+ *
+ * @param children - Title text
+ * @returns The alert dialog title element
+ * @sideEffects none
+ */
 export function AlertDialogTitle({ children }: { children: ReactNode }): ReactElement {
-  // Radix' Title renders an <h2> with an auto-generated id and wires it up
-  // as aria-labelledby on Content.
   return <RadixAlertDialog.Title className={s.title}>{children}</RadixAlertDialog.Title>
 }
 
+/**
+ * Accessible description rendered as a `<p>`.
+ *
+ * Radix auto-generates an id and wires it as `aria-describedby` on the dialog
+ * content.
+ *
+ * @param children - Description text
+ * @returns The alert dialog description element
+ * @sideEffects none
+ */
 export function AlertDialogDescription({ children }: { children: ReactNode }): ReactElement {
-  // Radix' Description renders a <p> with an auto-generated id and wires it
-  // up as aria-describedby on Content.
   return <RadixAlertDialog.Description className={s.description}>{children}</RadixAlertDialog.Description>
 }
 
+/**
+ * Footer action row, typically containing {@link AlertDialogCancel} and
+ * {@link AlertDialogAction}.
+ *
+ * @param children - Action buttons
+ * @returns The alert dialog actions element
+ * @sideEffects none
+ */
 export function AlertDialogActions({ children }: { children: ReactNode }): ReactElement {
   return <div className={s.actions}>{children}</div>
 }
 
 /**
- * Wrap your existing <Button> with `asChild` to inherit visuals while letting
+ * Wrap your existing `<Button>` with `asChild` to inherit visuals while letting
  * Radix manage focus and keyboard. Cancel closes the dialog automatically.
  */
 export const AlertDialogCancel = RadixAlertDialog.Cancel

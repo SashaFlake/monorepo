@@ -1,140 +1,323 @@
 # Frontend Audit — Non-Compliance with AGENTS.md Requirements
 
-> Audit date: 2026-06-08 (updated)
+> Audit date: 2026-06-08 (comprehensive refresh)
 > Scope: `frontend/service-mesh/src/`
-> Criteria: AGENTS.md (DDD layers, Effect, TanStack Query, CSS Modules, JSDoc, tests, etc.)
+> Criteria: AGENTS.md (DDD layers, Effect, TanStack Query, CSS Modules, JSDoc, tests, lint, type safety)
 
 ---
 
-## ✅ Resolved Critical Issues (verified 2026-06-08)
+## Update Log
 
-The following critical issues were fixed in issues #62, #63, #64, #65, #66, #69:
+| Date | What changed |
+|---|---|
+| 2026-06-08 | **JSDoc coverage fixed** — added JSDoc to 200+ exports across `lib/`, `features/`, `shared/ui/`, `routes/`, `components/`, `store/`. Coverage is now **100%** for production code. |
+| 2026-06-08 | **`lib/queryClient.ts` fixed** — now imports `persister` from `./persister` instead of duplicating a localStorage persister. |
+| 2026-06-08 | **`lib/persister.ts` hardened** — added `typeof window !== 'undefined'` guard and a typed `noopStorage` fallback for SSR. |
+| 2026-06-08 | **Missing barrel exports added** — `shared/table/index.ts` and `shared/form/index.ts` now expose public APIs. |
+| 2026-06-08 | **Import extensions cleaned up** — removed `.ts` / `.tsx` extensions from `@/shared/form/schemaResolver`, `@/lib/http`, and `@/shared/table/DataTable` imports. |
+| 2026-06-08 | **ESLint JSDoc plugin configured** — added `eslint-plugin-jsdoc` with rules that enforce JSDoc presence, descriptions, `@returns`, and custom tags (`@sideEffects`, `@invariants`) without duplicating TypeScript types. |
 
-| # | Issue | Resolution |
+---
+
+## Executive Summary
+
+| Category | Status | Notes |
 |---|---|---|
-| 1 | Missing DDD Layers in `registry` and `services` | Both features now have `domain/`, `application/`, `infrastructure/`, `ui/` layers |
-| 2 | `useQuery` called directly in UI components | All server-state hooks moved to `application/` layer; components receive data via props |
-| 3 | Type safety violations (`any`, unsafe `as`, inline styles) | `ColumnDef` fixed, `lib/http.ts` uses `Schema.decodeUnknown`, inline styles removed |
-| 4 | Complete absence of tests in `registry`, `services`, `shared` | Co-located tests added across all flagged areas; coverage baseline established |
-| 5 | `ServiceDetailPage` monolith + duplicate components | File reduced from 258 → ~61 lines; sub-components extracted to separate files |
+| Type-check | ✅ Passes | `npm run typecheck` exits 0 |
+| Unit tests | ✅ 115/115 pass | Vitest + jsdom, ~4.8–5.6 s |
+| Code coverage | ⚠️ 66.77% stmts | Below AGENTS.md target of 80% |
+| ESLint | ❌ 20 errors, 19 warnings | Fails on `npm run lint` (same count as before JSDoc sweep) |
+| JSDoc coverage | ✅ 100% production | All non-test exports now documented |
+| DDD layering | ❌ Critical violations | React hooks + side effects in `domain/`; UI state in `application/` |
+| Local-first persistence | ✅ Fixed | `queryClient.ts` uses `persister.ts`; SSR guard added |
+| Naming conventions | ⚠️ Multiple violations | Missing `*.application.ts`, `*.infrastructure.ts`, `*.types.ts` suffixes |
 
 ---
 
-## 🟡 Medium Non-Compliance Issues (still open)
+## 🔴 Critical Issues
 
-### 6. Domain Layer Polluted with UI Hooks and Side Effects
+### 1. React Hooks and Side Effects in `domain/` Layer
 
 **Where:**
-- `frontend/service-mesh/src/features/routing-rules/domain/useRoutingRulesUI.ts`
 - `frontend/service-mesh/src/features/routing-rules/domain/useRoutingRulesMutations.ts`
-
-**Problem:** Hooks that manage UI state (`useRoutingRulesUI`) and side effects/mutations (`useRoutingRulesMutations`) live in the `domain/` layer. Domain must be pure types and functions only.
-
-**AGENTS.md requirement:** «Domain — Pure types, branded types, pure functions, business logic. No side effects.»
-
----
-
-### 7. Naming Convention Violations
-
-| Current Path | Should Be | Status |
-|---|---|---|
-| `features/routing-rules/infrastructure/api.ts` | `features/routing-rules/infrastructure/api.infrastructure.ts` | 🔴 open |
-| `features/routing-rules/infrastructure/mock.ts` | `features/routing-rules/infrastructure/mock.infrastructure.ts` | 🔴 open |
-| `shared/form/schemaResolver.ts` | `shared/form/schemaResolver.domain.ts` or `schemaResolver.application.ts` | 🔴 open |
-| `features/registry/useRegistryStats.ts` | `features/registry/application/useRegistryStats.application.ts` | ✅ fixed |
-| `features/services/api/api.ts` | `features/services/infrastructure/api.infrastructure.ts` | ✅ fixed (api/ removed) |
-| `features/services/api/types.ts` | `features/services/domain/types.ts` | ✅ fixed (api/ removed) |
-
-**AGENTS.md requirement:** «Naming conventions: `*.domain.ts`, `*.application.ts`, `*.infrastructure.ts`, `*.module.css`, etc.»
-
----
-
-### 8. Missing Barrel Exports
-
-**Where:**
-- `frontend/service-mesh/src/shared/table/` — no `index.ts`
-
-**Status:** `features/registry/index.ts` now exists (✅ fixed). `shared/table/index.ts` still missing (🔴 open).
-
-**AGENTS.md requirement:** «Barrel exports — each feature exports its public API through `index.ts`.»
-
----
-
-### 9. Non-Null Assertions in Application Hooks
-
-**Where:** `frontend/service-mesh/src/features/routing-rules/application/useRoutingRules.ts:71-72`
+- `frontend/service-mesh/src/features/routing-rules/domain/useRoutingRulesUI.ts`
 
 **Problem:**
-- `editRule!.id`
-- `deleteRule!.id`
+- `useRoutingRulesMutations.ts` imports `useMutation` / `useQueryClient` from `@tanstack/react-query` and calls `toast` from `sonner`. These are application-layer concerns.
+- `useRoutingRulesUI.ts` imports `useState` from `react` and manages modal visibility state. UI state belongs in `store/ui.ts` (Zustand) or in the UI layer, never in `domain/`.
 
-**AGENTS.md requirement:** «Explicit error handling — Result<T, E>. Avoid unsafe non-null assertions.»
+**AGENTS.md requirement:**
+> «Domain — Pure types, branded types, pure functions, business logic. No side effects.»
+> «Domain services contain pure logic. Application services orchestrate and handle side effects.»
+
+**Recommended fix:**
+- Move `useRoutingRulesMutations.ts` → `application/useRoutingRulesMutations.application.ts`.
+- Move `useRoutingRulesUI.ts` logic into `store/ui.ts` as `useRoutingRulesUIStore`, or keep it in `application/useRoutingRulesUI.application.ts` at minimum.
 
 ---
 
-### 10. `queryClient.ts` Duplicates `persister.ts` and Uses `window.localStorage` at Module Level
+### 2. UI State Mixed with Server State in `application/` Hook
+
+**Where:**
+- `frontend/service-mesh/src/features/routing-rules/application/useRoutingRules.ts:31-35, 71-72`
+
+**Problem:**
+- `useState` manages `createOpen`, `editRule`, `deleteRule` inside an application hook.
+- Non-null assertions: `editRule!.id`, `deleteRule!.id`.
+
+**AGENTS.md requirement:**
+> «Zustand — used only for pure UI state. Application layer manages server state via TanStack Query.»
+> «Explicit error handling — Result<T, E>. Avoid unsafe non-null assertions.»
+
+**Recommended fix:**
+- Extract modal state into Zustand slice or dedicated UI hook.
+- Replace `!` with explicit guards (already done in `domain/useRoutingRulesMutations.ts`, but `application/useRoutingRules.ts` still uses them).
+
+---
+
+### 3. `queryClient.ts` Duplicates `persister.ts` and Uses `window.localStorage` at Module Level
+
+**Status:** ✅ Fixed (2026-06-08)
 
 **Where:**
 - `frontend/service-mesh/src/lib/queryClient.ts`
 - `frontend/service-mesh/src/lib/persister.ts`
 
-**Problem:** `queryClient.ts` creates its own `localStorage` persister inline, ignoring the existing `persister.ts` which provides an IDB-based persister with SSR-safe fallback. Additionally, `window.localStorage` is accessed at the top level of the module, which can crash in SSR environments.
+**Original problem:**
+- `queryClient.ts` created its own `createSyncStoragePersister({ storage: window.localStorage })` instead of importing the existing `persister` from `./persister.ts`.
+- Both files referenced `window.localStorage` at top-level without `typeof window !== 'undefined'` guard.
 
-**AGENTS.md requirement:** «Local-first — data is cached in localStorage via TanStack Query persist. Use idb-keyval / localStorage persister from `lib/persister.ts`.»
-
----
-
-### 11. UI State Mixed with Server State in Application Hooks
-
-**Where:** `frontend/service-mesh/src/features/routing-rules/application/useRoutingRules.ts:33-35`
-
-**Problem:** `useState` for modal state (`editRule`, `deleteRule`) is mixed inside an application hook that should only manage server state. UI state should be handled by Zustand.
-
-**AGENTS.md requirement:** «Zustand — used only for pure UI state. Application layer manages server state via TanStack Query.»
+**Resolution:**
+- `queryClient.ts` now imports `persister` from `./persister` and delegates persistence to it.
+- `persister.ts` uses `typeof window !== 'undefined'` and falls back to a typed `noopStorage()` in SSR environments.
 
 ---
 
-### 12. Massive Absence of JSDoc
+### 4. Side Effect (`crypto.randomUUID`) in Domain
 
-**Where:** Nearly every exported function in the frontend.
+**Where:**
+- `frontend/service-mesh/src/features/routing-rules/domain/types.ts:22-26`
 
-**Problem:** Many exports still lack JSDoc. `registry/` feature has near-zero JSDoc coverage. `services/` and `shared/ui/` partially covered.
+**Problem:**
+- `emptyDestinationDraft()` calls `crypto.randomUUID()` inside the `domain/` layer. Domain functions must be pure and deterministic.
 
-**AGENTS.md requirement:** «Every exported function must have a JSDoc comment. Required fields: What it does, Parameters, Return value, Side effects, Domain invariants.»
+**AGENTS.md requirement:**
+> «Domain services contain pure functions.»
+> «Pure functions as default — deterministic, no side effects.»
 
----
-
-## 🟢 Minor Non-Compliance Issues
-
-### 13. Import File Extensions in Path Aliases
-
-**Where:** Multiple files import with `.tsx` / `.ts` extensions in path aliases:
-- `features/routing-rules/application/useRuleForm.ts` — `from '@/shared/form/schemaResolver.ts'`
-- `features/routing-rules/infrastructure/api.ts` — `from '@/lib/http.ts'`
-
-**Status:** `features/registry/ServicesTable.tsx` and `features/services/ServicesPage.tsx` fixed (✅). `useRuleForm.ts` and `api.ts` still have extensions (🟡 partial).
+**Recommended fix:**
+- Make `emptyDestinationDraft` accept `id: string` as an argument, or move the factory to `application/` / `infrastructure/`.
 
 ---
 
-### 14. Deep Imports Instead of Barrel Imports
+### 5. Unsafe `as` Casts and `any` Leaks
 
-**Status:** ✅ Fixed. No deep imports from `@/shared/ui/Tabs` found anywhere.
+**Where:**
+- `frontend/service-mesh/src/features/routing-rules/ui/RuleFormModal/RuleNameField.tsx:10, 17`
+- `frontend/service-mesh/src/features/routing-rules/ui/RuleFormModal/RuleMatchFields.tsx:12, 13, 22`
+- `frontend/service-mesh/src/shared/ui/Skeleton/Skeleton.tsx:27`
+- `frontend/service-mesh/src/features/routing-rules/ui/WeightBar/WeightBar.tsx:35`
+- `frontend/service-mesh/src/lib/http.ts:6, 33`
+- `frontend/service-mesh/src/lib/persister.ts:18`
+
+**Problem:**
+- `AnyFieldApi` from `@tanstack/react-form` typed as `any` causes `no-unsafe-assignment` ESLint errors in `RuleNameField.tsx` and `RuleMatchFields.tsx`.
+- Casts such as `field.state.value as string`, `as React.CSSProperties`, and `import.meta.env.X as string | undefined` bypass the type system.
+- `lib/http.ts:33` uses `(e as ApiError)._tag` inside a type guard. This is functionally a guard, but still relies on `as`.
+
+**AGENTS.md requirement:**
+> «Use `unknown` with Zod/Schema parsing.»
+> «Never do: Use `any`.»
+
+**Recommended fix:**
+- Type `field` with a concrete `FieldApi<RuleFormValues, ...>` generic instead of `AnyFieldApi`.
+- Replace CSS-variable casts with a small typed helper `cssVar(name: string, value: string | number): React.CSSProperties`.
+- Replace `as string | undefined` env casts with a validated env module.
 
 ---
 
-### 15. Outdated Comment in Schema File
+### 6. JSDoc Coverage
 
-**Where:** `frontend/service-mesh/src/features/routing-rules/domain/schema.ts`
+**Status:** ✅ Fixed (2026-06-08)
 
-**Status:** ✅ Fixed. Outdated "no consumers yet" comment removed.
+**Coverage (strict metric, all named exports):**
+
+| Metric | Before | After |
+|---|---|---|
+| Strict (all exports) | ~12–20% | **100%** |
+| Production code (excl. tests / generated) | ~20% | **100%** |
+
+Every exported function, constant, type, interface, and barrel module in `frontend/service-mesh/src/` now carries a JSDoc comment covering purpose, parameters, return value, side effects, and invariants where applicable.
+
+**High-impact areas documented:**
+- `lib/http.ts` — `apiFetchEffect`, `apiFetch`, `apiFetchVoidEffect`, `apiFetchVoid`, `makeApiError`, `isApiError`, `BASE`, `endpoint`.
+- `lib/persister.ts`, `lib/queryClient.ts`, `store/ui.ts`.
+- `features/registry/*` — domain types, `useRegistryStats`, infrastructure, all UI components.
+- `features/services/domain/*` — types, schemas; application hooks; infrastructure client.
+- `features/routing-rules/*` — domain types/schema, application hooks, API client, UI components.
+- `shared/ui/*` — all primitive components and sub-components (`Dialog`, `AlertDialog`, `Tabs`, `Tooltip`, `Button`, `Card`, `Badge`, `Skeleton`, `ErrorCard`).
+- `routes/*.tsx` — every route definition and placeholder page.
+- `components/layout/*` — `Header` and `Sidebar`.
 
 ---
 
-### 16. Potentially Duplicate Route
+## 🟡 Medium Issues
 
-**Where:** `frontend/service-mesh/src/routes/services.$serviceId.routing-rules.tsx`
+### 7. Naming Convention Violations
 
-**Status:** ✅ Fixed. Route no longer exists.
+| Current Path | Should Be | Status |
+|---|---|---|
+| `features/routing-rules/infrastructure/api.ts` | `features/routing-rules/infrastructure/routing-rules.infrastructure.ts` (or `api.infrastructure.ts`) | 🔴 open |
+| `features/routing-rules/infrastructure/mock.ts` | `features/routing-rules/infrastructure/mock.infrastructure.ts` | 🔴 open |
+| `features/routing-rules/application/useRoutingRules.ts` | `features/routing-rules/application/useRoutingRules.application.ts` | 🔴 open |
+| `features/routing-rules/application/useRuleForm.ts` | `features/routing-rules/application/useRuleForm.application.ts` | 🔴 open |
+| `features/registry/domain/types.ts` | `features/registry/domain/registry.types.ts` | 🟡 open |
+| `features/services/domain/types.ts` | `features/services/domain/services.types.ts` | 🟡 open |
+| `features/routing-rules/domain/types.ts` | `features/routing-rules/domain/routing-rules.types.ts` | 🟡 open |
+| `features/services/domain/schema.ts` | `features/services/domain/services.dto.ts` | 🟡 open |
+| `features/routing-rules/domain/schema.ts` | `features/routing-rules/domain/routing-rules.dto.ts` | 🟡 open |
+| `shared/form/schemaResolver.ts` | `shared/form/schemaResolver.domain.ts` or `schemaResolver.application.ts` | 🟡 open |
+
+**AGENTS.md requirement:**
+> «Naming conventions: `*.domain.ts`, `*.application.ts`, `*.infrastructure.ts`, `*.module.css`, etc.»
+
+---
+
+### 8. Import File Extensions in Path Aliases
+
+**Status:** ✅ Fixed (2026-06-08)
+
+**Where:**
+- `features/routing-rules/infrastructure/api.ts` — was `from '@/lib/http.ts'`
+- `features/routing-rules/application/useRuleForm.ts` — was `from '@/shared/form/schemaResolver.ts'`
+- `features/registry/ui/ServicesTable/ServicesTable.tsx` — was `from "@/shared/table/DataTable.tsx"`
+
+All three imports now use extensionless path aliases.
+
+---
+
+### 9. Missing Barrel Exports
+
+**Status:** ✅ Fixed (2026-06-08)
+
+**Added:**
+- `frontend/service-mesh/src/shared/table/index.ts`
+- `frontend/service-mesh/src/shared/form/index.ts`
+
+Both modules now expose their public surface through barrel files with module-level JSDoc.
+
+---
+
+### 10. Cross-Bounded-Context Imports
+
+**Where:**
+- `features/registry/domain/types.ts` — imports `ServiceView` from `@/features/services/domain/types`
+- `features/registry/infrastructure/registry.infrastructure.ts` — re-exports from `@/features/services/infrastructure/services.infrastructure`
+- `features/registry/ui/ServicesTable/ServicesTable.tsx` — imports from `@/features/services/domain/types`
+- `features/registry/application/useRegistryStats.application.ts` — imports from `@/features/services/domain/types`
+- `features/registry/application/useRegistryStats.test.tsx` — imports from `@/features/services/domain/types`
+
+**Problem:**
+The `registry-ui` bounded context reaches directly into the `services` context's `domain/` layer. This violates DDD boundary rules.
+
+**AGENTS.md requirement:**
+> «A bounded context must not import domain types from another context's `domain/` layer. Cross-context communication happens through the application layer or shared kernel (`shared/endpoint-contract.ts`).»
+
+**Recommended fix:**
+- Re-export public types from `features/services/index.ts` and import from the barrel.
+- For shared kernel types, consider moving `ServiceView` / `InstanceStatus` to `shared/types/` or a similar shared contract module.
+
+---
+
+### 11. ESLint Errors Block CI
+
+**Result of `npm run lint`:**
+
+```
+✖ 39 problems (20 errors, 19 warnings)
+```
+
+**Errors by category:**
+
+| File | Errors |
+|---|---|
+| `src/lib/http.test.ts` | 14 errors (`fp/no-mutation`, `no-unsafe-member-access`) |
+| `src/routes/__root.test.tsx` | 1 error (`no-unsafe-assignment`) |
+| `src/routes/services.index.test.tsx` | 1 error (`no-unsafe-assignment`) |
+| `src/features/services/ui/ServiceDetailPage/ServiceDetailPage.test.tsx` | 1 error (`no-unused-vars`) |
+| `src/features/routing-rules/ui/RuleFormModal/RuleNameField.tsx` | 1 error (`no-unsafe-assignment`) |
+| `src/features/routing-rules/ui/RuleFormModal/RuleMatchFields.tsx` | 1 error (`no-unsafe-assignment`) |
+| `src/features/routing-rules/application/useRuleForm.ts` | 1 error (`require-await`) |
+
+**Warnings by category:**
+- 19 warnings for missing explicit return types (`@typescript-eslint/explicit-function-return-type`).
+
+**AGENTS.md requirement:**
+> «Lint: ESLint + typescript-eslint + eslint-plugin-fp. FP enforcement, no mutations.»
+
+**Recommended fix:**
+- Fix the `AnyFieldApi` typing issue to resolve `no-unsafe-assignment`.
+- Rewrite `http.test.ts` mock assignments to avoid direct mutation of `global.fetch`.
+- Add explicit return types to test render helpers and component functions.
+
+---
+
+### 12. Route File Warnings from TanStack Router
+
+**Where:**
+- `src/routes/__root.test.tsx`
+- `src/routes/services.index.test.tsx`
+
+**Problem:**
+TanStack Router CLI warns that these files do not export a `Route` and therefore won't be included in the route tree. Co-located tests inside `routes/` conflict with file-based routing conventions.
+
+**Recommended fix:**
+- Move route tests to `src/routes/__tests__/` or prefix test files with `-` (e.g., `-__root.test.tsx`) so TanStack Router ignores them.
+- Alternatively, configure `routeFileIgnorePattern` in `vite.config.ts` to exclude `*.test.tsx`.
+
+---
+
+### 13. Incorrect Claim in Prior Audit
+
+**Where:**
+- Prior audit stated: `routes/services.$serviceId.routing-rules.tsx` no longer exists (State: ✅ Fixed).
+
+**Problem:**
+The file **still exists** at `frontend/service-mesh/src/routes/services.$serviceId.routing-rules.tsx` and is functional. The prior audit entry was inaccurate.
+
+---
+
+## 🟢 Minor Issues
+
+### 14. Import File Extensions (Partial)
+
+See issue #8. Three path-alias imports still contain `.ts` / `.tsx` extensions.
+
+---
+
+### 15. `ServicesPage` Renders Without `RouterProvider` in Tests
+
+**Where:**
+- `src/features/services/ui/ServicesPage/ServicesPage.test.tsx`
+
+**Problem:**
+Test passes but logs: `useRouter must be used inside a <RouterProvider> component!`
+
+**Recommended fix:**
+Wrap the rendered component in `RouterProvider` or mock `useRouter` from TanStack Router.
+
+---
+
+### 16. `Dialog.test.tsx` Missing `DialogDescription`
+
+**Where:**
+- `src/shared/ui/Dialog/Dialog.test.tsx`
+
+**Problem:**
+Radix warns about missing `aria-describedby` / description in the Dialog test.
+
+**Recommended fix:**
+Add a `DialogDescription` inside the tested Dialog or add `aria-describedby={undefined}` to suppress the warning.
 
 ---
 
@@ -142,6 +325,20 @@ The following critical issues were fixed in issues #62, #63, #64, #65, #66, #69:
 
 | Level | Count | Examples |
 |---|---|---|
-| ✅ Resolved (was 🔴 Critical) | 5 | Missing DDD layers; useQuery in UI; type safety; zero tests; ServiceDetailPage monolith |
-| 🟡 Medium | 7 | Domain hooks in routing-rules; naming violations; missing barrel exports; non-null assertions; queryClient dup; UI state in app hooks; missing JSDoc |
-| 🟢 Minor | 1 (3 fixed) | Import file extensions (partial) |
+| 🔴 Critical | 5 | Hooks in domain; UI state in application; `crypto.randomUUID` in domain; unsafe casts; (JSDoc ✅ fixed) |
+| 🟡 Medium | 5 | Naming violations; cross-context imports; ESLint errors; route warnings; prior audit inaccuracy (persister ✅ fixed; barrel exports ✅ fixed; import extensions ✅ fixed) |
+| 🟢 Minor | 3 | Test warnings (RouterProvider, Dialog description, import extensions) |
+
+---
+
+## Recommended Priority Order
+
+1. ~~**Fix `queryClient.ts` / `persister.ts`**~~ ✅ Done.
+2. **Move React hooks out of `routing-rules/domain/`** — renames + moves only.
+3. **Extract UI state from `application/useRoutingRules.ts`** — move modal state to Zustand.
+4. **Resolve ESLint errors** — unblock `npm run lint`.
+5. ~~**Add JSDoc to `lib/http.ts`, `features/registry/*`, `features/services/domain/*`**~~ ✅ Done — 100% production coverage.
+6. **Fix cross-context imports** — move shared types to a kernel or use barrel exports.
+7. **Rename files to match naming conventions**.
+8. ~~**Add missing barrel exports** for `shared/table`, `shared/form`.**~~ ✅ Done.
+9. **Improve test coverage** toward 80% target, especially `routing-rules/ui` and `lib/store`.

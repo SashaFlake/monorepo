@@ -1,5 +1,10 @@
 import { Schema } from 'effect'
 
+/**
+ * Effect schema for {@link InstanceView}.
+ *
+ * Validates the flat instance view returned by the registry backend.
+ */
 export const InstanceViewSchema = Schema.Struct({
   id:              Schema.String,
   serviceId:       Schema.String,
@@ -18,6 +23,9 @@ export const InstanceViewSchema = Schema.Struct({
   status: Schema.Literal('passing', 'warning', 'critical'),
 })
 
+/**
+ * Effect schema for {@link ServiceView}.
+ */
 export const ServiceViewSchema = Schema.Struct({
   id:           Schema.String,
   name:         Schema.String,
@@ -27,6 +35,12 @@ export const ServiceViewSchema = Schema.Struct({
   worstStatus:  Schema.Literal('passing', 'warning', 'critical'),
 })
 
+/**
+ * Effect schema for {@link ServiceVersionsResponse}.
+ *
+ * Note: `manifest` is typed as `Schema.Unknown` because the mock data-plane
+ * may evolve its manifest shape independently of the UI schema.
+ */
 export const ServiceVersionsResponseSchema = Schema.Struct({
   serviceId:   Schema.String,
   serviceName: Schema.String,
@@ -38,6 +52,12 @@ export const ServiceVersionsResponseSchema = Schema.Struct({
   })),
 })
 
+/**
+ * Effect schema for a single OpenAPI operation.
+ *
+ * Captures the fields the UI renders (summary, tags, deprecation); unknown
+ * fields are ignored.
+ */
 export const OpenApiOperationSchema = Schema.Struct({
   summary:     Schema.optional(Schema.String),
   description: Schema.optional(Schema.String),
@@ -46,6 +66,12 @@ export const OpenApiOperationSchema = Schema.Struct({
   deprecated:  Schema.optional(Schema.Boolean),
 })
 
+/**
+ * Effect schema for {@link OpenApiDoc}.
+ *
+ * Keeps most fields optional because the document is produced by arbitrary
+ * services and may be partial.
+ */
 export const OpenApiDocSchema = Schema.Struct({
   openapi: Schema.optional(Schema.String),
   info: Schema.optional(Schema.Struct({

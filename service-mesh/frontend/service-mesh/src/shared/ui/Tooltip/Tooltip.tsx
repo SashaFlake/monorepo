@@ -27,18 +27,28 @@ import s from './Tooltip.module.css'
  * avoid an extra <span> in the DOM.
  */
 
-// ─── Provider ───────────────────────────────────────────────────────────────
-// Mount once at root — wraps the whole app so all tooltips share the same
-// delay. Already included in this file for convenience if you want to add it
-// to RootLayout, otherwise each <Tooltip> creates its own provider which is
-// also fine.
-
+/**
+ * Props for {@link TooltipProvider}.
+ */
 export type TooltipProviderProps = {
   /** Delay before tooltip shows on hover (ms). Default 400. */
   delayDuration?: number
+
+  /** Children that may contain {@link Tooltip} components. */
   children: ReactNode
 }
 
+/**
+ * Provider that configures global tooltip delay.
+ *
+ * Mount once near the application root so all tooltips share the same
+ * timing. Nested providers are also supported.
+ *
+ * @param delayDuration - Hover delay in milliseconds
+ * @param children      - Child tree
+ * @returns The tooltip provider element
+ * @sideEffects none
+ */
 export function TooltipProvider({ delayDuration = 400, children }: TooltipProviderProps): ReactElement {
   return (
     <RadixTooltip.Provider delayDuration={delayDuration}>
@@ -47,22 +57,41 @@ export function TooltipProvider({ delayDuration = 400, children }: TooltipProvid
   )
 }
 
-// ─── Tooltip ────────────────────────────────────────────────────────────────
-
+/**
+ * Props for {@link Tooltip}.
+ */
 export type TooltipProps = {
   /** Tooltip text or rich content. */
   content: ReactNode
+
   /** The element that triggers the tooltip. */
   children: ReactNode
+
+  /** Preferred placement relative to the trigger. */
   side?: 'top' | 'bottom' | 'left' | 'right'
+
   /** Offset from the trigger in px. Default 6. */
   sideOffset?: number
+
   /** Override delay for this specific tooltip. */
   delayDuration?: number
+
   /** Disable the tooltip without removing it from the tree. */
   disabled?: boolean
 }
 
+/**
+ * Tooltip that appears on hover or focus of its child trigger.
+ *
+ * @param content       - Tooltip text or rich content
+ * @param children      - Trigger element
+ * @param side          - Preferred placement
+ * @param sideOffset    - Offset from trigger in pixels
+ * @param delayDuration - Optional per-tooltip delay override
+ * @param disabled      - Whether to suppress the tooltip
+ * @returns The tooltip element (or just children when disabled)
+ * @sideEffects Renders a Radix tooltip portal when not disabled.
+ */
 export function Tooltip({
   content,
   children,
@@ -72,15 +101,12 @@ export function Tooltip({
   disabled = false,
 }: TooltipProps): ReactElement {
   if (disabled) {
-    // Render children as-is when tooltip is disabled
     return <>{children}</>
   }
 
   return (
     <RadixTooltip.Root delayDuration={delayDuration}>
       <RadixTooltip.Trigger asChild>
-        {/* asChild passes the ref + event handlers to the child DOM element
-            without wrapping it in an extra element */}
         <span style={{ display: 'contents' }}>{children}</span>
       </RadixTooltip.Trigger>
 

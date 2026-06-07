@@ -4,11 +4,29 @@ import type { RegistryStats } from '../../domain/types'
 import s from './StatsGrid.module.css'
 import { ReactElement } from 'react'
 
+/**
+ * Props for {@link StatsGrid}.
+ */
 interface StatsGridProps {
+  /** Aggregated registry statistics. */
   stats: RegistryStats
+
+  /** When `true`, numeric values are replaced with an em dash. */
   isLoading: boolean
 }
 
+/**
+ * Renders a 4-column grid of registry statistics: services, instances,
+ * healthy instances, and degraded/critical instances.
+ *
+ * Each card includes a tooltip explaining the metric and adapts its colour
+ * when critical instances are present.
+ *
+ * @param stats     - Aggregated statistics from the registry
+ * @param isLoading - Whether the underlying query is still loading
+ * @returns The stats grid element
+ * @sideEffects none
+ */
 export function StatsGrid({ stats, isLoading }: StatsGridProps): ReactElement {
   const val = (n: number): number | string => isLoading ? '—' : n
 

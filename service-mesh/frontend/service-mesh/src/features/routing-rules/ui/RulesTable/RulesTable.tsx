@@ -8,15 +8,38 @@ import { DeleteRuleDialog } from '../DeleteRuleDialog/DeleteRuleDialog'
 import { DataTable } from '@/shared/table/DataTable'
 import styles from './RulesTable.module.css'
 
+/**
+ * Props for {@link RulesTable}.
+ */
 type Props = {
+  /** Routing rules to display. */
   rules: RoutingRule[]
+
+  /** Called when the user chooses to edit a rule. */
   onEdit: (rule: RoutingRule) => void
+
+  /** Called when the user confirms deletion of a rule (by ID). */
   onDelete: (id: string) => void
+
+  /** Whether a delete mutation is in flight. */
   isPending?: boolean
 }
 
 const col = createColumnHelper<RoutingRule>()
 
+/**
+ * Table of routing rules with name, priority, match, destinations, and actions.
+ *
+ * Includes an inline confirmation dialog for deletion so the user must
+ * confirm before `onDelete` is invoked.
+ *
+ * @param rules     - Routing rules to render
+ * @param onEdit    - Edit handler
+ * @param onDelete  - Delete handler
+ * @param isPending - Optional pending flag for the delete mutation
+ * @returns The rules table element
+ * @sideEffects Tracks the ID of the rule pending deletion in local React state.
+ */
 export function RulesTable({ rules, onEdit, onDelete, isPending = false }: Props): ReactElement {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const confirmRule = rules.find(r => r.id === confirmId)

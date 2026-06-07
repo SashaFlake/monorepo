@@ -3,11 +3,28 @@ import type { AnyFieldApi } from '@tanstack/react-form'
 import type { RuleFormValues } from '../../domain/types'
 import s from './RuleFormFields.module.css'
 
+/**
+ * Props for {@link RuleMatchFields}.
+ */
 interface RuleMatchFieldsProps {
+  /** TanStack Form field API for `priority`. */
   priorityField:   AnyFieldApi
+
+  /** TanStack Form field API for `match`. */
   pathPrefixField: AnyFieldApi
 }
 
+/**
+ * Form fields for rule priority and path-prefix matcher.
+ *
+ * Renders two inputs side by side and keeps the `match` object immutable
+ * by spreading the existing value when the path prefix changes.
+ *
+ * @param priorityField   - Priority field API
+ * @param pathPrefixField - Match/pathPrefix field API
+ * @returns The match fields element
+ * @sideEffects none
+ */
 export function RuleMatchFields({ priorityField, pathPrefixField }: RuleMatchFieldsProps): ReactElement {
   const priorityError = priorityField.state.meta.errors[0]
   const matchValue = pathPrefixField.state.value as RuleFormValues['match']

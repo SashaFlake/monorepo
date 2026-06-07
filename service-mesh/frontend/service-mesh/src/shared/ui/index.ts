@@ -1,6 +1,14 @@
 // Public barrel for shared UI primitives.
 // Prefer importing from '@/shared/ui' over deep paths.
 
+/**
+ * Public surface of the shared UI design system.
+ *
+ * All primitives are headless or lightly-styled Radix wrappers plus a few
+ * custom components (Skeleton, ErrorCard). Import from here to stay
+ * decoupled from the internal file layout.
+ */
+
 export { Button } from './Button'
 export { Card, CardHeader, CardTitle, CardValue } from './Card'
 export { Badge } from './Badge'

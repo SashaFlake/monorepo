@@ -1,7 +1,22 @@
-# shared/table
+# `shared/table`
 
-Reserved for the data-table layer. Will host:
+Reusable data table built on `@tanstack/react-table`.
 
-- `DataTable.tsx` — thin wrapper over TanStack Table that keeps existing CSS Modules
+## Exports
 
-Populated in PR 4 (see `docs/ui-refresh-plan.md`).
+- `DataTable<TData>` — generic table with column definitions, header rows, body rows, and optional row click handling.
+
+## Usage
+
+```tsx
+import { DataTable } from '@/shared/table/DataTable'
+import { createColumnHelper } from '@tanstack/react-table'
+
+const col = createColumnHelper<MyRow>()
+const columns = [
+  col.accessor('name', { header: 'Name' }),
+  col.display({ id: 'actions', header: '', cell: ({ row }) => <button>Edit</button> }),
+]
+
+<DataTable data={rows} columns={columns} onRowClick={(row) => console.log(row)} />
+```

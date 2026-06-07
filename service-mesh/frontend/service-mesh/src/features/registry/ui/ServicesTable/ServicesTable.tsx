@@ -3,8 +3,13 @@ import type {ServiceView, InstanceStatus} from '@/features/services/domain/types
 import s from './ServicesTable.module.css'
 import {ReactElement} from "react";
 import {createColumnHelper} from "@tanstack/react-table";
-import {DataTable} from "@/shared/table/DataTable.tsx";
+import {DataTable} from "@/shared/table/DataTable";
 
+/**
+ * Maps an instance status to the Badge variant used by the design system.
+ *
+ * @sideEffects none
+ */
 const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = {
     passing: 'success',
     warning: 'warning',
@@ -12,6 +17,14 @@ const STATUS_VARIANT: Record<InstanceStatus, 'success' | 'warning' | 'error'> = 
 }
 
 const col = createColumnHelper<ServiceView>()
+
+/**
+ * Column definitions for the services table.
+ *
+ * Renders the service name, labels, instance count, and worst-case status.
+ *
+ * @sideEffects none
+ */
 const columns = [
     col.display({
         id: 'name',
@@ -46,10 +59,26 @@ const columns = [
         ),
     }),
 ]
+
 type Props = {
+  /** Services to render in the table. */
   services: ServiceView[]
+
+  /** Called when the user clicks a table row. */
   onRowClick: (svc: ServiceView) => void
 }
+
+/**
+ * Table of registered services with name, labels, instance count, and status.
+ *
+ * Row clicks are forwarded to `onRowClick` so the parent can handle navigation
+ * or selection without the table knowing about the router.
+ *
+ * @param services   - Array of services to display
+ * @param onRowClick - Row click handler
+ * @returns The rendered table element
+ * @sideEffects none
+ */
 export function ServicesTable({services, onRowClick}: Props): ReactElement {
   return <DataTable data={services} columns={columns} onRowClick={onRowClick} />
 }

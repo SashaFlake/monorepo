@@ -6,8 +6,25 @@ import { RuleFormModal } from './RuleFormModal/RuleFormModal'
 import { DeleteRuleDialog } from './DeleteRuleDialog/DeleteRuleDialog'
 import s from './RoutingRulesPage.module.css'
 
-type Props = { serviceId: string }
+/**
+ * Props for {@link RoutingRulesPage}.
+ */
+type Props = {
+  /** Identifier of the service whose routing rules are displayed. */
+  serviceId: string
+}
 
+/**
+ * Page component for managing routing rules of a single service.
+ *
+ * Renders a toolbar, a table of rules, and conditional create/edit/delete
+ * modals driven by {@link useRoutingRules}.
+ *
+ * @param serviceId - Service identifier
+ * @returns The routing rules page element
+ * @sideEffects Calls {@link useRoutingRules} (TanStack Query subscription
+ *              and local modal state mutations).
+ */
 export function RoutingRulesPage({ serviceId }: Props): ReactElement {
   const {
     rules, isLoading, isError,

@@ -3,6 +3,16 @@ import type { ServiceVersion } from '../../domain/types'
 import { SpecCard, KV } from './SharedComponents'
 import s from './ServiceDetailPage.module.css'
 
+/**
+ * Renders the mock manifest for a service version.
+ *
+ * Displays metadata (API version, kind, generation time) and a grid of
+ * specification cards covering exposure, ports, routing, and health.
+ *
+ * @param version - Service version whose manifest should be rendered
+ * @returns The manifest panel element
+ * @sideEffects none
+ */
 export function ManifestPanel({ version }: { version: ServiceVersion }): ReactElement {
   const m = version.manifest
   return (
