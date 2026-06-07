@@ -42,7 +42,6 @@ export const DEFAULT_IGNORE_PATTERNS = [
   '.env*',
   '*.local',
   '**/.*/**',
-  '**/rag-mcp-server*/**',
 ];
 
 export const ALLOWED_EXTS = [
