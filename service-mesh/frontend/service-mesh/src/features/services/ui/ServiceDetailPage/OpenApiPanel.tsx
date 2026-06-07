@@ -1,46 +1,14 @@
 import * as React from 'react'
 import { Schema } from 'effect'
 import { useServiceOpenApi } from '../../application/useServiceOpenApi.application'
+import { OpenApiDocSchema, OpenApiOperationSchema } from '../../domain/schema'
 import s from './ServiceDetailPage.module.css'
-
-const HTTP_METHOD_COLOR: Record<string, string> = {
-  get:     'var(--color-success)',
-  post:    'var(--color-primary)',
-  put:     'var(--color-warning)',
-  patch:   'var(--color-orange)',
-  delete:  'var(--color-error)',
-  head:    'var(--color-text-muted)',
-  options: 'var(--color-text-muted)',
-}
-
-const OpenApiOperationSchema = Schema.Struct({
-  summary: Schema.optional(Schema.String),
-  operationId: Schema.optional(Schema.String),
-  tags: Schema.optional(Schema.Array(Schema.String)),
-  deprecated: Schema.optional(Schema.Boolean),
-})
 
 type OpenApiOperation = Schema.Schema.Type<typeof OpenApiOperationSchema>
 
 type OpenApiRoute = OpenApiOperation & { method: string; path: string }
 
 const isOpenApiOperation = Schema.is(OpenApiOperationSchema)
-
-const OpenApiDocSchema = Schema.Struct({
-  openapi: Schema.optional(Schema.String),
-  info: Schema.optional(Schema.Struct({
-    title: Schema.optional(Schema.String),
-    version: Schema.optional(Schema.String),
-    description: Schema.optional(Schema.String),
-  })),
-  paths: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Record({
-      key: Schema.String,
-      value: OpenApiOperationSchema,
-    }),
-  })),
-})
 
 export function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): React.ReactElement {
   const { data, isLoading, isError, error } = useServiceOpenApi(serviceId, version)

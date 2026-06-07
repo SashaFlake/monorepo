@@ -3,7 +3,7 @@
 // Типы домена — в ../domain/types.ts
 // HTTP-helper — из lib/http.ts
 
-import { apiFetch, endpoint } from '@/lib/http'
+import { apiFetch, apiFetchVoid, endpoint } from '@/lib/http'
 import type {
   ServiceView,
   ServiceVersionsResponse,
@@ -11,6 +11,12 @@ import type {
   OpenApiDoc,
   Labels,
 } from '../domain/types'
+import {
+  ServiceViewSchema,
+  ServiceVersionsResponseSchema,
+  InstanceViewSchema,
+  OpenApiDocSchema,
+} from '../domain/schema'
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 
@@ -27,27 +33,27 @@ export const servicesKeys = {
 
 export const servicesApi = {
   listServices: (): Promise<ServiceView[]> =>
-    apiFetch<ServiceView[]>(endpoint('/services')),
+    apiFetch(endpoint('/services'), Schema.Array(ServiceViewSchema)),
 
   getService: (id: string): Promise<ServiceView> =>
-    apiFetch<ServiceView>(endpoint(`/services/${id}`)),
+    apiFetch(endpoint(`/services/${id}`), ServiceViewSchema),
 
   createService: (name: string, labels?: Labels): Promise<ServiceView> =>
-    apiFetch<ServiceView>(endpoint('/services'), {
+    apiFetch(endpoint('/services'), ServiceViewSchema, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, labels }),
     }),
 
   deleteService: (id: string): Promise<void> =>
-    apiFetch<void>(endpoint(`/services/${id}`), { method: 'DELETE' }),
+    apiFetchVoid(endpoint(`/services/${id}`), { method: 'DELETE' }),
 
   getServiceVersions: (id: string): Promise<ServiceVersionsResponse> =>
-    apiFetch<ServiceVersionsResponse>(endpoint(`/services/${id}/versions`)),
+    apiFetch(endpoint(`/services/${id}/versions`), ServiceVersionsResponseSchema),
 
   getServiceOpenApi: (id: string, version?: string): Promise<OpenApiDoc> => {
     const qs = version ? `?version=${encodeURIComponent(version)}` : ''
-    return apiFetch<OpenApiDoc>(endpoint(`/services/${id}/openapi${qs}`))
+    return apiFetch(endpoint(`/services/${id}/openapi${qs}`), OpenApiDocSchema)
   },
 
   registerInstance: (input: {
@@ -57,12 +63,12 @@ export const servicesApi = {
     healthPath?: string
     metadata?:   Record<string, string>
   }): Promise<InstanceView> =>
-    apiFetch<InstanceView>(endpoint('/instances'), {
+    apiFetch(endpoint('/instances'), InstanceViewSchema, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     }),
 
   deregisterInstance: (id: string): Promise<void> =>
-    apiFetch<void>(endpoint(`/instances/${id}`), { method: 'DELETE' }),
+    apiFetchVoid(endpoint(`/instances/${id}`), { method: 'DELETE' }),
 }
