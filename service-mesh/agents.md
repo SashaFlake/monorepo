@@ -625,6 +625,21 @@ export const deriveStatus = (
 
 ---
 
+## Pull Request & Commit Guidelines
+
+### Size Limit
+
+**A single commit or pull request must not exceed 300 lines** (added + deleted).
+
+**Why:**
+- Keeps code review fast and thorough.
+- Reduces the risk of shipping hidden bugs.
+- Makes rollbacks and bisects easier.
+
+**If a task exceeds 300 lines:** split it into smaller, logically independent commits or stacked PRs. Each chunk should compile and pass tests on its own.
+
+---
+
 ## Environment Setup
 
 ### Prerequisites
