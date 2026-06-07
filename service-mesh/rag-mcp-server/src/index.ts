@@ -126,118 +126,118 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   return stats.withStats(toolName, args, async () => {
     if (toolName === 'index_project') {
-    const projectRoot = args.path
-      ? path.resolve(String(args.path))
-      : findProjectRoot(process.cwd());
-    const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
-    const result = await indexer.indexProject(
-      args.pattern ? String(args.pattern) : '**/*',
-    );
-    saveCache();
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Индексация завершена:\n- Новых файлов: ${result.indexed}\n- Чанков: ${result.chunks}\n- Пропущено: ${result.skipped}\n- Корень: ${projectRoot}`,
-        },
-      ],
-    };
-  }
-
-  if (toolName === 'index_file') {
-    if (!args.path) {
-      throw new Error('Параметр path обязателен');
-    }
-    const projectRoot = findProjectRoot(process.cwd());
-    const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
-    const chunks = await indexer.indexFile(String(args.path));
-    saveCache();
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Файл ${String(args.path)} проиндексирован (${chunks} чанков).`,
-        },
-      ],
-    };
-  }
-
-  if (toolName === 'search_code') {
-    if (!args.query) {
-      throw new Error('Параметр query обязателен');
-    }
-    const engine = new SearchEngine(qdrant, ollama, cache, events);
-    const results = await engine.search(
-      String(args.query),
-      Number(args.limit) || 5,
-      args.role ? String(args.role) : undefined,
-      args.path ? String(args.path) : undefined,
-    );
-
-    if (results.length === 0) {
+      const projectRoot = args.path
+        ? path.resolve(String(args.path))
+        : findProjectRoot(process.cwd());
+      const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
+      const result = await indexer.indexProject(
+        args.pattern ? String(args.pattern) : '**/*',
+      );
+      saveCache();
       return {
         content: [
           {
             type: 'text',
-            text: 'Ничего не найдено. Сначала проиндексируй проект через index_project.',
+            text: `Индексация завершена:\n- Новых файлов: ${result.indexed}\n- Чанков: ${result.chunks}\n- Пропущено: ${result.skipped}\n- Корень: ${projectRoot}`,
           },
         ],
       };
     }
 
-    const lines: string[] = [];
-    for (let i = 0; i < results.length; i++) {
-      const r = results[i];
-      lines.push(
-        `--- Результат ${i + 1} (score: ${(r.score * 100).toFixed(1)}%) ---`,
+    if (toolName === 'index_file') {
+      if (!args.path) {
+        throw new Error('Параметр path обязателен');
+      }
+      const projectRoot = findProjectRoot(process.cwd());
+      const indexer = new Indexer(projectRoot, ollama, qdrant, cache, events);
+      const chunks = await indexer.indexFile(String(args.path));
+      saveCache();
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Файл ${String(args.path)} проиндексирован (${chunks} чанков).`,
+          },
+        ],
+      };
+    }
+
+    if (toolName === 'search_code') {
+      if (!args.query) {
+        throw new Error('Параметр query обязателен');
+      }
+      const engine = new SearchEngine(qdrant, ollama, cache, events);
+      const results = await engine.search(
+        String(args.query),
+        Number(args.limit) || 5,
+        args.role ? String(args.role) : undefined,
+        args.path ? String(args.path) : undefined,
       );
-      lines.push(`Файл: ${r.point.payload.source} [${r.point.payload.role}]`);
-      lines.push(`Строки: ${r.point.payload.lineStart}-${r.point.payload.lineEnd}`);
-      lines.push(`Имя: ${r.point.payload.name}`);
-      lines.push(`Тип: ${r.point.payload.type}`);
-      const text =
-        r.point.payload.text.length > 1500
-          ? r.point.payload.text.slice(0, 1500) + '\n...'
-          : r.point.payload.text;
-      lines.push('```' + '\n' + text + '\n' + '```');
+
+      if (results.length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Ничего не найдено. Сначала проиндексируй проект через index_project.',
+            },
+          ],
+        };
+      }
+
+      const lines: string[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        lines.push(
+          `--- Результат ${i + 1} (score: ${(r.score * 100).toFixed(1)}%) ---`,
+        );
+        lines.push(`Файл: ${r.point.payload.source} [${r.point.payload.role}]`);
+        lines.push(`Строки: ${r.point.payload.lineStart}-${r.point.payload.lineEnd}`);
+        lines.push(`Имя: ${r.point.payload.name}`);
+        lines.push(`Тип: ${r.point.payload.type}`);
+        const text =
+          r.point.payload.text.length > 1500
+            ? r.point.payload.text.slice(0, 1500) + '\n...'
+            : r.point.payload.text;
+        lines.push('```' + '\n' + text + '\n' + '```');
+      }
+
+      return {
+        content: [{ type: 'text', text: lines.join('\n') }],
+      };
     }
 
-    return {
-      content: [{ type: 'text', text: lines.join('\n') }],
-    };
-  }
+    if (toolName === 'get_stats') {
+      const count = await qdrant.count();
+      const all = await qdrant.scrollAll();
+      const files = new Set(all.map((p) => p.payload.source));
+      const roles = new Map<string, number>();
+      for (const p of all) {
+        roles.set(p.payload.role, (roles.get(p.payload.role) || 0) + 1);
+      }
 
-  if (toolName === 'get_stats') {
-    const count = await qdrant.count();
-    const all = await qdrant.scrollAll();
-    const files = new Set(all.map((p) => p.payload.source));
-    const roles = new Map<string, number>();
-    for (const p of all) {
-      roles.set(p.payload.role, (roles.get(p.payload.role) || 0) + 1);
+      const roleLines: string[] = [];
+      for (const [role, c] of roles) {
+        roleLines.push(`  ${role}: ${c}`);
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: [
+              'Статистика индекса:',
+              `- Точек: ${count}`,
+              `- Уникальных файлов: ${files.size}`,
+              '- По ролям:',
+              ...roleLines,
+              `- Кэш embeddings: ${cache.size}`,
+              `- База: ${DB_PATH}`,
+            ].join('\n'),
+          },
+        ],
+      };
     }
-
-    const roleLines: string[] = [];
-    for (const [role, c] of roles) {
-      roleLines.push(`  ${role}: ${c}`);
-    }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: [
-            'Статистика индекса:',
-            `- Точек: ${count}`,
-            `- Уникальных файлов: ${files.size}`,
-            '- По ролям:',
-            ...roleLines,
-            `- Кэш embeddings: ${cache.size}`,
-            `- База: ${DB_PATH}`,
-          ].join('\n'),
-        },
-      ],
-    };
-  }
 
     throw new Error(`Неизвестный инструмент: ${toolName}`);
   });
