@@ -19,7 +19,7 @@ export function ServicesPage(): ReactElement {
         {isError && <ErrorCard message="Cannot reach registry backend" />}
 
         {isLoading && (
-          <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <Card className={s.cardFlush}>
             <table className={s.table}>
               <thead className={s.thead}>
                 <tr>
@@ -48,7 +48,7 @@ export function ServicesPage(): ReactElement {
         )}
 
         {!isLoading && !isError && services.length > 0 && (
-          <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <Card className={s.cardFlush}>
             <ServicesTable
               services={services}
               onRowClick={(svc) => {

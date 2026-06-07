@@ -91,3 +91,8 @@
 .loadingCard {
   color: var(--color-text-faint);
 }
+
+.cardFlush {
+  padding: 0;
+  overflow: hidden;
+}
