@@ -6,6 +6,16 @@ import { ServicesTable } from '@/features/registry'
 import { useServices } from '../../application/useServices.application'
 import s from './ServicesPage.module.css'
 
+/**
+ * Page listing all registered services in the mesh.
+ *
+ * Shows a skeleton table while loading, an error card on failure, and a
+ * clickable table that navigates to the selected service's detail page.
+ *
+ * @returns The services page element
+ * @sideEffects Calls {@link useServices} (TanStack Query subscription) and
+ *              {@link useNavigate} (router navigation on row click).
+ */
 export function ServicesPage(): ReactElement {
   const navigate = useNavigate()
   const { data, isLoading, isError } = useServices()

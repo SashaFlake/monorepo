@@ -8,12 +8,35 @@ import {
 import type {ReactElement} from 'react'
 import s from './DataTable.module.css'
 
+/**
+ * Props for {@link DataTable}.
+ *
+ * @template TData - Row data type, must extend TanStack Table's `RowData`
+ */
 type DataTableProps<TData extends RowData> = {
-    columns: ColumnDef<TData>[]
-    data: TData[]
-    onRowClick?: (row: TData) => void
+  /** Column definitions. */
+  columns: ColumnDef<TData>[]
+
+  /** Data rows to render. */
+  data: TData[]
+
+  /** Optional click handler invoked with the original row data. */
+  onRowClick?: (row: TData) => void
 }
 
+/**
+ * Reusable table built on `@tanstack/react-table`.
+ *
+ * Renders a simple table with headers and body rows. When `onRowClick` is
+ * provided, rows receive a clickable style and cursor.
+ *
+ * @template TData - Row data type
+ * @param columns     - Column definitions
+ * @param data        - Row data
+ * @param onRowClick  - Optional row click handler
+ * @returns The table element
+ * @sideEffects none
+ */
 export const DataTable = <TData extends RowData>({
                                                      data,
                                                      columns,

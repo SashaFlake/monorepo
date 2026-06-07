@@ -2,10 +2,24 @@ import type { ReactElement } from 'react'
 import type { AnyFieldApi } from '@tanstack/react-form'
 import s from './RuleFormFields.module.css'
 
+/**
+ * Props for {@link RuleNameField}.
+ */
 interface RuleNameFieldProps {
+  /** TanStack Form field API for `name`. */
   field: AnyFieldApi
 }
 
+/**
+ * Single-line text input for the routing rule name.
+ *
+ * Displays the first validation error when the field has been touched or
+ * the form has been submitted.
+ *
+ * @param field - Name field API
+ * @returns The rule name field element
+ * @sideEffects none
+ */
 export function RuleNameField({ field }: RuleNameFieldProps): ReactElement {
   const error = field.state.meta.errors[0]
   return (

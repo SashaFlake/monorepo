@@ -3,6 +3,14 @@ import { registryApi, registryKeys } from '../infrastructure/registry.infrastruc
 import type { ServiceView } from '@/features/services/domain/types'
 import type { RegistryStats, UseRegistryStatsResult } from '../domain/types'
 
+/**
+ * Zero-valued {@link RegistryStats} used as a safe fallback while loading.
+ *
+ * Keeps the UI stable and avoids conditional rendering gymnastics during
+ * the initial fetch.
+ *
+ * @sideEffects none
+ */
 const EMPTY_STATS: RegistryStats = {
   totalServices:     0,
   totalInstances:    0,
@@ -11,6 +19,16 @@ const EMPTY_STATS: RegistryStats = {
   criticalInstances: 0,
 }
 
+/**
+ * Derives aggregate registry statistics from a list of services.
+ *
+ * Flattens instances across services and counts them by status.
+ * Services without instances contribute only to `totalServices`.
+ *
+ * @param services - Array of services returned by the backend
+ * @returns Aggregated {@link RegistryStats}
+ * @sideEffects none
+ */
 const calcStats = (services: ServiceView[]): RegistryStats => {
   const instances = services.flatMap(s => s.instances)
   return {
@@ -22,6 +40,16 @@ const calcStats = (services: ServiceView[]): RegistryStats => {
   }
 }
 
+/**
+ * React hook that loads the service registry and derives dashboard statistics.
+ *
+ * Polls the registry every 10 seconds so the dashboard stays up to date
+ * with heartbeat-driven status changes.
+ *
+ * @returns Object containing stats, services, and UI flags (see {@link UseRegistryStatsResult})
+ * @sideEffects Subscribes to a TanStack Query observer; performs HTTP GET on
+ *              the `/services` endpoint and re-fetches on the configured interval.
+ */
 export function useRegistryStats(): UseRegistryStatsResult {
   const { data, isLoading, isError, dataUpdatedAt } = useQuery({
     queryKey: registryKeys.list(),

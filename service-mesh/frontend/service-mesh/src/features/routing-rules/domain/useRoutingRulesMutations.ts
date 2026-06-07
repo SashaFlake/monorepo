@@ -4,15 +4,44 @@ import { routingRulesApi, routingKeys } from '../infrastructure/api'
 import type { RuleFormValues } from './types'
 import type { RoutingRulesUIState } from './useRoutingRulesUI'
 
+/**
+ * Create/update/delete mutations exposed by {@link useRoutingRulesMutations}.
+ *
+ * @deprecated This type belongs to the application layer and will move out
+ *             of `domain/` during the pending architectural refactor.
+ */
 export type RoutingRulesMutations = {
+  /** Creates a new routing rule from form values. */
   create:     (values: RuleFormValues) => void
+
+  /** Updates the rule currently held in `ui.editRule`. */
   update:     (values: RuleFormValues) => void
+
+  /** Deletes the rule currently held in `ui.deleteRule`. */
   remove:     () => void
+
+  /** Whether the create mutation is pending. */
   isCreating: boolean
+
+  /** Whether the update mutation is pending. */
   isUpdating: boolean
+
+  /** Whether the delete mutation is pending. */
   isDeleting: boolean
 }
 
+/**
+ * Application hook that exposes create/update/delete mutations for routing
+ * rules of a single service.
+ *
+ * @deprecated Located in `domain/` temporarily; should move to
+ *             `application/useRoutingRulesMutations.application.ts`.
+ * @param serviceId - Identifier of the service whose rules are mutated
+ * @param ui        - Modal state helpers used to close dialogs on success
+ * @returns Mutation callbacks and pending flags
+ * @sideEffects Subscribes to three TanStack Query mutations, invalidates the
+ *              rule list on settle, and shows Sonner toast notifications.
+ */
 export function useRoutingRulesMutations(
   serviceId: string,
   ui: Pick<RoutingRulesUIState, 'editRule' | 'deleteRule' | 'closeCreate' | 'closeEdit' | 'closeDelete'>,

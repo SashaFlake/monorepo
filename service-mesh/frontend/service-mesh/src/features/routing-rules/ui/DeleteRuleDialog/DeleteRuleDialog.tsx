@@ -14,13 +14,35 @@ import {
 import type { RoutingRule } from '../../domain/types'
 import s from './DeleteRuleDialog.module.css'
 
+/**
+ * Props for {@link DeleteRuleDialog}.
+ */
 interface DeleteRuleDialogProps {
+  /** Rule the user wants to delete. */
   rule:       RoutingRule
+
+  /** Whether the delete request is in flight. */
   isPending:  boolean
+
+  /** Called when the user confirms deletion. */
   onConfirm:  () => void
+
+  /** Called when the user cancels or dismisses the dialog. */
   onCancel:   () => void
 }
 
+/**
+ * Confirmation dialog displayed before deleting a routing rule.
+ *
+ * Prevents accidental dismissal while the delete mutation is pending.
+ *
+ * @param rule      - Rule to delete
+ * @param isPending - Whether deletion is in progress
+ * @param onConfirm - Confirm handler
+ * @param onCancel  - Cancel / dismiss handler
+ * @returns The alert dialog element
+ * @sideEffects none
+ */
 export function DeleteRuleDialog({ rule, isPending, onConfirm, onCancel }: DeleteRuleDialogProps): ReactElement {
   // Mounted only while open: any close intent (Escape, Cancel) maps to onCancel.
   const handleOpenChange = (open: boolean): void => {

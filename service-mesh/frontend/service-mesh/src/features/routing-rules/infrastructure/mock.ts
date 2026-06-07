@@ -1,6 +1,15 @@
 import { Destination } from '../domain/types'
 import type { RoutingRule } from '../domain/types'
 
+/**
+ * Mock routing rules for local development and storybook-style testing.
+ *
+ * Uses {@link Destination.unsafe} because these fixtures are hand-authored
+ * and trusted; they skip domain validation to avoid coupling tests to the
+ * validator's exact error messages.
+ *
+ * @sideEffects Calls `crypto.randomUUID()` once per destination when evaluated.
+ */
 export const MOCK_RULES: RoutingRule[] = [
   {
     id: 'rule-1',

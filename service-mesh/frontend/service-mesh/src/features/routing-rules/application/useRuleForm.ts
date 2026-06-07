@@ -1,13 +1,23 @@
 import { useMemo } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { Equivalence, Array as A } from 'effect'
-import { schemaValidator } from '@/shared/form/schemaResolver.ts'
+import { schemaValidator } from '@/shared/form/schemaResolver'
 import { RuleFormSchema } from '../domain/schema'
 import type { RoutingRule, RuleFormValues, DestinationDraft } from '../domain/types'
 import { DestinationDraftEq } from '../domain/types'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
 
+/**
+ * Converts an existing {@link RoutingRule} into editable form values.
+ *
+ * Destination IDs are regenerated as fresh UUIDs because the backend model
+ * does not expose per-destination client-side identifiers.
+ *
+ * @param rule - Existing rule to edit
+ * @returns Editable form values seeded from the rule (see {@link RuleFormValues})
+ * @sideEffects Calls `crypto.randomUUID()` once per destination.
+ */
 const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   name:         rule.name,
   priority:     rule.priority,
@@ -22,6 +32,13 @@ const toFormValues = (rule: RoutingRule): RuleFormValues => ({
   ),
 })
 
+/**
+ * Default form values for creating a new routing rule.
+ *
+ * @returns Fresh {@link RuleFormValues} with empty name, priority 100,
+ *          empty match, and no destinations
+ * @sideEffects none
+ */
 const defaultValues = (): RuleFormValues => ({
   name:         '',
   priority:     100,
@@ -29,6 +46,14 @@ const defaultValues = (): RuleFormValues => ({
   destinations: [],
 })
 
+/**
+ * Equivalence relation for complete rule form values.
+ *
+ * Compares primitive fields and zips destinations to compare them with
+ * {@link DestinationDraftEq}.
+ *
+ * @sideEffects none
+ */
 const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a, b) =>
   a.name === b.name &&
   a.priority === b.priority &&
@@ -37,10 +62,40 @@ const RuleFormEq: Equivalence.Equivalence<RuleFormValues> = Equivalence.make((a,
   A.zip(a.destinations, b.destinations).every(([da, db]) => DestinationDraftEq(da, db))
 )
 
+/**
+ * Synchronous validator built from {@link RuleFormSchema}.
+ *
+ * @sideEffects none
+ */
 const validate = schemaValidator(RuleFormSchema)
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
+/**
+ * Props accepted by {@link useRuleForm}.
+ */
+export type UseRuleFormInput = {
+  /** Existing rule to populate the form, or `undefined` for creation. */
+  initial: RoutingRule | undefined
+
+  /** Callback invoked with validated form values on submit. */
+  onSubmit: (values: RuleFormValues) => void
+}
+
+/**
+ * Hook that manages the create/edit rule form.
+ *
+ * Wires `@tanstack/react-form` to Effect's {@link RuleFormSchema} for
+ * validation and tracks dirty state with an equivalence relation so the
+ * discard confirmation only appears when the user has actually changed
+ * something.
+ *
+ * @param initial  - Existing rule or `undefined`
+ * @param onSubmit - Submit callback
+ * @returns `{ form, isDirty, fieldError }` for use by {@link RuleFormModal}
+ * @sideEffects Creates a TanStack Form instance; calls `crypto.randomUUID()`
+ *              when converting an existing rule's destinations.
+ */
 export function useRuleForm(
   initial: RoutingRule | undefined,
   onSubmit: (values: RuleFormValues) => void,

@@ -21,7 +21,9 @@ export type SchemaValidationError = {
  * a sync validator returning errors) and Effect's Schema (which is the
  * source of truth for shape + invariants).
  *
- * Example:
+ * @returns A validator function `(value: unknown) => SchemaValidationError[]`
+ *
+ * @example
  *   ```ts
  *   const validate = schemaValidator(RoutingRuleSchema)
  *   const errs = validate(formValues) // [] or [{ field, message }, ...]
