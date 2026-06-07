@@ -1,5 +1,5 @@
 # Открытые GitHub Issues — SashaFlake/monorepo
-Всего открытых: 9
+Всего открытых: 7
 ---
 
 ## [Issue #57] [Backend] Missing Repository Pattern — application layer tightly coupled to in-memory Maps
@@ -32,6 +32,20 @@ This blocks any future migration to PostgreSQL (or any other persistence) withou
 - AGENTS.md: "Repository Pattern and Infrastructure Boundaries"
 - `modules/registry/application/registry.service.ts`
 - `modules/routing-rules/application/routing-rule.service.impl.ts`
+
+## Small Iterations
+
+> Do all iterations behind the existing application-service interface; no route/contract changes until Iteration D.
+
+1. **Iteration A — registry interfaces**  
+   Define `ServiceRepository` and `InstanceRepository` interfaces in `modules/registry/application/`. Keep `RegistryService` compiling by inlining the same `Map` logic temporarily.
+2. **Iteration B — routing-rules interface**  
+   Define `RoutingRuleRepository` in `modules/routing-rules/application/`.
+3. **Iteration C — in-memory registry impl**  
+   Move `Map<ServiceId, Service>` / `Map<InstanceId, Instance>` to `modules/registry/infrastructure/in-memory.service.repository.ts` and inject into `RegistryService`.
+4. **Iteration D — in-memory routing-rules impl + handlers**  
+   Move `Map<string, RoutingRule>` to `modules/routing-rules/infrastructure/in-memory.routing-rule.repository.ts`, inject into `RoutingRuleService`, update handlers if constructors change.
+
 ---
 
 ## [Issue #58] [Backend] z.any() in API contracts destroys type safety
@@ -67,6 +81,16 @@ Additionally, unsafe type assertions exist in:
 
 - AGENTS.md: "Validation Pattern — Parse, don't validate. Decode at the boundary."
 - `backend/service-mesh/src/modules/registry/presentation/contracts/service.contracts.ts`
+
+## Small Iterations
+
+1. **Iteration A — registry contracts**  
+   Replace `z.array(z.any())` / `z.any()` in `service.contracts.ts` with concrete schemas (`InstanceViewSchema`, `VersionViewSchema`, etc.). Update handlers to parse.
+2. **Iteration B — handler query parsing**  
+   Remove `req.query as Record<string, string>` in `service.handlers.ts`; parse with Zod.
+3. **Iteration C — mock-service safety**  
+   Replace `as ServiceView[]` / `as ServiceView` / `as InstanceView` in `mock-service/src/index.ts` with Zod parsing using exported contract schemas.
+
 ---
 
 ## [Issue #59] [Backend] Missing branded types in routing-rules + list methods don't return Result
@@ -113,6 +137,18 @@ Branded types are the **foundation of type-safe DDD** in this project. Without t
 
 - AGENTS.md: "Branded types for IDs"
 - AGENTS.md: "neverthrow — Application services returns Result<T, ErrorType>"
+
+## Small Iterations
+
+1. **Iteration A — branded RoutingRuleId**  
+   Add `RoutingRuleId` + `routingRuleId()` in `routing-rules/domain/`, update `RoutingRule.id`, then propagate through service and handlers.
+2. **Iteration B — use ServiceId in routing-rules**  
+   Import `ServiceId` / `serviceId()` from `registry/domain` (shared kernel) and replace `string` for `RoutingRule.serviceId`.
+3. **Iteration C — Result for listServices**  
+   Change `RegistryService.listServices()` return type to `Result<ServiceView[], RegistryError>` and update callers.
+4. **Iteration D — Result for list routing-rules**  
+   Change `RoutingRuleService.list()` return type to `Result<RoutingRule[], RoutingRuleError>` and update callers.
+
 ---
 
 ## [Issue #60] [Backend] Complete absence of tests in registry module
@@ -161,6 +197,18 @@ Add co-located tests for all layers:
 
 - AGENTS.md: "Testing Pattern — Minimum coverage target: 80%"
 - `backend/service-mesh/src/modules/routing-rules/application/routing-rule.service.test.ts` (existing example)
+
+## Small Iterations
+
+1. **Iteration A — domain tests**  
+   `modules/registry/domain/model.test.ts`: `deriveStatus`, `worstStatus`, view mappers.
+2. **Iteration B — application service tests (part 1)**  
+   `modules/registry/application/registry.service.test.ts`: `createService`, `registerInstance`, `heartbeat`, `deleteService`.
+3. **Iteration C — application service tests (part 2)**  
+   Same file: `listServices` filtering, `recordHealthCheck`.
+4. **Iteration D — HTTP tests**  
+   `modules/registry/presentation/registry.http.test.ts`: full endpoint round-trips with Fastify `inject()`.
+
 ---
 
 ## [Issue #61] [Backend] Mutable domain types in routing-rules + recordHealthCheck silently swallows errors
@@ -227,6 +275,14 @@ The silent health-check failure is a **hidden bug** — if an instance is deregi
 
 - AGENTS.md: "All value objects are immutable."
 - AGENTS.md: "neverthrow — No exceptions for expected errors. Return Result<T, E>."
+
+## Small Iterations
+
+1. **Iteration A — readonly routing-rules domain**  
+   Add `readonly` to every field in `RoutingRuleMatch`, `RoutingRuleDestination`, `RoutingRule` in `routing-rules/domain/routing-rule.ts`. Fix any compile errors in service/presentation.
+2. **Iteration B — recordHealthCheck returns Result**  
+   Change `RegistryService.recordHealthCheck()` signature to `Result<void, RegistryError>`, return `INSTANCE_NOT_FOUND` error when instance missing, and update the health-checker caller to handle `Result`.
+
 ---
 
 ## [Issue #62] [Frontend] Missing DDD layers in registry and services features
@@ -340,42 +396,26 @@ AGENTS.md mandates that the `application/` layer owns all server-state hooks (Ta
 ---
 
 ## [Issue #64] [Frontend] Type safety violations: any, unsafe assertions, inline styles
-- **State:** open | **Labels:** bug, frontend
+- **State:** done | **Labels:** bug, frontend
 - **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/64
+- **Closed note:** Verified 2026-06-08. All specific violations listed in this issue are fixed in `main`.
 
-## Problem
+## Problem (historical)
 
-Multiple type-safety violations exist across the frontend codebase:
+Multiple type-safety violations existed across the frontend codebase:
 
-### `any` in DataTable
-- `shared/table/DataTable.tsx:12-13`
-  - `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
-  - `columns: ColumnDef<TData, any>[]`
+- `any` in `DataTable` (`ColumnDef<TData, any>`)
+- Unsafe `as` assertions in `lib/http.ts` and `ServiceDetailPage`
+- Inline styles bypassing CSS Modules in several components
 
-### Unsafe `as` assertions
-- `lib/http.ts:62` — `res.json() as Promise<T>` force-casts the entire response body.
-- `features/services/ServiceDetailPage.tsx:92` — `const doc = data as OpenApiDoc`
-- `features/services/ServiceDetailPage.tsx:98` — `const operation = op as OpenApiOperation`
+## Verification
 
-### Inline styles instead of CSS Modules
-- `features/services/ServicesPage.tsx:28,57` — `style={{ padding: 0, overflow: 'hidden' }}`
-- `features/services/ServiceDetailPage.tsx:122,124,181` — inline `style={{ opacity: ... }}`, `style={{ color: ... }}`
-- `features/registry/StatsGrid.tsx` — `style={{ color: 'var(--color-text-faint)' }}`
-- `features/routing-rules/ui/RulesTable/RulesTable.tsx:84` — inline styles for empty state
-- `shared/table/DataTable.tsx:54` — `style={onRowClick ? { cursor: 'pointer' } : undefined}`
-
-## Why it's critical
-
-- `any` and `as` destroy TypeScript's strict mode. Runtime errors that the compiler should catch will instead crash in production.
-- Inline styles bypass the project's design system (CSS Modules + CSS custom properties). They are harder to maintain, impossible to theme consistently, and violate AGENTS.md's explicit "no Tailwind, use CSS Modules" rule.
-- `lib/http.ts` is the universal HTTP client — an unsafe cast there undermines type safety for **every API call in the frontend**.
-
-## Expected
-
-1. Replace `ColumnDef<TData, any>` with a properly typed generic or constrained unknown.
-2. In `lib/http.ts`, replace `as Promise<T>` with Effect Schema decoding (`Schema.decodeUnknown`).
-3. In `ServiceDetailPage`, replace all `as` assertions with `Schema.decodeUnknownSync(OpenApiDocSchema)` (the schema already exists in `components/OpenApiPanel.tsx`).
-4. Extract all inline styles into CSS Module classes (`.cardNoPadding`, `.deprecatedRow`, `.methodBadgeGet`, etc.).
+| Violation | Status |
+|---|---|
+| `ColumnDef<TData, any>` | ✅ Fixed — now `ColumnDef<TData>[]` |
+| `res.json() as Promise<T>` in `lib/http.ts` | ✅ Fixed — uses `Schema.decodeUnknown(schema)` |
+| `as OpenApiDoc` / `as OpenApiOperation` | ✅ Fixed — uses `Schema.decodeUnknownSync` / `Schema.is` |
+| Inline styles in listed components | ✅ Removed |
 
 ## References
 
@@ -384,66 +424,63 @@ Multiple type-safety violations exist across the frontend codebase:
 - AGENTS.md: "CSS Modules + CSS custom properties — no Tailwind."
 ---
 
-## [Issue #65] [Frontend] Complete absence of tests in registry, services, shared modules
+## [Issue #65] [Frontend] Add missing tests — registry, services, shared
 - **State:** open | **Labels:** frontend, testing
 - **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/65
 
 ## Problem
 
-Two of the three main features (`registry`, `services`) have **zero test coverage**. Additionally, `shared/`, `routes/`, `components/layout/`, and `lib/http.ts` are completely untested.
+`registry`, `services`, `shared/ui/`, `routes/` and `lib/http.ts` lack co-located tests. AGENTS.md requires **minimum 80% coverage**. The issue is too big for one PR; it blocks any further refactoring of these core areas.
 
-**Untested areas:**
-- `features/registry/` — no tests at all
-- `features/services/` — no tests at all
-- `shared/table/DataTable.tsx` — no tests
-- `shared/ui/` (design-system primitives: Button, Card, Dialog, Badge, etc.) — no tests
-- `routes/` (file-based TanStack Router pages) — no tests
-- `components/layout/` (Header, Sidebar) — no tests
-- `lib/http.ts` — no tests
+## Small Iterations
 
-The only existing tests are in `routing-rules`:
-- `DestinationList.test.tsx`
-- `RulesTable.test.tsx`
-- `WeightBar.test.tsx`
-- `schema.test.ts`
+> Each iteration is an independent PR. Re-use existing `routing-rules` tests as templates.
 
-And one in `shared/form/schemaResolver.test.ts`.
+### Iteration 1 — registry tests
+- `features/registry/domain/types.test.ts` (pure domain types / helpers)
+- `features/registry/application/useRegistryStats.test.ts`
+- `features/registry/ui/RegistryDashboard/RegistryDashboard.test.tsx`
+- `features/registry/ui/StatsGrid/StatsGrid.test.tsx` (already exists; ensure coverage)
 
-## Why it's critical
+**Acceptance:** `npm test` passes; `registry/` coverage ≥ 80%.
 
-`registry` and `services` are the **core user-facing features** of the admin UI. Without tests:
-- Any refactoring (e.g. fixing the DDD layer violations in issue #1) risks silent regressions.
-- Design-system primitives (Button, Dialog, etc.) can break accessibility or behavior without detection.
-- The HTTP client (`lib/http.ts`) — the most critical infrastructure piece — has no verification for error handling, retries, or parsing.
+### Iteration 2 — services domain + application tests
+- `features/services/domain/schema.test.ts` / `types.test.ts`
+- `features/services/application/useServices.test.ts`
+- `features/services/application/useServiceDetail.test.ts`
 
-AGENTS.md requires a **minimum coverage target of 80%** and co-located tests for all layers.
+**Acceptance:** `services/application/` and `services/domain/` covered.
 
-## Expected
+### Iteration 3 — services UI tests
+- `features/services/ui/ServicesPage/ServicesPage.test.tsx` (already exists; extend if needed)
+- `features/services/ui/ServiceDetailPage/ServiceDetailPage.test.tsx`
+- `features/services/ui/ServiceDetailPage/OpenApiPanel.test.tsx` (already exists)
+- `features/services/ui/ServiceDetailPage/InstancesPanel.test.tsx` (already exists)
+- `features/services/ui/ServiceDetailPage/VersionCard.test.tsx` (already exists)
 
-Add co-located tests for all layers:
+**Acceptance:** `services/ui/` coverage ≥ 80%.
 
-1. **Domain tests**
-   - `features/registry/domain/*.test.ts`
-   - `features/services/domain/*.test.ts`
+### Iteration 4 — shared primitives + layout
+- `shared/ui/Button/Button.test.tsx`
+- `shared/ui/Dialog/Dialog.test.tsx`
+- `shared/table/DataTable.test.tsx` (already exists; extend if needed)
+- `components/layout/Header/Header.test.tsx`
+- `components/layout/Sidebar/Sidebar.test.tsx`
 
-2. **Application tests**
-   - `features/registry/application/useRegistryStats.test.ts`
-   - `features/services/application/useServices.test.ts`
-   - `features/services/application/useServiceDetail.test.ts`
+**Acceptance:** `shared/ui/` and `components/layout/` have baseline coverage.
 
-3. **UI component tests**
-   - `features/registry/ui/RegistryDashboard/RegistryDashboard.test.tsx`
-   - `features/services/ui/ServicesPage/ServicesPage.test.tsx`
-   - `shared/ui/Button/Button.test.tsx`
-   - `shared/ui/Dialog/Dialog.test.tsx`
-   - `shared/table/DataTable.test.tsx`
+### Iteration 5 — routes + HTTP
+- `lib/http.test.ts` (already exists; extend if needed)
+- `routes/__root.test.tsx`
+- `routes/services.index.test.tsx`
 
-4. **Infrastructure tests**
-   - `lib/http.test.ts`
+**Acceptance:** Route smoke tests render without crashing; `http.test.ts` covers error branches.
 
-5. **Route tests**
-   - `routes/__root.test.tsx`
-   - `routes/services.index.test.tsx`
+## Already Done
+
+- `features/routing-rules/ui/RulesTable/RulesTable.test.tsx` and related routing-rules tests exist.
+- `shared/form/schemaResolver.test.ts` exists.
+- Some `services` sub-component tests already appeared during earlier refactoring.
 
 ## References
 
@@ -451,52 +488,31 @@ Add co-located tests for all layers:
 - `features/routing-rules/ui/RulesTable/RulesTable.test.tsx` (existing example)
 ---
 
-## [Issue #66] [Frontend] ServiceDetailPage is a 258-line monolith with duplicate components
-- **State:** open | **Labels:** refactor, frontend
+## [Issue #66] [Frontend] ServiceDetailPage monolith + duplicate components
+- **State:** done | **Labels:** refactor, frontend
 - **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/66
+- **Closed note:** Verified 2026-06-08. Critical monolith problem solved; remaining folder-structure polish is non-blocking and tracked below as follow-up.
 
-## Problem
+## Problem (historical)
 
-`ServiceDetailPage.tsx` is a **258-line monolith** that violates single-responsibility on multiple levels.
+`ServiceDetailPage.tsx` was a **258-line monolith** with 8 components/types defined inline, including duplicate `OpenApiPanel` and `VersionCard` definitions.
 
-### Multiple components in one file
-The file defines **8 components/types**:
-- `ManifestPanel`
-- `SpecCard`
-- `KV`
-- `OpenApiPanel`
-- `InstancesPanel`
-- `VersionCard`
-- `ServiceDetailPage`
-- Helper types: `OpenApiOperation`, `OpenApiRoute`
+## Verification
 
-### Duplicate components
-- `OpenApiPanel` is defined inline (line 75) **AND** exists as a separate file `components/OpenApiPanel.tsx`.
-- `VersionCard` is defined inline (line 179) **AND** exists as a separate file `components/VersionCard.tsx`.
+| Criterion | Status |
+|---|---|
+| File size (258 → 61 lines) | ✅ |
+| Duplicate inline components removed | ✅ |
+| Sub-components extracted to separate files | ✅ Extracted under `features/services/ui/ServiceDetailPage/` |
+| `OpenApiOperation` / `OpenApiRoute` moved to `domain/types.ts` | ⚠️ Still local to `OpenApiPanel.tsx`; non-blocking |
+| Exact DDD folder structure from original issue | ⚠️ Components live under `ServiceDetailPage/` instead of sibling feature folders |
 
-This means the standalone files are either dead code or the inline versions should have been removed.
+## Follow-up (non-blocking)
 
-## Why it's critical
-
-AGENTS.md explicitly states: «Entities per file: 1 aggregate root or major function — Extract into separate files.» A 258-line file with 8 components is unmaintainable:
-- Code review becomes a chore.
-- Reusing `ManifestPanel` or `InstancesPanel` elsewhere is impossible without copy-paste.
-- The duplicate `OpenApiPanel` / `VersionCard` definitions risk diverging over time — one will be updated, the other forgotten.
-
-## Expected
-
-1. Extract every sub-component into its own file under `features/services/ui/`:
-   - `ui/ManifestPanel/ManifestPanel.tsx`
-   - `ui/SpecCard/SpecCard.tsx`
-   - `ui/KV/KV.tsx`
-   - `ui/OpenApiPanel/OpenApiPanel.tsx` (use the existing standalone file, delete inline version)
-   - `ui/InstancesPanel/InstancesPanel.tsx`
-   - `ui/VersionCard/VersionCard.tsx` (use the existing standalone file, delete inline version)
-   - `ui/ServiceDetailPage/ServiceDetailPage.tsx` (orchestrator, ~40 lines)
-
-2. Move helper types (`OpenApiOperation`, `OpenApiRoute`) to `features/services/domain/types.ts`.
-
-3. Delete inline duplicates in `ServiceDetailPage.tsx`.
+If stricter DDD layout is desired, open a focused follow-up issue:
+- Move `ManifestPanel`, `OpenApiPanel`, `InstancesPanel`, `VersionCard` to sibling folders under `features/services/ui/`.
+- Split `SpecCard` + `KV` out of `SharedComponents.tsx` into `features/services/ui/SpecCard/` and `features/services/ui/KV/`.
+- Move `OpenApiOperation` / `OpenApiRoute` types to `features/services/domain/types.ts`.
 
 ## References
 
