@@ -41,7 +41,7 @@ export const DEFAULT_IGNORE_PATTERNS = [
   '*.log',
   '.env*',
   '*.local',
-  '**/.*/**',
+  '.claudeignore',
 ];
 
 export const ALLOWED_EXTS = [
