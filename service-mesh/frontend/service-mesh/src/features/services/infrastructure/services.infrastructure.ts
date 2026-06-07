@@ -1,6 +1,6 @@
 // ── Services domain API ───────────────────────────────────────────────────────
 // HTTP-клиент и query keys для домена services/instances/openapi.
-// Типы домена — в ./types.ts
+// Типы домена — в ../domain/types.ts
 // HTTP-helper — из lib/http.ts
 
 import { apiFetch, endpoint } from '@/lib/http'
@@ -10,22 +10,22 @@ import type {
   InstanceView,
   OpenApiDoc,
   Labels,
-} from './types'
+} from '../domain/types'
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 
-export const registryKeys = {
+export const servicesKeys = {
   all:      ['registry'] as const,
-  list:     () => [...registryKeys.all, 'list']                        as const,
-  service:  (id: string) => [...registryKeys.all, 'service', id]       as const,
-  versions: (id: string) => [...registryKeys.all, 'versions', id]      as const,
+  list:     () => [...servicesKeys.all, 'list']                        as const,
+  service:  (id: string) => [...servicesKeys.all, 'service', id]       as const,
+  versions: (id: string) => [...servicesKeys.all, 'versions', id]      as const,
   openapi:  (id: string, version?: string) =>
-    [...registryKeys.all, 'openapi', id, version ?? '']                as const,
+    [...servicesKeys.all, 'openapi', id, version ?? '']                as const,
 }
 
 // ── API client ────────────────────────────────────────────────────────────────
 
-export const registryApi = {
+export const servicesApi = {
   listServices: (): Promise<ServiceView[]> =>
     apiFetch<ServiceView[]>(endpoint('/services')),
 

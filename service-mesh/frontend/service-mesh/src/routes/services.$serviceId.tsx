@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ServiceDetailPage } from '@/features/services/ServiceDetailPage'
+import { ServiceDetailPage } from '@/features/services'
 
 export const Route = createFileRoute('/services/$serviceId')({
   component: function ServiceDetailRoute() {

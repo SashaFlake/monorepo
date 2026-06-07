@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Schema } from 'effect'
-import { registryApi, registryKeys } from '../api/api'
-import s from '../ServiceDetailPage.module.css'
+import { servicesApi, servicesKeys } from '../../infrastructure/services.infrastructure'
+import s from './ServiceDetailPage.module.css'
 
 const HTTP_METHOD_COLOR: Record<string, string> = {
   get:     'var(--color-success)',
@@ -46,8 +46,8 @@ const OpenApiDocSchema = Schema.Struct({
 
 export function OpenApiPanel({ serviceId, version }: { serviceId: string; version: string }): React.ReactElement {
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: registryKeys.openapi(serviceId, version),
-    queryFn:  () => registryApi.getServiceOpenApi(serviceId, version),
+    queryKey: servicesKeys.openapi(serviceId, version),
+    queryFn:  () => servicesApi.getServiceOpenApi(serviceId, version),
     retry: false,
     staleTime: 30_000,
   })

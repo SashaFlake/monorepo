@@ -1,24 +1,7 @@
 import { ReactElement } from 'react'
-import type { ServiceVersion } from '../api/types'
-import s from '../ServiceDetailPage.module.css'
-
-function SpecCard({ title, children }: { title: string; children: React.ReactNode }): React.ReactElement {
-  return (
-    <div className={s.specCard}>
-      <div className={s.specCardTitle}>{title}</div>
-      <div className={s.specCardBody}>{children}</div>
-    </div>
-  )
-}
-
-function KV({ k, v }: { k: string; v: string }): ReactElement {
-  return (
-    <div className={s.kv}>
-      <span className={s.kvKey}>{k}</span>
-      <span className={s.kvValue}>{v}</span>
-    </div>
-  )
-}
+import type { ServiceVersion } from '../../domain/types'
+import { SpecCard, KV } from './SharedComponents'
+import s from './ServiceDetailPage.module.css'
 
 export function ManifestPanel({ version }: { version: ServiceVersion }): ReactElement {
   const m = version.manifest

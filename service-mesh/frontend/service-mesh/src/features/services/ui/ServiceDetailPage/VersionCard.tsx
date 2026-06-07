@@ -1,9 +1,11 @@
 import { ReactElement } from 'react'
 import { Card } from '@/shared/ui'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui'
-import { ManifestPanel, OpenApiPanel, InstancesPanel } from './index'
-import type { ServiceVersion } from '../api/types'
-import s from '../ServiceDetailPage.module.css'
+import { ManifestPanel } from './ManifestPanel'
+import { OpenApiPanel } from './OpenApiPanel'
+import { InstancesPanel } from './InstancesPanel'
+import type { ServiceVersion } from '../../domain/types'
+import s from './ServiceDetailPage.module.css'
 
 export function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): ReactElement {
   return (
