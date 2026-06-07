@@ -9,3 +9,11 @@
   color: var(--color-text-faint);
   margin-top: var(--space-1);
 }
+
+.iconFaint   { color: var(--color-text-faint); }
+.iconSuccess { color: var(--color-success); }
+.iconError   { color: var(--color-error); }
+
+.valueSuccess { color: var(--color-success); }
+.valueWarning { color: var(--color-warning); }
+.valueError   { color: var(--color-error); }

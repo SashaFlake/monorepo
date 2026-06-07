@@ -18,7 +18,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps): ReactElement {
         <CardHeader>
           <CardTitle>Services</CardTitle>
           <Tooltip content="Total registered services" side="top">
-            <Server size={16} style={{ color: 'var(--color-text-faint)' }} />
+            <span className={s.iconFaint}><Server size={16} /></span>
           </Tooltip>
         </CardHeader>
         <CardValue>{val(stats.totalServices)}</CardValue>
@@ -29,7 +29,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps): ReactElement {
         <CardHeader>
           <CardTitle>Instances</CardTitle>
           <Tooltip content="Total service instances across all versions" side="top">
-            <Cpu size={16} style={{ color: 'var(--color-text-faint)' }} />
+            <span className={s.iconFaint}><Cpu size={16} /></span>
           </Tooltip>
         </CardHeader>
         <CardValue>{val(stats.totalInstances)}</CardValue>
@@ -40,12 +40,12 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps): ReactElement {
         <CardHeader>
           <CardTitle>Healthy</CardTitle>
           <Tooltip content="Instances passing health checks" side="top">
-            <Activity size={16} style={{ color: 'var(--color-success)' }} />
+            <span className={s.iconSuccess}><Activity size={16} /></span>
           </Tooltip>
         </CardHeader>
-        <CardValue style={{ color: 'var(--color-success)' }}>
-          {val(stats.passingInstances)}
-        </CardValue>
+        <span className={s.valueSuccess}>
+          <CardValue>{val(stats.passingInstances)}</CardValue>
+        </span>
         <p className={s.hint}>passing</p>
       </Card>
 
@@ -60,19 +60,18 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps): ReactElement {
             }
             side="top"
           >
-            <AlertTriangle
-              size={16}
-              style={{ color: stats.criticalInstances ? 'var(--color-error)' : 'var(--color-text-faint)' }}
-            />
+            <span className={stats.criticalInstances ? s.iconError : s.iconFaint}>
+              <AlertTriangle size={16} />
+            </span>
           </Tooltip>
         </CardHeader>
-        <CardValue style={{
-          color: stats.criticalInstances
-            ? 'var(--color-error)'
-            : stats.degradedInstances ? 'var(--color-warning)' : undefined,
-        }}>
-          {val(stats.degradedInstances)}
-        </CardValue>
+        <span className={
+          stats.criticalInstances
+            ? s.valueError
+            : stats.degradedInstances ? s.valueWarning : ''
+        }>
+          <CardValue>{val(stats.degradedInstances)}</CardValue>
+        </span>
         <p className={s.hint}>
           {stats.criticalInstances > 0 ? `${stats.criticalInstances} critical` : 'warning or critical'}
         </p>
