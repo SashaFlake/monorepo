@@ -4,7 +4,29 @@ import type { ServiceVersion } from '../../domain/types'
 import { STATUS_VARIANT } from './ServiceDetailPage'
 import s from './ServiceDetailPage.module.css'
 
+/**
+ * Formats how many seconds have passed since a heartbeat timestamp.
+ *
+ * @param lastHeartbeatAt – ISO timestamp of the last heartbeat
+ * @param now             – current timestamp in milliseconds
+ * @returns Human-readable string like "42s ago"
+ * @sideEffects none
+ */
+const formatAgo = (lastHeartbeatAt: string, now: number): string => {
+  const seconds = Math.round((now - new Date(lastHeartbeatAt).getTime()) / 1000)
+  return `${seconds}s ago`
+}
+
+/**
+ * Table of service instances with health check and heartbeat info.
+ *
+ * @param version – service version containing the instance list
+ * @returns InstancesPanel React element
+ * @sideEffects Calls `Date.now()` once per render to compute relative time.
+ */
 export function InstancesPanel({ version }: { version: ServiceVersion }): ReactElement {
+  const now = Date.now()
+
   return (
     <table className={s.table}>
       <thead className={s.thead}>
@@ -14,7 +36,7 @@ export function InstancesPanel({ version }: { version: ServiceVersion }): ReactE
       </thead>
       <tbody>
         {version.instances.map((inst) => {
-          const ago = Math.round((Date.now() - new Date(inst.lastHeartbeatAt).getTime()) / 1000)
+          const ago = formatAgo(inst.lastHeartbeatAt, now)
           const hc  = inst.lastHealthCheck
           return (
             <tr key={inst.id} className={s.row}>
@@ -28,7 +50,7 @@ export function InstancesPanel({ version }: { version: ServiceVersion }): ReactE
                 }
               </td>
               <td className={s.td}><Badge variant={STATUS_VARIANT[inst.status]}>{inst.status}</Badge></td>
-              <td className={`${s.td} ${s.tabularMuted}`}>{ago}s ago</td>
+              <td className={`${s.td} ${s.tabularMuted}`}>{ago}</td>
             </tr>
           )
         })}

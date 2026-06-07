@@ -1,18 +1,19 @@
 import { Schema } from 'effect'
 
 /**
- * Effect Schema description of a routing-rule form, mirroring the invariants
- * historically enforced by `validation.ts`:
+ * Effect Schema definitions for the routing-rules bounded context.
  *
+ * Includes:
+ *   - {@link RuleMatchSchema}     – path prefix and header matchers
+ *   - {@link DestinationDraftSchema} – a single destination row in a form
+ *   - {@link RuleFormSchema}      – full create/edit form with invariants
+ *   - {@link RoutingRuleSchema}   – API response shape (mutable, no branded types)
+ *
+ * Invariants enforced by {@link RuleFormSchema}:
  *   - name: non-blank string
  *   - priority: integer in 0..1000
- *   - destinations: non-empty, no duplicate `version`s, weights sum to exactly 100
+ *   - destinations: non-empty, no duplicate versions, weights sum to 100
  *   - per-destination: non-blank version, weight in 0..100
- *
- * This file intentionally has **no consumers yet**. PR 3b will wire it up to
- * `useRuleForm` via `schemaValidator`. Keeping it isolated lets the schema
- * land independently and be reviewed against the existing `validation.test.ts`
- * cases.
  */
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -23,6 +24,11 @@ const NonBlankString = Schema.String.pipe(
 
 // ── Match block ──────────────────────────────────────────────────────────────
 
+/**
+ * Schema for a routing-rule matcher.
+ *
+ * @sideEffects none
+ */
 export const RuleMatchSchema = Schema.Struct({
   pathPrefix: Schema.optional(Schema.String),
   headers: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.String })),
@@ -30,6 +36,11 @@ export const RuleMatchSchema = Schema.Struct({
 
 // ── Destination row in the form ──────────────────────────────────────────────
 
+/**
+ * Schema for a single destination draft in the rule form.
+ *
+ * @sideEffects none
+ */
 export const DestinationDraftSchema = Schema.Struct({
   id: Schema.String,
   serviceId: Schema.optional(Schema.String),
@@ -41,6 +52,11 @@ export const DestinationDraftSchema = Schema.Struct({
 
 // ── Whole form ───────────────────────────────────────────────────────────────
 
+/**
+ * Schema for the complete rule form, enforcing all domain invariants.
+ *
+ * @sideEffects none
+ */
 export const RuleFormSchema = Schema.Struct({
   name: NonBlankString.annotations({ message: () => 'Name is required' }),
   priority: Schema.Number.pipe(
@@ -72,21 +88,31 @@ export type RuleFormSchemaOutput = Schema.Schema.Type<typeof RuleFormSchema>
 
 // ── API schemas ──────────────────────────────────────────────────────────────
 
-export const RoutingRuleSchema = Schema.Struct({
+/**
+ * Schema for a {@link RoutingRule} as returned by the backend API.
+ *
+ * Uses {@link Schema.mutable} at every level so decoded values match the
+ * mutable TypeScript domain types (e.g. `Destination[]` instead of
+ * `readonly Destination[]`).  The branded `_brand` field was intentionally
+ * omitted because the API returns plain JSON objects.
+ *
+ * @sideEffects none
+ */
+export const RoutingRuleSchema = Schema.mutable(Schema.Struct({
   id:           Schema.String,
   serviceId:    Schema.String,
   name:         Schema.String,
   priority:     Schema.Number,
-  match:        Schema.Struct({
+  match:        Schema.mutable(Schema.Struct({
     pathPrefix: Schema.optional(Schema.String),
     headers:    Schema.optional(Schema.Record({ key: Schema.String, value: Schema.String })),
-  }),
-  destinations: Schema.Array(Schema.Struct({
+  })),
+  destinations: Schema.mutable(Schema.Array(Schema.mutable(Schema.Struct({
     id:         Schema.String,
     serviceId:  Schema.optional(Schema.String),
     version:    Schema.String,
     weightPct:  Schema.Number,
-  })),
+  })))),
   createdAt: Schema.String,
   updatedAt: Schema.String,
-})
+}))

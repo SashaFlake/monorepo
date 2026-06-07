@@ -15,15 +15,29 @@ import { RuleMatchFields } from './RuleMatchFields'
 import { DestinationList } from '../DestinationList/DestinationList'
 import s from './RuleFormModal.module.css'
 
+/**
+ * Props for {@link RuleFormModal}.
+ */
 export interface RuleFormModalProps {
+  /** Existing rule to edit, or omitted for creation. */
   initial?:  RoutingRule
+  /** Whether a submit request is in flight. */
   isPending: boolean
+  /** Called with validated form values on submit. */
   onSubmit:  (values: RuleFormValues) => void
+  /** Called when the user closes the modal (confirm or cancel). */
   onClose:   () => void
 }
 
 const DISCARD_MESSAGE = 'You have unsaved changes. Discard them?'
 
+/**
+ * Modal dialog for creating or editing a routing rule.
+ *
+ * @param props – see {@link RuleFormModalProps}
+ * @returns RuleFormModal React element
+ * @sideEffects Calls `window.confirm` on dirty close.
+ */
 export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
   const { form, isDirty } = useRuleForm(initial, onSubmit)
 
@@ -72,7 +86,7 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
             <form.Field name="destinations">
               {field => (
                 <DestinationList
-                  destinations={field.state.value as RuleFormValues['destinations']}
+                  destinations={field.state.value}
                   onChange={val => field.handleChange(val)}
                 />
               )}

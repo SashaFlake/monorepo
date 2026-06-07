@@ -19,6 +19,12 @@ const NAV = [
   { to: '/nodes',     label: 'Nodes',     icon: Activity },
 ] as const
 
+/**
+ * Application sidebar with navigation links and collapsible state.
+ *
+ * @returns Sidebar React element
+ * @sideEffects Reads from and toggles the UI store.
+ */
 export function Sidebar(): ReactElement {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
 

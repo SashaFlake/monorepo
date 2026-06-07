@@ -4,17 +4,28 @@ import type { DestinationDraft } from '../../domain/types'
 import { Tooltip } from '@/shared/ui'
 import styles from './WeightBar.module.css'
 
+/**
+ * Props for {@link WeightBar}.
+ */
 interface WeightBarProps {
+  /** Non-empty list of destination drafts with weights. */
   destinations: Readonly<A.NonEmptyArray<DestinationDraft>>
 }
 
+/**
+ * Visual weight distribution bar with colored segments and legend.
+ *
+ * @param props – see {@link WeightBarProps}
+ * @returns WeightBar React element
+ * @sideEffects none
+ */
 export function WeightBar({ destinations }: WeightBarProps): ReactElement {
   return (
     <div className={styles.root}>
       <div className={styles.track}>
         {destinations.map((item, i) => (
           <Tooltip
-            key={item.version || i}
+            key={item.id}
             content={`${item.version || 'default'}: ${item.weightPct}%`}
             side="top"
           >
@@ -28,7 +39,7 @@ export function WeightBar({ destinations }: WeightBarProps): ReactElement {
       </div>
       <div className={styles.legend}>
         {destinations.map((item, i) => (
-          <div key={item.version || i} className={styles.legendItem}>
+          <div key={item.id} className={styles.legendItem}>
             <span
               className={styles.legendDot}
               data-color-index={i % 5}

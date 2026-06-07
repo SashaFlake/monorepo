@@ -7,6 +7,15 @@ import { InstancesPanel } from './InstancesPanel'
 import type { ServiceVersion } from '../../domain/types'
 import s from './ServiceDetailPage.module.css'
 
+/**
+ * Card displaying a single service version with tabs for manifest,
+ * OpenAPI spec and instance list.
+ *
+ * @param version   – service version data
+ * @param serviceId – owning service ID
+ * @returns VersionCard React element
+ * @sideEffects none
+ */
 export function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): ReactElement {
   return (
     <Card className={s.cardFlush}>

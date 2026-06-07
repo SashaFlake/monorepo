@@ -1,11 +1,11 @@
 import { Either, Equivalence } from 'effect'
 
-// ── Validation primitives ────────────────────────────────────────────────────────────────────
+// ── Validation primitives ────────────────────────────────────────────────────
 
 export type ValidationError  = { field: string; message: string }
 export type ValidationResult<A> = Either.Either<A, ValidationError[]>
 
-// ── DestinationDraft ───────────────────────────────────────────────────────────────────────────────
+// ── DestinationDraft ─────────────────────────────────────────────────────────
 
 export type DestinationDraft = {
   id:         string
@@ -14,12 +14,22 @@ export type DestinationDraft = {
   weightPct:  number
 }
 
+/**
+ * Creates an empty destination draft with a fresh UUID.
+ *
+ * @sideEffects Calls `crypto.randomUUID()`.
+ */
 export const emptyDestinationDraft = (): DestinationDraft => ({
   id:        crypto.randomUUID(),
   version:   '',
   weightPct: 0,
 })
 
+/**
+ * Equivalence relation for {@link DestinationDraft}.
+ *
+ * @sideEffects none
+ */
 export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
   Equivalence.make((a, b) =>
     a.version   === b.version   &&
@@ -27,20 +37,45 @@ export const DestinationDraftEq: Equivalence.Equivalence<DestinationDraft> =
     a.serviceId === b.serviceId
   )
 
+/**
+ * Sums the weight percentages of a list of destination drafts.
+ *
+ * @param destinations – read-only array of drafts
+ * @returns Sum of all `weightPct` values
+ * @sideEffects none
+ */
 export const sumWeights = (destinations: ReadonlyArray<DestinationDraft>): number =>
   destinations.reduce((acc, d) => acc + d.weightPct, 0)
 
-// ── Destination ──────────────────────────────────────────────────────────────────────────────────────
+// ── Destination ──────────────────────────────────────────────────────────────
 
+/**
+ * A validated destination.  Previously carried a `_brand` tag, but the branded
+ * field was removed so that values decoded from the backend API (plain JSON)
+ * align with the domain type without runtime construction.
+ *
+ * Validation is still available via {@link Destination.create}.
+ */
 export type Destination = {
-  readonly _brand:     'Destination'
-  readonly id:         string
-  readonly serviceId?: string
-  readonly version:    string
-  readonly weightPct:  number
+  id:         string
+  serviceId?: string
+  version:    string
+  weightPct:  number
 }
 
+/**
+ * Factory and validator for {@link Destination} values.
+ *
+ * @sideEffects none
+ */
 export const Destination = {
+  /**
+   * Validates a draft and returns a {@link Destination} on success.
+   *
+   * @param raw – draft to validate
+   * @returns `Right(destination)` or `Left(errors)`
+   * @sideEffects none
+   */
   create: (raw: DestinationDraft): ValidationResult<Destination> => {
     const errors: ValidationError[] = []
 
@@ -51,21 +86,27 @@ export const Destination = {
 
     return errors.length > 0
       ? Either.left(errors)
-      : Either.right({ _brand: 'Destination' as const, ...raw })
+      : Either.right(raw)
   },
 
-  unsafe: (raw: DestinationDraft): Destination =>
-    ({ _brand: 'Destination' as const, ...raw }),
+  /**
+   * Unsafely coerces a draft to a {@link Destination} without validation.
+   *
+   * @param raw – draft to coerce
+   * @returns The same object typed as {@link Destination}
+   * @sideEffects none
+   */
+  unsafe: (raw: DestinationDraft): Destination => raw,
 }
 
-// ── RuleMatch ──────────────────────────────────────────────────────────────────────────────────────────
+// ── RuleMatch ────────────────────────────────────────────────────────────────
 
 export type RuleMatch = {
   pathPrefix?: string
   headers?:    Record<string, string>
 }
 
-// ── RoutingRule ────────────────────────────────────────────────────────────────────────────────────
+// ── RoutingRule ──────────────────────────────────────────────────────────────
 
 export type RoutingRule = {
   id:           string
@@ -78,7 +119,7 @@ export type RoutingRule = {
   updatedAt:    string
 }
 
-// ── RuleFormValues ──────────────────────────────────────────────────────────────────────────────────
+// ── RuleFormValues ───────────────────────────────────────────────────────────
 
 export type RuleFormValues = {
   name:         string
