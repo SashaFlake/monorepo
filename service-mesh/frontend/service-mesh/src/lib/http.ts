@@ -1,4 +1,4 @@
-import { Effect } from 'effect'
+import { Effect, Schema } from 'effect'
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -48,8 +48,9 @@ export const isApiError = (e: unknown): e is ApiError =>
 //   2. flatMap inspects HTTP status → Effect.fail for non-ok, Effect.succeed for ok
 //   3. flatMap parses JSON → typed T
 
-export const apiFetchEffect = <T>(
+export const apiFetchEffect = <T, I = unknown>(
   path: string,
+  schema: Schema.Schema<T, I>,
   init?: RequestInit,
 ): Effect.Effect<T, ApiError> =>
   Effect.tryPromise({
@@ -59,9 +60,15 @@ export const apiFetchEffect = <T>(
     Effect.flatMap((res) =>
       res.ok
         ? Effect.tryPromise({
-            try:   () => res.json() as Promise<T>,
+            try:   () => res.json(),
             catch: (e) => makeApiError(res.status, String(e), path),
-          })
+          }).pipe(
+            Effect.flatMap((json) =>
+              Schema.decodeUnknown(schema)(json).pipe(
+                Effect.mapError((err) => makeApiError(422, `Decode error: ${String(err)}`, path)),
+              ),
+            ),
+          )
         : Effect.fail(makeApiError(res.status, res.statusText, path)),
     ),
   )
@@ -72,5 +79,23 @@ export const apiFetchEffect = <T>(
 // Migrate call sites to apiFetchEffect incrementally when retry / timeout
 // or structured error handling is needed per-query.
 
-export const apiFetch = <T>(path: string, init?: RequestInit): Promise<T> =>
-  Effect.runPromise(apiFetchEffect<T>(path, init))
+export const apiFetch = <T, I = unknown>(path: string, schema: Schema.Schema<T, I>, init?: RequestInit): Promise<T> =>
+  Effect.runPromise(apiFetchEffect<T, I>(path, schema, init))
+
+export const apiFetchVoidEffect = (
+  path: string,
+  init?: RequestInit,
+): Effect.Effect<void, ApiError> =>
+  Effect.tryPromise({
+    try:   () => fetch(`${BASE}${path}`, init),
+    catch: (e) => makeApiError(0, String(e), path),
+  }).pipe(
+    Effect.flatMap((res) =>
+      res.ok
+        ? Effect.void
+        : Effect.fail(makeApiError(res.status, res.statusText, path)),
+    ),
+  )
+
+export const apiFetchVoid = (path: string, init?: RequestInit): Promise<void> =>
+  Effect.runPromise(apiFetchVoidEffect(path, init))
