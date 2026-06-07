@@ -13,14 +13,18 @@ const HTTP_METHOD_COLOR: Record<string, string> = {
   options: 'var(--color-text-muted)',
 }
 
-type OpenApiOperation = {
-  summary?: string
-  operationId?: string
-  deprecated?: boolean
-  tags?: string[]
-}
+const OpenApiOperationSchema = Schema.Struct({
+  summary: Schema.optional(Schema.String),
+  operationId: Schema.optional(Schema.String),
+  tags: Schema.optional(Schema.Array(Schema.String)),
+  deprecated: Schema.optional(Schema.Boolean),
+})
+
+type OpenApiOperation = Schema.Schema.Type<typeof OpenApiOperationSchema>
 
 type OpenApiRoute = OpenApiOperation & { method: string; path: string }
+
+const isOpenApiOperation = Schema.is(OpenApiOperationSchema)
 
 const OpenApiDocSchema = Schema.Struct({
   openapi: Schema.optional(Schema.String),
@@ -33,12 +37,7 @@ const OpenApiDocSchema = Schema.Struct({
     key: Schema.String,
     value: Schema.Record({
       key: Schema.String,
-      value: Schema.Struct({
-        summary: Schema.optional(Schema.String),
-        operationId: Schema.optional(Schema.String),
-        tags: Schema.optional(Schema.Array(Schema.String)),
-        deprecated: Schema.optional(Schema.Boolean),
-      }),
+      value: OpenApiOperationSchema,
     }),
   })),
 })
@@ -60,9 +59,8 @@ export function OpenApiPanel({ serviceId, version }: { serviceId: string; versio
 
   const routes: OpenApiRoute[] = Object.entries(paths).flatMap(([path, methods]) =>
     Object.entries(methods ?? {}).flatMap(([method, op]) => {
-      if (!op || typeof op !== 'object') return []
-      const operation = op as OpenApiOperation
-      return [{ method: method.toUpperCase(), path, ...operation }]
+      if (!isOpenApiOperation(op)) return []
+      return [{ method: method.toUpperCase(), path, ...op }]
     })
   )
 
@@ -85,9 +83,9 @@ export function OpenApiPanel({ serviceId, version }: { serviceId: string; versio
           </thead>
           <tbody>
             {routes.map((r) => (
-              <tr key={`${r.method}-${r.path}`} className={s.row} style={{ opacity: r.deprecated ? 0.5 : 1 }}>
+              <tr key={`${r.method}-${r.path}`} className={`${s.row} ${r.deprecated ? s.deprecatedRow : ''}`}>
                 <td className={s.td}>
-                  <span className={s.methodBadge} style={{ color: HTTP_METHOD_COLOR[r.method.toLowerCase()] ?? 'var(--color-text)' }}>
+                  <span className={s.methodBadge} data-method={r.method.toLowerCase()}>
                     {r.method}
                   </span>
                 </td>

@@ -252,6 +252,18 @@
   border-radius: var(--radius-sm);
 }
 
+.methodBadge[data-method='get']     { color: var(--color-success); }
+.methodBadge[data-method='post']    { color: var(--color-primary); }
+.methodBadge[data-method='put']     { color: var(--color-warning); }
+.methodBadge[data-method='patch']   { color: var(--color-orange); }
+.methodBadge[data-method='delete']  { color: var(--color-error); }
+.methodBadge[data-method='head']    { color: var(--color-text-muted); }
+.methodBadge[data-method='options'] { color: var(--color-text-muted); }
+
+.deprecatedRow {
+  opacity: 0.5;
+}
+
 .deprecated {
   color: var(--color-warning);
   margin-left: 4px;
