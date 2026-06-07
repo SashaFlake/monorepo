@@ -27,6 +27,7 @@ export class Indexer {
 
   async indexProject(
     pattern = '**/*',
+    skipCleanup = false,
   ): Promise<{ indexed: number; chunks: number; skipped: number }> {
     this.events?.emitIndexStarted({ eventType: 'project' });
     const start = Date.now();
@@ -120,12 +121,14 @@ export class Indexer {
       );
     }
 
-    const currentFiles = new Set(files);
-    const orphaned = Object.keys(state.files).filter((f) => !currentFiles.has(f));
-    for (const file of orphaned) {
-      await this.qdrant.deleteBySource(file);
-      delete state.files[file];
-      console.error(`[cleanup] Removed orphaned: ${file}`);
+    if (!skipCleanup) {
+      const currentFiles = new Set(files);
+      const orphaned = Object.keys(state.files).filter((f) => !currentFiles.has(f));
+      for (const file of orphaned) {
+        await this.qdrant.deleteBySource(file);
+        delete state.files[file];
+        console.error(`[cleanup] Removed orphaned: ${file}`);
+      }
     }
 
     state.lastIndexed = Date.now();
