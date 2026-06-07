@@ -23,7 +23,7 @@ export function InstancesPanel({ version }: { version: ServiceVersion }): ReactE
               <td className={`${s.td} ${s.tabularMuted}`}>{inst.port}</td>
               <td className={`${s.td} ${s.tabular}`}>
                 {hc
-                  ? <span style={{ color: hc.ok ? 'var(--color-success)' : 'var(--color-error)' }}>{hc.ok ? '✓' : '✗'} {hc.statusCode ?? 'timeout'} · {hc.latencyMs}ms</span>
+                  ? <span className={hc.ok ? s.healthOk : s.healthFail}>{hc.ok ? '✓' : '✗'} {hc.statusCode ?? 'timeout'} · {hc.latencyMs}ms</span>
                   : <span className={s.openapiLoading}>pending</span>
                 }
               </td>

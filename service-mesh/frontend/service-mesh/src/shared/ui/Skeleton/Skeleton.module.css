@@ -13,4 +13,6 @@
   animation: skeleton-shimmer 1.5s infinite;
   border-radius: 4px;
   display: inline-block;
+  width: var(--skeleton-width);
+  height: var(--skeleton-height);
 }

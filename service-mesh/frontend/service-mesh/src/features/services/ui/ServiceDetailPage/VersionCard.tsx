@@ -9,7 +9,7 @@ import s from './ServiceDetailPage.module.css'
 
 export function VersionCard({ version, serviceId }: { version: ServiceVersion; serviceId: string }): ReactElement {
   return (
-    <Card style={{ padding: 0, overflow: 'hidden' }}>
+    <Card className={s.cardFlush}>
       <div className={s.versionHeader}>
         <span className={s.versionName}>v{version.version}</span>
         <span className={s.versionCount}>{version.instanceCount} instance{version.instanceCount !== 1 ? 's' : ''}</span>

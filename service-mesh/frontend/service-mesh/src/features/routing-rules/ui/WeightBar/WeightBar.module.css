@@ -16,7 +16,14 @@
 .segment {
   height: 100%;
   transition: width 200ms ease;
+  width: var(--segment-width);
 }
+
+.segment[data-color-index='0'] { background: var(--color-primary); }
+.segment[data-color-index='1'] { background: var(--color-blue); }
+.segment[data-color-index='2'] { background: var(--color-success); }
+.segment[data-color-index='3'] { background: var(--color-orange); }
+.segment[data-color-index='4'] { background: var(--color-purple); }
 
 .legend {
   display: flex;
@@ -38,6 +45,12 @@
   border-radius: var(--radius-full);
   flex-shrink: 0;
 }
+
+.legendDot[data-color-index='0'] { background: var(--color-primary); }
+.legendDot[data-color-index='1'] { background: var(--color-blue); }
+.legendDot[data-color-index='2'] { background: var(--color-success); }
+.legendDot[data-color-index='3'] { background: var(--color-orange); }
+.legendDot[data-color-index='4'] { background: var(--color-purple); }
 
 .legendVersion {
   color: var(--color-text);
