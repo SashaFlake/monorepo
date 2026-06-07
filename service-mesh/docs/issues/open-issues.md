@@ -425,7 +425,7 @@ Multiple type-safety violations existed across the frontend codebase:
 ---
 
 ## [Issue #65] [Frontend] Add missing tests — registry, services, shared
-- **State:** open | **Labels:** frontend, testing
+- **State:** done | **Labels:** frontend, testing
 - **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/65
 
 ## Problem
