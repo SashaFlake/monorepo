@@ -1,3 +1,8 @@
+/**
+ * @file RuleNameField – single-line text input for the routing rule name.
+ *
+ * Form field rendered inside {@link RuleFormModal}.
+ */
 import type { ReactElement } from 'react'
 import type { AnyFieldApi } from '@tanstack/react-form'
 import s from './RuleFormFields.module.css'

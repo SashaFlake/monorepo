@@ -1,3 +1,9 @@
+/**
+ * @file WeightBar – visual weight distribution bar with a colour legend.
+ *
+ * Shows how traffic is split between rule destinations. Rendered by
+ * {@link DestinationList}.
+ */
 import type { ReactElement } from 'react'
 import { Array as A } from 'effect'
 import type { DestinationDraft } from '../../domain/types'

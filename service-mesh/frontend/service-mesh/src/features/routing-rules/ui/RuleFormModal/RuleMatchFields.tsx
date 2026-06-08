@@ -1,3 +1,8 @@
+/**
+ * @file RuleMatchFields – priority and path-prefix matcher inputs.
+ *
+ * Side-by-side form fields rendered inside {@link RuleFormModal}.
+ */
 import type { ReactElement } from 'react'
 import type { AnyFieldApi } from '@tanstack/react-form'
 import type { RuleFormValues } from '../../domain/types'

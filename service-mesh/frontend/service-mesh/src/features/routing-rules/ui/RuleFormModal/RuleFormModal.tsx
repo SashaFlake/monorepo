@@ -1,3 +1,10 @@
+/**
+ * @file RuleFormModal – modal dialog for creating or editing a routing rule.
+ *
+ * Composes {@link RuleNameField}, {@link RuleMatchFields}, and
+ * {@link DestinationList} inside a {@link Dialog}. Used by
+ * {@link RoutingRulesPage}.
+ */
 import { type ReactElement } from 'react'
 import {
   Dialog,

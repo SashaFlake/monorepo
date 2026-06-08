@@ -1,3 +1,9 @@
+/**
+ * @file RoutingRulesPage – page shell for managing routing rules of a service.
+ *
+ * Renders a toolbar, the {@link RulesTable}, and conditional create/edit/delete
+ * modals driven by the {@link useRoutingRules} application hook.
+ */
 import type { ReactElement } from 'react'
 import { Button } from '@/shared/ui'
 import { useRoutingRules } from '@/features/routing-rules'

@@ -1,3 +1,10 @@
+/**
+ * @file RulesTable – table of routing rules for a service.
+ *
+ * Renders a table with name, priority, match, destinations, and actions.
+ * Uses the shared {@link DataTable} primitive and the {@link DeleteRuleDialog}
+ * for inline deletion confirmation. Rendered by {@link RoutingRulesPage}.
+ */
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'

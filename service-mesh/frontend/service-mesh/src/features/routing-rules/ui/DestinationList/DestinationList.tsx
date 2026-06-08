@@ -1,3 +1,10 @@
+/**
+ * @file DestinationList – editable list of weighted routing destinations.
+ *
+ * Renders inputs for version and weight, an "Add destination" button, a live
+ * weight-sum indicator, and an embedded {@link WeightBar}. Used by
+ * {@link RuleFormModal}.
+ */
 import type { ReactElement } from 'react'
 import { Array as A, pipe } from 'effect'
 import type { DestinationDraft } from '../../domain/types'

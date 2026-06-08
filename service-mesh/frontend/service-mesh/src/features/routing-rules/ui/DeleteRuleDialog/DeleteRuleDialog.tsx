@@ -1,3 +1,9 @@
+/**
+ * @file DeleteRuleDialog – confirmation dialog before deleting a routing rule.
+ *
+ * Used inline by {@link RulesTable} and at page level by
+ * {@link RoutingRulesPage}.
+ */
 import type { ReactElement } from 'react'
 import { Trash2 } from 'lucide-react'
 import {
