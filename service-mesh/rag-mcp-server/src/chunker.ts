@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { CHUNK_SIZE } from './config.js';
+import { extractReactChunks } from './react-chunker.js';
 import type { Chunk } from './types.js';
 
 function countLines(text: string, index: number): number {
@@ -313,6 +314,12 @@ export function chunkFile(text: string, filePath: string): Chunk[] {
 
   if (ext === '.css' || ext === '.scss' || ext === '.less') {
     return splitLargeChunks(parseCssChunks(text, basename), CHUNK_SIZE);
+  }
+
+  if (ext === '.tsx' || ext === '.jsx') {
+    const codeChunks = parseCodeChunks(text, basename);
+    const reactChunks = extractReactChunks(text, filePath);
+    return splitLargeChunks([...reactChunks, ...codeChunks], CHUNK_SIZE);
   }
 
   return splitLargeChunks(parseCodeChunks(text, basename), CHUNK_SIZE);

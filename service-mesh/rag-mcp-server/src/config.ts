@@ -147,5 +147,23 @@ export function detectRole(filePath: string): FileRole {
     return { role: 'utility', priority: 5 };
   }
 
+  // Frontend React-specific heuristics (path-based; content-based refinement
+  // is applied per-chunk by the react-chunker).
+  const lowerPath = lower;
+  if (lowerPath.includes('/shared/ui/') || lowerPath.includes('/shared/table/')) {
+    return { role: 'primitive', priority: 6 };
+  }
+  if (lowerPath.includes('/routes/')) {
+    return { role: 'route', priority: 6 };
+  }
+  if (lowerPath.includes('/features/') && lowerPath.includes('/ui/')) {
+    if (/page\.tsx$/i.test(name)) return { role: 'page', priority: 7 };
+    if (/(dialog|modal)\.tsx$/i.test(name)) return { role: 'dialog', priority: 7 };
+    if (/field.*\.tsx$/i.test(name)) return { role: 'form-field', priority: 7 };
+    if (/(bar|chart|graph)\.tsx$/i.test(name)) return { role: 'visualization', priority: 7 };
+    if (/^use[a-z]/i.test(name.replace(/\.tsx?$/, ''))) return { role: 'hook', priority: 7 };
+    return { role: 'component', priority: 7 };
+  }
+
   return { role: 'code', priority: 5 };
 }

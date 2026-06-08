@@ -1,7 +1,19 @@
 export interface Chunk {
   text: string;
-  type: 'function' | 'class' | 'interface' | 'enum' | 'doc' | 'config' | 'raw';
+  type:
+    | 'function'
+    | 'class'
+    | 'interface'
+    | 'enum'
+    | 'doc'
+    | 'config'
+    | 'raw'
+    | 'file-summary'
+    | 'dependency-graph'
+    | 'directory-summary';
   name?: string;
+  /** Optional per-chunk role override. If omitted, the file-level role from detectRole is used. */
+  role?: string;
   lineStart?: number;
   lineEnd?: number;
 }

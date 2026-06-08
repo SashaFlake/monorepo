@@ -85,7 +85,7 @@ export class Indexer {
         skipped++;
         continue;
       }
-      const role = detectRole(file);
+      const fileRole = detectRole(file);
 
       await this.qdrant.deleteBySource(file);
 
@@ -102,8 +102,8 @@ export class Indexer {
           source: file,
           name: chunk.name ?? '',
           type: chunk.type,
-          role: role.role,
-          priority: role.priority,
+          role: chunk.role ?? fileRole.role,
+          priority: chunk.type === 'file-summary' || chunk.type === 'dependency-graph' ? 8 : fileRole.priority,
           lineStart: chunk.lineStart ?? 1,
           lineEnd: chunk.lineEnd ?? 1,
         },
@@ -176,7 +176,7 @@ export class Indexer {
     if (chunks.length === 0) {
       return 0;
     }
-    const role = detectRole(relPath);
+    const fileRole = detectRole(relPath);
 
     await this.qdrant.deleteBySource(relPath);
 
@@ -193,8 +193,8 @@ export class Indexer {
         source: relPath,
         name: chunk.name ?? '',
         type: chunk.type,
-        role: role.role,
-        priority: role.priority,
+        role: chunk.role ?? fileRole.role,
+        priority: chunk.type === 'file-summary' || chunk.type === 'dependency-graph' ? 8 : fileRole.priority,
         lineStart: chunk.lineStart ?? 1,
         lineEnd: chunk.lineEnd ?? 1,
       },
