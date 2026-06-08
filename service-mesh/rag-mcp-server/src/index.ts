@@ -10,6 +10,7 @@ import {
   CACHE_PATH,
   COLLECTION_NAME,
   DB_PATH,
+  OLLAMA_GENERATION_MODEL,
   OLLAMA_MODEL,
   OLLAMA_URL,
   QDRANT_URL,
@@ -28,7 +29,7 @@ const server = new Server(
   { capabilities: { tools: {} } },
 );
 
-const ollama = new OllamaClient(OLLAMA_URL, OLLAMA_MODEL);
+const ollama = new OllamaClient(OLLAMA_URL, OLLAMA_MODEL, OLLAMA_GENERATION_MODEL);
 const qdrant = new QdrantClient(QDRANT_URL, COLLECTION_NAME, VECTOR_DIM);
 const cache = new Map<string, number[]>();
 const events = new StatsEventEmitter();

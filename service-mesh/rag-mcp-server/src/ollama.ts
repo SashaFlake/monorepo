@@ -6,7 +6,70 @@ export class OllamaClient {
   constructor(
     private readonly url: string,
     private readonly model: string,
+    private readonly generationModel?: string,
   ) {}
+
+  private get generateUrl(): string {
+    return this.url.replace('/api/embeddings', '/api/generate');
+  }
+
+  async generate(
+    prompt: string,
+    options: { temperature?: number; numPredict?: number; system?: string } = {},
+  ): Promise<string> {
+    if (prompt.trim().length === 0) {
+      throw new Error('Cannot generate from empty prompt');
+    }
+
+    let lastErr: Error | undefined;
+    const delays = [1000, 2000, 4000];
+
+    for (let attempt = 0; attempt <= delays.length; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 60000);
+
+        const body: Record<string, unknown> = {
+          model: this.generationModel ?? this.model,
+          prompt,
+          stream: false,
+          options: {
+            temperature: options.temperature ?? 0.1,
+            num_predict: options.numPredict ?? 100,
+          },
+        };
+        if (options.system) {
+          body.system = options.system;
+        }
+
+        const res = await fetch(this.generateUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          throw new Error(`Ollama HTTP ${res.status}`);
+        }
+
+        const data = (await res.json()) as { response?: string };
+        if (typeof data.response !== 'string') {
+          throw new Error('Invalid generate response: missing response text');
+        }
+        return data.response.trim();
+      } catch (err) {
+        lastErr = err instanceof Error ? err : new Error(String(err));
+        if (attempt < delays.length) {
+          await new Promise((r) => setTimeout(r, delays[attempt]));
+        }
+      }
+    }
+
+    throw lastErr;
+  }
 
   async getEmbedding(text: string): Promise<number[]> {
     if (text.trim().length === 0) {

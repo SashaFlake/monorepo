@@ -10,6 +10,7 @@ import {
   detectRole,
 } from './config.js';
 import { chunkFile } from './chunker.js';
+import { summarizeChunks } from './llm-summarizer.js';
 import type { OllamaClient } from './ollama.js';
 import type { QdrantClient } from './qdrant.js';
 import type { IndexState, QdrantPoint } from './types.js';
@@ -78,13 +79,29 @@ export class Indexer {
       const file = toIndex[i];
       const fullPath = path.join(this.projectRoot, file);
       const text = await fs.promises.readFile(fullPath, 'utf-8');
-      const chunks = chunkFile(text, file).filter(
+      let chunks = chunkFile(text, file).filter(
         (c) => c.text.trim().length > 0,
       );
       if (chunks.length === 0) {
         skipped++;
         continue;
       }
+
+      const isUiFile = /[\\/]ui[\\/]/.test(file);
+      if (!isUiFile) {
+        const summaryMap = await summarizeChunks(this.ollama, chunks);
+        for (const [sourceChunk, summaryText] of summaryMap) {
+          chunks.push({
+            text: `LLM summary for ${sourceChunk.name ?? 'function'}:\n${summaryText}`,
+            type: 'llm-summary',
+            name: `${sourceChunk.name ?? 'function'}-llm-summary`,
+            role: 'summary',
+            lineStart: sourceChunk.lineStart ?? 1,
+            lineEnd: sourceChunk.lineEnd ?? 1,
+          });
+        }
+      }
+
       const fileRole = detectRole(file);
 
       await this.qdrant.deleteBySource(file);
@@ -103,7 +120,7 @@ export class Indexer {
           name: chunk.name ?? '',
           type: chunk.type,
           role: chunk.role ?? fileRole.role,
-          priority: chunk.type === 'file-summary' || chunk.type === 'dependency-graph' ? 8 : fileRole.priority,
+          priority: chunk.type === 'file-summary' || chunk.type === 'dependency-graph' || chunk.type === 'llm-summary' ? 8 : fileRole.priority,
           lineStart: chunk.lineStart ?? 1,
           lineEnd: chunk.lineEnd ?? 1,
         },
@@ -180,12 +197,28 @@ export class Indexer {
     }
 
     const text = await fs.promises.readFile(fullPath, 'utf-8');
-    const chunks = chunkFile(text, relPath).filter(
+    let chunks = chunkFile(text, relPath).filter(
       (c) => c.text.trim().length > 0,
     );
     if (chunks.length === 0) {
       return 0;
     }
+
+    const isUiFile = /[\\/]ui[\\/]/.test(relPath);
+    if (!isUiFile) {
+      const summaryMap = await summarizeChunks(this.ollama, chunks);
+      for (const [sourceChunk, summaryText] of summaryMap) {
+        chunks.push({
+          text: `LLM summary for ${sourceChunk.name ?? 'function'}:\n${summaryText}`,
+          type: 'llm-summary',
+          name: `${sourceChunk.name ?? 'function'}-llm-summary`,
+          role: 'summary',
+          lineStart: sourceChunk.lineStart ?? 1,
+          lineEnd: sourceChunk.lineEnd ?? 1,
+        });
+      }
+    }
+
     const fileRole = detectRole(relPath);
 
     await this.qdrant.deleteBySource(relPath);
@@ -204,7 +237,7 @@ export class Indexer {
         name: chunk.name ?? '',
         type: chunk.type,
         role: chunk.role ?? fileRole.role,
-        priority: chunk.type === 'file-summary' || chunk.type === 'dependency-graph' ? 8 : fileRole.priority,
+        priority: chunk.type === 'file-summary' || chunk.type === 'dependency-graph' || chunk.type === 'llm-summary' ? 8 : fileRole.priority,
         lineStart: chunk.lineStart ?? 1,
         lineEnd: chunk.lineEnd ?? 1,
       },

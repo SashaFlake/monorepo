@@ -79,6 +79,7 @@ export const BATCH_SIZE = 8;
 export const QDRANT_URL = 'http://localhost:6333';
 export const OLLAMA_URL = 'http://localhost:11434/api/embeddings';
 export const OLLAMA_MODEL = 'nomic-embed-text';
+export const OLLAMA_GENERATION_MODEL = 'qwen2.5-coder:7b';
 export const VECTOR_DIM = 768;
 export const COLLECTION_NAME = 'code_chunks';
 export const DB_PATH = path.join(process.env.HOME || '.', '.kimi_rag_db');

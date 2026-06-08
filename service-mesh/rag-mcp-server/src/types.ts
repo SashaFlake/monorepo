@@ -11,7 +11,8 @@ export interface Chunk {
     | 'file-summary'
     | 'dependency-graph'
     | 'directory-summary'
-    | 'reverse-dependency';
+    | 'reverse-dependency'
+    | 'llm-summary';
   name?: string;
   /** Optional per-chunk role override. If omitted, the file-level role from detectRole is used. */
   role?: string;
