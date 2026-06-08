@@ -102,7 +102,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             role: {
               type: 'string',
-              description: 'Фильтр по роли файла',
+              description: 'Фильтр по роли файла (include only)',
+            },
+            exclude_roles: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Исключить роли из результатов (например, ["documentation", "test"])',
             },
             path: {
               type: 'string',
@@ -172,11 +177,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         throw new Error('Параметр query обязателен');
       }
       const engine = new SearchEngine(qdrant, ollama, cache, events);
+      const excludeRoles = Array.isArray(args.exclude_roles)
+        ? args.exclude_roles.map((r: unknown) => String(r))
+        : undefined;
       const results = await engine.search(
         String(args.query),
         Number(args.limit) || 5,
         args.role ? String(args.role) : undefined,
         args.path ? String(args.path) : undefined,
+        excludeRoles,
       );
 
       if (results.length === 0) {

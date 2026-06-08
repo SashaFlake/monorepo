@@ -135,6 +135,16 @@ export class Indexer {
     saveJson(STATE_PATH, state);
     this.saveCache();
 
+    if (indexed > 0) {
+      try {
+        const reverseChunks = await this.buildReverseDependencyIndex();
+        totalChunks += reverseChunks;
+        console.error(`[reverse-deps] Generated ${reverseChunks} reverse-dependency chunks`);
+      } catch (err) {
+        console.error('[reverse-deps] Failed:', err);
+      }
+    }
+
     const durationMs = Date.now() - start;
     this.events?.emitIndexCompleted({
       eventType: 'project',
@@ -219,6 +229,87 @@ export class Indexer {
     });
 
     return chunks.length;
+  }
+
+  /**
+   * Builds reverse dependency chunks from all dependency-graph chunks in the index.
+   * For each imported component/hook, creates a chunk listing all files that import it.
+   */
+  async buildReverseDependencyIndex(): Promise<number> {
+    this.events?.emitIndexStarted({ eventType: 'reverse-dependencies' });
+    const start = Date.now();
+
+    const all = await this.qdrant.scrollAll();
+    const depChunks = all.filter((p) => p.payload.type === 'dependency-graph');
+
+    const reverseMap = new Map<string, Set<string>>();
+
+    for (const point of depChunks) {
+      const text = point.payload.text;
+      const match = /Imports local components\/hooks: (.+)/.exec(text);
+      if (!match) continue;
+      const names = match[1]
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const sourceFile = point.payload.source;
+      for (const name of names) {
+        if (!reverseMap.has(name)) {
+          reverseMap.set(name, new Set());
+        }
+        reverseMap.get(name)!.add(sourceFile);
+      }
+    }
+
+    await this.qdrant.deleteByType('reverse-dependency');
+
+    const entries = Array.from(reverseMap.entries());
+    if (entries.length === 0) {
+      this.events?.emitIndexCompleted({
+        eventType: 'reverse-dependencies',
+        filesCount: 0,
+        chunksCount: 0,
+        durationMs: Date.now() - start,
+      });
+      return 0;
+    }
+
+    const chunks: { text: string; name: string }[] = entries.map(([name, sources]) => ({
+      text: `Reverse dependency: ${name} is imported by ${Array.from(sources).join(', ')}.`,
+      name: `${name}-reverse-deps`,
+    }));
+
+    const vectors = await this.ollama.getEmbeddingsBatch(
+      chunks.map((c) => c.text),
+      this.cache,
+    );
+
+    const points: QdrantPoint[] = chunks.map((chunk, idx) => ({
+      id: crypto.randomUUID(),
+      vector: vectors[idx],
+      payload: {
+        text: chunk.text,
+        source: '__reverse_dependencies__',
+        name: chunk.name,
+        type: 'reverse-dependency',
+        role: 'relationship',
+        priority: 7,
+        lineStart: 1,
+        lineEnd: 1,
+      },
+    }));
+
+    await this.qdrant.upsertPoints(points);
+    this.saveCache();
+
+    this.events?.emitIndexCompleted({
+      eventType: 'reverse-dependencies',
+      filesCount: 0,
+      chunksCount: points.length,
+      durationMs: Date.now() - start,
+    });
+
+    return points.length;
   }
 
   private saveCache(): void {

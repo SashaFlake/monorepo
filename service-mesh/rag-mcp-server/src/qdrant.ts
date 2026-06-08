@@ -69,11 +69,44 @@ export class QdrantClient {
     );
   }
 
+  async deleteByType(type: string): Promise<void> {
+    await this.request(
+      'POST',
+      `/collections/${this.collectionName}/points/delete`,
+      {
+        filter: {
+          must: [{ key: 'type', match: { value: type } }],
+        },
+      },
+    );
+  }
+
   async search(
     vector: number[],
     limit: number,
     roleFilter?: string,
+    excludeRoles?: string[],
   ): Promise<ScoredPoint[]> {
+    const must: unknown[] = [];
+    const mustNot: unknown[] = [];
+
+    if (roleFilter) {
+      must.push({ key: 'role', match: { value: roleFilter } });
+    }
+    if (excludeRoles && excludeRoles.length > 0) {
+      for (const role of excludeRoles) {
+        mustNot.push({ key: 'role', match: { value: role } });
+      }
+    }
+
+    const filter: Record<string, unknown> | undefined =
+      must.length > 0 || mustNot.length > 0
+        ? {
+            ...(must.length > 0 ? { must } : {}),
+            ...(mustNot.length > 0 ? { must_not: mustNot } : {}),
+          }
+        : undefined;
+
     const payload = await this.request<{
       result?: {
         id: string;
@@ -85,11 +118,7 @@ export class QdrantClient {
       vector,
       limit,
       with_payload: true,
-      filter: roleFilter
-        ? {
-            must: [{ key: 'role', match: { value: roleFilter } }],
-          }
-        : undefined,
+      filter,
     });
 
     return (payload.result || []).map((r) => ({

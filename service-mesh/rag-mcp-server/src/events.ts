@@ -5,6 +5,7 @@ export interface SearchStartedPayload {
   limit: number;
   roleFilter?: string;
   pathFilter?: string;
+  excludeRoles?: string[];
 }
 
 export interface SearchCompletedPayload {
@@ -15,12 +16,12 @@ export interface SearchCompletedPayload {
 }
 
 export interface IndexStartedPayload {
-  eventType: 'project' | 'file';
+  eventType: 'project' | 'file' | 'reverse-dependencies';
   filePath?: string;
 }
 
 export interface IndexCompletedPayload {
-  eventType: 'project' | 'file';
+  eventType: 'project' | 'file' | 'reverse-dependencies';
   filePath?: string;
   filesCount?: number;
   chunksCount?: number;

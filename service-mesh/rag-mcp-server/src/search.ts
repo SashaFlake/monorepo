@@ -16,8 +16,9 @@ export class SearchEngine {
     limit: number,
     roleFilter?: string,
     pathFilter?: string,
+    excludeRoles?: string[],
   ): Promise<SearchResult[]> {
-    this.events?.emitSearchStarted({ query, limit, roleFilter, pathFilter });
+    this.events?.emitSearchStarted({ query, limit, roleFilter, pathFilter, excludeRoles });
     const start = Date.now();
 
     const queryVector = await this.ollama.getEmbedding(query);
@@ -25,6 +26,7 @@ export class SearchEngine {
       queryVector,
       limit * 4,
       roleFilter,
+      excludeRoles,
     );
 
     const queryWords = query
