@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogActions,
   DialogCloseIconButton,
   Button,
@@ -61,6 +62,9 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{initial ? 'Edit rule' : 'New rule'}</DialogTitle>
+          <DialogDescription>
+            {initial ? 'Update the routing rule configuration.' : 'Create a new routing rule for this service.'}
+          </DialogDescription>
           <DialogCloseIconButton label="Close" />
         </DialogHeader>
 

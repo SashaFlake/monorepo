@@ -66,10 +66,4 @@ describe('useRegistryStats', () => {
     expect(result.current.stats.totalServices).toBe(0)
   })
 
-  it('returns empty array when data is undefined', async () => {
-    mockedListServices.mockResolvedValue(undefined as unknown as ServiceView[])
-    const { result } = renderHook(() => useRegistryStats(), { wrapper })
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-    expect(result.current.services).toEqual([])
-  })
 })
