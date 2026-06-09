@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react'
 import { Array as A, pipe } from 'effect'
-import type { DestinationDraft } from '../../domain/types'
-import { emptyDestinationDraft } from '../../domain/types'
-import { sumWeights } from '../../domain/types'
+import type { DestinationDraft } from '../../domain/routing-rules.types'
+import { emptyDestinationDraft } from '../../domain/routing-rules.types'
+import { sumWeights } from '../../domain/routing-rules.types'
 import { Button } from '@/shared/ui'
 import { WeightBar } from '../WeightBar/WeightBar'
 import s from './DestinationList.module.css'
@@ -25,8 +25,7 @@ type Props = {
  * @param destinations - Current destination drafts
  * @param onChange     - Change handler
  * @returns The destination list element
- * @sideEffects Calls `emptyDestinationDraft()` (and therefore `crypto.randomUUID()`)
- *              when the user clicks "Add destination".
+ * @sideEffects Calls `crypto.randomUUID()` when the user clicks "Add destination".
  */
 export function DestinationList({ destinations, onChange }: Props): ReactElement {
   const update = (id: string, patch: Partial<Pick<DestinationDraft, 'version' | 'weightPct'>>): void =>
@@ -40,7 +39,7 @@ export function DestinationList({ destinations, onChange }: Props): ReactElement
     onChange(destinations.filter((d): boolean => d.id !== id))
 
   const add = (): void =>
-    onChange([...destinations, emptyDestinationDraft()])
+    onChange([...destinations, emptyDestinationDraft(crypto.randomUUID())])
 
   const sum = sumWeights(destinations)
   const sumOk = sum === 100

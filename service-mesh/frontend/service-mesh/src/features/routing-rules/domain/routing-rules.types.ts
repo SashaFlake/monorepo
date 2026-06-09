@@ -39,13 +39,14 @@ export type DestinationDraft = {
 }
 
 /**
- * Creates an empty destination draft with a fresh UUID.
+ * Creates an empty destination draft with the given identifier.
  *
- * @returns A new {@link DestinationDraft} with empty version, zero weight, and a fresh id
- * @sideEffects Calls `crypto.randomUUID()`.
+ * @param id - Stable row identifier (e.g. a UUID)
+ * @returns A new {@link DestinationDraft} with empty version, zero weight, and the supplied id
+ * @sideEffects none
  */
-export const emptyDestinationDraft = (): DestinationDraft => ({
-  id:        crypto.randomUUID(),
+export const emptyDestinationDraft = (id: string): DestinationDraft => ({
+  id,
   version:   '',
   weightPct: 0,
 })
