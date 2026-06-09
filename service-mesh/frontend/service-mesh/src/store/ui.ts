@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { RoutingRule } from '@/features/routing-rules/domain/routing-rules.types'
+import type { RoutingRule } from '@/features/routing-rules'
 
 /**
  * Pure UI state managed by Zustand.
