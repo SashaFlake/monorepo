@@ -1,15 +1,10 @@
-import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { routingRulesApi, routingKeys } from '../infrastructure/api'
-import type { RoutingRule, RuleFormValues } from '../domain/types'
+import { useUIStore } from '@/store/ui'
+import { routingRulesApi, routingKeys } from '../infrastructure/api.infrastructure'
+import type { RoutingRule, RuleFormValues } from '../domain/routing-rules.types'
 
 /**
  * Combined server + UI state returned by {@link useRoutingRules}.
- *
- * @deprecated The UI-state portion (`createOpen`, `editRule`, `deleteRule` and
- *             their open/close helpers) should move to a Zustand slice so that
- *             the application layer only manages server state. Kept here for
- *             backwards compatibility while the refactor is in progress.
  */
 export type RoutingRulesState = {
   rules: RoutingRule[]
@@ -39,17 +34,17 @@ export type RoutingRulesState = {
  * Application hook that loads routing rules for a service and exposes
  * create/update/delete mutations plus modal visibility state.
  *
+ * UI state is read from the global Zustand store ({@link useUIStore}) so
+ * that the application layer only orchestrates server state.
+ *
  * @param serviceId - Identifier of the service whose rules should be loaded
  * @returns Combined server and UI state (see {@link RoutingRulesState})
- * @sideEffects Subscribes to a TanStack Query observer, performs HTTP requests,
- *              and mutates local React state for modal visibility.
+ * @sideEffects Subscribes to a TanStack Query observer and performs HTTP
+ *              requests. Modal state is mutated via the Zustand store.
  */
 export function useRoutingRules(serviceId: string): RoutingRulesState {
   const qc = useQueryClient()
-
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editRule,   setEditRule]   = useState<RoutingRule | null>(null)
-  const [deleteRule, setDeleteRule] = useState<RoutingRule | null>(null)
+  const ui = useUIStore()
 
   const { data: rules = [], isLoading, isError } = useQuery({
     queryKey: routingKeys.list(serviceId),
@@ -61,32 +56,43 @@ export function useRoutingRules(serviceId: string): RoutingRulesState {
 
   const createMutation = useMutation({
     mutationFn: (input: RuleFormValues) => routingRulesApi.create(serviceId, input),
-    onSuccess: () => { void invalidate(); setCreateOpen(false) },
+    onSuccess: () => { void invalidate(); ui.closeRoutingRulesCreate() },
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: RuleFormValues }) =>
       routingRulesApi.update(id, input),
-    onSuccess: () => { void invalidate(); setEditRule(null) },
+    onSuccess: () => { void invalidate(); ui.closeRoutingRulesEdit() },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => routingRulesApi.delete(id),
-    onSuccess: () => { void invalidate(); setDeleteRule(null) },
+    onSuccess: () => { void invalidate(); ui.closeRoutingRulesDelete() },
   })
 
   return {
     rules, isLoading, isError,
-    createOpen, editRule, deleteRule,
-    openCreate:  (): void => setCreateOpen(true),
-    closeCreate: (): void => setCreateOpen(false),
-    openEdit:    (rule): void => setEditRule(rule),
-    closeEdit:   (): void => setEditRule(null),
-    openDelete:  (id): void => setDeleteRule(rules.find(r => r.id === id) ?? null),
-    closeDelete: (): void => setDeleteRule(null),
+    createOpen: ui.routingRulesCreateOpen,
+    editRule: ui.routingRulesEditRule,
+    deleteRule: ui.routingRulesDeleteRule,
+    openCreate: ui.openRoutingRulesCreate,
+    closeCreate: ui.closeRoutingRulesCreate,
+    openEdit: ui.openRoutingRulesEdit,
+    closeEdit: ui.closeRoutingRulesEdit,
+    openDelete: (id): void => {
+      const rule = rules.find(r => r.id === id) ?? null
+      if (rule) ui.openRoutingRulesDelete(rule)
+    },
+    closeDelete: ui.closeRoutingRulesDelete,
     create:  (values): void => createMutation.mutate(values),
-    update:  (values): void => updateMutation.mutate({ id: editRule!.id, input: values }),
-    remove:  (): void => deleteMutation.mutate(deleteRule!.id),
+    update:  (values): void => {
+      if (!ui.routingRulesEditRule) return
+      updateMutation.mutate({ id: ui.routingRulesEditRule.id, input: values })
+    },
+    remove:  (): void => {
+      if (!ui.routingRulesDeleteRule) return
+      deleteMutation.mutate(ui.routingRulesDeleteRule.id)
+    },
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
