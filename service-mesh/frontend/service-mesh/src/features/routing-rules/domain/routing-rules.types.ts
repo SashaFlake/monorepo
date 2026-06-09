@@ -108,12 +108,10 @@ export const Destination = {
    * @invariants `version` must be non-blank; `weightPct` must be in 0..100.
    */
   create: (raw: DestinationDraft): ValidationResult<Destination> => {
-    const errors: ValidationError[] = []
-
-    if (!raw.version.trim())
-      errors.push({ field: 'version', message: 'Version is required' })
-    if (raw.weightPct < 0 || raw.weightPct > 100)
-      errors.push({ field: 'weightPct', message: 'Weight must be 0–100' })
+    const errors: ValidationError[] = [
+      !raw.version.trim() && { field: 'version', message: 'Version is required' },
+      (raw.weightPct < 0 || raw.weightPct > 100) && { field: 'weightPct', message: 'Weight must be 0–100' },
+    ].filter((e): e is ValidationError => Boolean(e))
 
     return errors.length > 0
       ? Either.left(errors)
