@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Schema, Effect } from 'effect'
 import { apiFetchEffect, apiFetchVoidEffect, makeApiError, isApiError, BASE, endpoint } from './http'
 
@@ -37,8 +37,22 @@ describe('http utilities', () => {
 })
 
 describe('apiFetchEffect', () => {
+  const mockFetch = vi.fn<typeof global.fetch>()
+
+  beforeEach(() => {
+    Object.defineProperty(global, 'fetch', {
+      value: mockFetch,
+      writable: true,
+      configurable: true,
+    })
+  })
+
+  afterEach(() => {
+    mockFetch.mockClear()
+  })
+
   it('returns decoded data when response is ok', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ name: 'test' }),
     })
@@ -48,7 +62,7 @@ describe('apiFetchEffect', () => {
   })
 
   it('fails when response is not ok', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 404,
       statusText: 'Not Found',
@@ -59,7 +73,7 @@ describe('apiFetchEffect', () => {
   })
 
   it('fails when JSON does not match schema', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ wrong: 'shape' }),
     })
@@ -69,27 +83,41 @@ describe('apiFetchEffect', () => {
   })
 
   it('fails on network error', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('network'))
+    mockFetch.mockRejectedValue(new Error('network'))
     const result = await Effect.runPromise(Effect.either(apiFetchEffect('/test', TestSchema)))
     expect(result._tag).toBe('Left')
   })
 })
 
 describe('apiFetchVoidEffect', () => {
+  const mockFetch = vi.fn<typeof global.fetch>()
+
+  beforeEach(() => {
+    Object.defineProperty(global, 'fetch', {
+      value: mockFetch,
+      writable: true,
+      configurable: true,
+    })
+  })
+
+  afterEach(() => {
+    mockFetch.mockClear()
+  })
+
   it('succeeds on ok response', async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: true })
+    mockFetch.mockResolvedValue({ ok: true })
     const result = await Effect.runPromise(apiFetchVoidEffect('/test'))
     expect(result).toBeUndefined()
   })
 
   it('fails on non-ok response', async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' })
+    mockFetch.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' })
     const result = await Effect.runPromise(Effect.either(apiFetchVoidEffect('/test')))
     expect(result._tag).toBe('Left')
   })
 
   it('fails on network error', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('network'))
+    mockFetch.mockRejectedValue(new Error('network'))
     const result = await Effect.runPromise(Effect.either(apiFetchVoidEffect('/test')))
     expect(result._tag).toBe('Left')
   })

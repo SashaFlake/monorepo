@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { TooltipProvider } from '@/shared/ui'
 import { StatsGrid } from './StatsGrid'
-import type { RegistryStats } from '../../domain/types'
+import type { RegistryStats } from '../../domain/registry.types'
 
 const stats = (overrides: Partial<RegistryStats> = {}): RegistryStats => ({
   totalServices: 5,
@@ -13,7 +13,7 @@ const stats = (overrides: Partial<RegistryStats> = {}): RegistryStats => ({
   ...overrides,
 })
 
-const renderWithProvider = (ui: React.ReactElement) =>
+const renderWithProvider = (ui: React.ReactElement): ReturnType<typeof render> =>
   render(<TooltipProvider>{ui}</TooltipProvider>)
 
 describe('StatsGrid', () => {

@@ -4,13 +4,13 @@ import { render, screen } from '@testing-library/react'
 import { Sidebar } from './Sidebar'
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: (props: { isActive: boolean }) => ReactNode; to: string }) => (
+  Link: ({ children, to }: { children: (props: { isActive: boolean }) => ReactNode; to: string }): ReactNode => (
     <a href={to}>{children({ isActive: false })}</a>
   ),
 }))
 
 vi.mock('@/store/ui', () => ({
-  useUIStore: () => ({ sidebarCollapsed: false, toggleSidebar: vi.fn() }),
+  useUIStore: (): { sidebarCollapsed: boolean; toggleSidebar: () => void } => ({ sidebarCollapsed: false, toggleSidebar: vi.fn() }),
 }))
 
 describe('Sidebar', () => {

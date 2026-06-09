@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useServices } from './useServices.application'
-import type { ServiceView } from '../domain/types'
+import type { ServiceView } from '../domain/services.types'
 
 vi.mock('../infrastructure/services.infrastructure', () => ({
   servicesApi: { listServices: vi.fn() },
@@ -14,7 +14,7 @@ import { servicesApi } from '../infrastructure/services.infrastructure'
 
 const mockedListServices = vi.mocked(servicesApi.listServices)
 
-function wrapper({ children }: { children: ReactNode }) {
+function wrapper({ children }: { children: ReactNode }): ReactElement {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>
 }

@@ -26,7 +26,7 @@ function Wrapper({ children }: { children: ReactNode }): ReactElement {
  * @returns RTL render result
  * @sideEffects Renders into jsdom.
  */
-export function render(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+export function render(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>): ReturnType<typeof rtlRender> {
   return rtlRender(ui, { wrapper: Wrapper, ...options })
 }
 

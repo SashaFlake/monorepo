@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import type { AnyFieldApi } from '@tanstack/react-form'
-import type { RuleFormValues } from '../../domain/types'
+import type { RuleFormValues } from '../../domain/routing-rules.types'
 import s from './RuleFormFields.module.css'
 
 /**
@@ -26,7 +26,7 @@ interface RuleMatchFieldsProps {
  * @sideEffects none
  */
 export function RuleMatchFields({ priorityField, pathPrefixField }: RuleMatchFieldsProps): ReactElement {
-  const priorityError = priorityField.state.meta.errors[0]
+  const priorityError = priorityField.state.meta.errors[0] as string | undefined
   const matchValue = pathPrefixField.state.value as RuleFormValues['match']
 
   return (

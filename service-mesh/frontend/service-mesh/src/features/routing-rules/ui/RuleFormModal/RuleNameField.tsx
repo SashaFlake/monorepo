@@ -21,7 +21,7 @@ interface RuleNameFieldProps {
  * @sideEffects none
  */
 export function RuleNameField({ field }: RuleNameFieldProps): ReactElement {
-  const error = field.state.meta.errors[0]
+  const error = field.state.meta.errors[0] as string | undefined
   return (
     <div className={s.field}>
       <label className={s.label} htmlFor={String(field.name)}>Rule name</label>

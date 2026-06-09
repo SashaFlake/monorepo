@@ -7,7 +7,7 @@ vi.mock('../../application/useRegistryStats.application', () => ({
 }))
 
 vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
+  useNavigate: (): (() => void) => vi.fn(),
 }))
 
 import { useRegistryStats } from '../../application/useRegistryStats.application'

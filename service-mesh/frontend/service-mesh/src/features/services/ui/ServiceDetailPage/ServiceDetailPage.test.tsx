@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { ServiceDetailPage } from './ServiceDetailPage'
 
 vi.mock('../../application/useServiceDetail.application', () => ({
@@ -7,15 +7,15 @@ vi.mock('../../application/useServiceDetail.application', () => ({
 }))
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
+  Link: ({ children, to }: { children: React.ReactNode; to: string }): React.ReactElement => <a href={to}>{children}</a>,
 }))
 
 vi.mock('@/features/routing-rules', () => ({
-  RoutingRulesPage: ({ serviceId }: { serviceId: string }) => <div data-testid="routing-rules">Rules for {serviceId}</div>,
+  RoutingRulesPage: ({ serviceId }: { serviceId: string }): React.ReactElement => <div data-testid="routing-rules">Rules for {serviceId}</div>,
 }))
 
 vi.mock('./VersionCard', () => ({
-  VersionCard: ({ version }: { version: { version: string } }) => <div data-testid="version-card">{version.version}</div>,
+  VersionCard: ({ version }: { version: { version: string } }): React.ReactElement => <div data-testid="version-card">{version.version}</div>,
 }))
 
 import { useServiceDetail } from '../../application/useServiceDetail.application'
