@@ -7,9 +7,9 @@
 
 ## 🔴 Критично — сделать сейчас
 
-### 1. Убрать non-null assertions в `useRoutingRules`
+### 1. Убрать non-null assertions в `useRoutingRules` ✅ Done (2026-06-09)
 
-**Файл:** `src/features/routing-rules/model/useRoutingRules.ts`
+**Файл:** `src/features/routing-rules/application/useRoutingRules.application.ts`
 
 ```ts
 // ❌ Сейчас — крэш при вызове вне контекста UI
@@ -55,9 +55,9 @@ Pseudo-код скелетона:
 
 ## 🟡 Структурные улучшения — сделать в ближайший спринт
 
-### 3. Разбить `ServiceDetailPage.tsx` на компоненты
+### 3. Разбить `ServiceDetailPage.tsx` на компоненты ✅ Done (2026-06-09)
 
-**Файл:** `src/features/services/ServiceDetailPage.tsx` (~270 строк, всё в одном файле)
+**Файл:** `src/features/services/ui/ServiceDetailPage/ServiceDetailPage.tsx` (~61 строка)
 
 Предлагаемая структура:
 ```
@@ -91,10 +91,9 @@ OpenAPI-ответ приходит от произвольных сервисо
 
 ---
 
-### 5. Добавить `index.ts` barrel для фичи `services`
+### 5. Добавить `index.ts` barrel для фичи `services` ✅ Done (2026-06-09)
 
-**Отсутствует:** `src/features/services/index.ts`  
-**Есть у:** `src/features/routing-rules/index.ts` ✅
+**Файл:** `src/features/services/index.ts`
 
 ```ts
 // src/features/services/index.ts
@@ -107,18 +106,9 @@ export type { ServiceView, InstanceStatus } from './api/types'
 
 ---
 
-### 6. Разделить `useRoutingRules` на слои
+### 6. Разделить `useRoutingRules` на слои ✅ Done (2026-06-09)
 
-**Проблема:** хук смешивает UI-состояние (modal open/close) и server state (mutations).  
-Это затрудняет изолированное тестирование бизнес-логики.
-
-```
-// ✅ Разбить:
-useRoutingRulesMutations(serviceId)  ← только TanStack Query mutations
-useRoutingRulesUI()                  ← только useState для модалок
-```
-
-Компонент комбинирует оба хука самостоятельно.
+**Решение:** UI-состояние модалок перенесено в `store/ui.ts` (Zustand). Server state остаётся в `application/useRoutingRules.application.ts`.
 
 ---
 

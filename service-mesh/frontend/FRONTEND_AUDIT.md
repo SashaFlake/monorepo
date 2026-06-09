@@ -50,9 +50,7 @@
 > «Domain — Pure types, branded types, pure functions, business logic. No side effects.»
 > «Domain services contain pure logic. Application services orchestrate and handle side effects.»
 
-**Recommended fix:**
-- Move `useRoutingRulesMutations.ts` → `application/useRoutingRulesMutations.application.ts`.
-- Move `useRoutingRulesUI.ts` logic into `store/ui.ts` as `useRoutingRulesUIStore`, or keep it in `application/useRoutingRulesUI.application.ts` at minimum.
+**Status:** ✅ Fixed (2026-06-09). Files removed from `domain/`.
 
 ---
 
@@ -69,9 +67,7 @@
 > «Zustand — used only for pure UI state. Application layer manages server state via TanStack Query.»
 > «Explicit error handling — Result<T, E>. Avoid unsafe non-null assertions.»
 
-**Recommended fix:**
-- Extract modal state into Zustand slice or dedicated UI hook.
-- Replace `!` with explicit guards (already done in `domain/useRoutingRulesMutations.ts`, but `application/useRoutingRules.ts` still uses them).
+**Status:** ✅ Fixed (2026-06-09). Modal state moved to `store/ui.ts`; non-null assertions replaced with guards.
 
 ---
 
@@ -105,8 +101,7 @@
 > «Domain services contain pure functions.»
 > «Pure functions as default — deterministic, no side effects.»
 
-**Recommended fix:**
-- Make `emptyDestinationDraft` accept `id: string` as an argument, or move the factory to `application/` / `infrastructure/`.
+**Status:** ✅ Fixed (2026-06-09). `emptyDestinationDraft(id: string)` now pure.
 
 ---
 
@@ -171,11 +166,11 @@ Every exported function, constant, type, interface, and barrel module in `fronte
 | `features/routing-rules/infrastructure/mock.ts` | `features/routing-rules/infrastructure/mock.infrastructure.ts` | 🔴 open |
 | `features/routing-rules/application/useRoutingRules.ts` | `features/routing-rules/application/useRoutingRules.application.ts` | 🔴 open |
 | `features/routing-rules/application/useRuleForm.ts` | `features/routing-rules/application/useRuleForm.application.ts` | 🔴 open |
-| `features/registry/domain/types.ts` | `features/registry/domain/registry.types.ts` | 🟡 open |
-| `features/services/domain/types.ts` | `features/services/domain/services.types.ts` | 🟡 open |
-| `features/routing-rules/domain/types.ts` | `features/routing-rules/domain/routing-rules.types.ts` | 🟡 open |
-| `features/services/domain/schema.ts` | `features/services/domain/services.dto.ts` | 🟡 open |
-| `features/routing-rules/domain/schema.ts` | `features/routing-rules/domain/routing-rules.dto.ts` | 🟡 open |
+| `features/registry/domain/types.ts` | `features/registry/domain/registry.types.ts` | ✅ Fixed (2026-06-09) |
+| `features/services/domain/types.ts` | `features/services/domain/services.types.ts` | ✅ Fixed (2026-06-09) |
+| `features/routing-rules/domain/types.ts` | `features/routing-rules/domain/routing-rules.types.ts` | ✅ Fixed (2026-06-09) |
+| `features/services/domain/schema.ts` | `features/services/domain/services.dto.ts` | ✅ Fixed (2026-06-09) |
+| `features/routing-rules/domain/schema.ts` | `features/routing-rules/domain/routing-rules.dto.ts` | ✅ Fixed (2026-06-09) |
 | `shared/form/schemaResolver.ts` | `shared/form/schemaResolver.domain.ts` or `schemaResolver.application.ts` | 🟡 open |
 
 **AGENTS.md requirement:**
@@ -223,9 +218,7 @@ The `registry-ui` bounded context reaches directly into the `services` context's
 **AGENTS.md requirement:**
 > «A bounded context must not import domain types from another context's `domain/` layer. Cross-context communication happens through the application layer or shared kernel (`shared/endpoint-contract.ts`).»
 
-**Recommended fix:**
-- Re-export public types from `features/services/index.ts` and import from the barrel.
-- For shared kernel types, consider moving `ServiceView` / `InstanceStatus` to `shared/types/` or a similar shared contract module.
+**Status:** ✅ Fixed (2026-06-09). All cross-context imports now use barrel exports (`features/services/index.ts`, `features/registry/index.ts`).
 
 ---
 
@@ -255,10 +248,7 @@ The `registry-ui` bounded context reaches directly into the `services` context's
 **AGENTS.md requirement:**
 > «Lint: ESLint + typescript-eslint + eslint-plugin-fp. FP enforcement, no mutations.»
 
-**Recommended fix:**
-- Fix the `AnyFieldApi` typing issue to resolve `no-unsafe-assignment`.
-- Rewrite `http.test.ts` mock assignments to avoid direct mutation of `global.fetch`.
-- Add explicit return types to test render helpers and component functions.
+**Status:** ✅ Fixed (2026-06-09). `npm run lint` exits with 0 errors, 0 warnings.
 
 ---
 
@@ -271,9 +261,7 @@ The `registry-ui` bounded context reaches directly into the `services` context's
 **Problem:**
 TanStack Router CLI warns that these files do not export a `Route` and therefore won't be included in the route tree. Co-located tests inside `routes/` conflict with file-based routing conventions.
 
-**Recommended fix:**
-- Move route tests to `src/routes/__tests__/` or prefix test files with `-` (e.g., `-__root.test.tsx`) so TanStack Router ignores them.
-- Alternatively, configure `routeFileIgnorePattern` in `vite.config.ts` to exclude `*.test.tsx`.
+**Status:** ✅ Fixed (2026-06-09). Test files prefixed with `-`; TanStack Router warnings suppressed.
 
 ---
 
