@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { schemaValidator } from '@/shared/form/schemaResolver'
-import { RuleFormSchema } from './schema'
-import type { DestinationDraft, RuleFormValues } from './types'
+import { schemaValidator } from '@/shared/form/schemaResolver.domain'
+import { RuleFormSchema } from './routing-rules.dto'
+import type { DestinationDraft, RuleFormValues } from './routing-rules.types'
 
 const validate = schemaValidator(RuleFormSchema)
 

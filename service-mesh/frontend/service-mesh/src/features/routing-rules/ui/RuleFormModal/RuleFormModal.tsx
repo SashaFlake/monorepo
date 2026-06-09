@@ -8,8 +8,8 @@ import {
   DialogCloseIconButton,
   Button,
 } from '@/shared/ui'
-import type { RoutingRule, RuleFormValues } from '../../domain/types'
-import { useRuleForm } from '../../application/useRuleForm'
+import type { RoutingRule, RuleFormValues } from '../../domain/routing-rules.types'
+import { useRuleForm } from '../../application/useRuleForm.application'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
 import { DestinationList } from '../DestinationList/DestinationList'

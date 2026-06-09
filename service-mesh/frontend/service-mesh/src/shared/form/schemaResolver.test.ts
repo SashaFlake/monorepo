@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Schema } from 'effect'
-import { schemaValidator } from './schemaResolver'
+import { schemaValidator } from './schemaResolver.domain'
 
 const Person = Schema.Struct({
   name: Schema.String.pipe(Schema.filter(s => s.length > 0 || 'Name required')),

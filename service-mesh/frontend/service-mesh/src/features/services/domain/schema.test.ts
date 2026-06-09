@@ -5,7 +5,7 @@ import {
   ServiceViewSchema,
   ServiceVersionsResponseSchema,
   OpenApiDocSchema,
-} from './schema'
+} from './services.dto'
 
 describe('InstanceViewSchema', () => {
   const validInstance = {

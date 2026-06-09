@@ -1,5 +1,5 @@
-import { Destination } from '../domain/types'
-import type { RoutingRule } from '../domain/types'
+import { Destination } from '../domain/routing-rules.types'
+import type { RoutingRule } from '../domain/routing-rules.types'
 
 /**
  * Mock routing rules for local development and storybook-style testing.

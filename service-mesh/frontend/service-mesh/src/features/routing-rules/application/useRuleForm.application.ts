@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { Equivalence, Array as A } from 'effect'
-import { schemaValidator } from '@/shared/form/schemaResolver'
-import { RuleFormSchema } from '../domain/schema'
-import type { RoutingRule, RuleFormValues, DestinationDraft } from '../domain/types'
-import { DestinationDraftEq } from '../domain/types'
+import { schemaValidator } from '@/shared/form/schemaResolver.domain'
+import { RuleFormSchema } from '../domain/routing-rules.dto'
+import type { RoutingRule, RuleFormValues, DestinationDraft } from '../domain/routing-rules.types'
+import { DestinationDraftEq } from '../domain/routing-rules.types'
 
 // ── Helpers (pure) ────────────────────────────────────────────────────────────
 
@@ -96,6 +96,9 @@ export type UseRuleFormInput = {
  * @sideEffects Creates a TanStack Form instance; calls `crypto.randomUUID()`
  *              when converting an existing rule's destinations.
  */
+// Explicit return type breaks TanStack Form generic inference for `form.Field`,
+// causing every field to resolve to `any`. Inference is therefore preserved here.
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function useRuleForm(
   initial: RoutingRule | undefined,
   onSubmit: (values: RuleFormValues) => void,
@@ -108,7 +111,7 @@ export function useRuleForm(
 
   const form = useForm({
     defaultValues: initialValues,
-    onSubmit: async ({ value }) => onSubmit(value),
+    onSubmit: ({ value }) => onSubmit(value),
   })
 
   const isDirty = useMemo(

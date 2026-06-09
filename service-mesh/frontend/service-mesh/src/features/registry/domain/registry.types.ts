@@ -1,4 +1,4 @@
-import type { ServiceView } from '@/features/services/domain/types'
+import type { ServiceView } from '@/features/services'
 
 /**
  * Aggregated health statistics across all registered services.

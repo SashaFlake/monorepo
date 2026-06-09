@@ -1,11 +1,11 @@
 // ── Routing Rules API ───────────────────────────────────────────────────────
-// Domain types live in ../domain/types.ts
+// Domain types live in ../domain/routing-rules.types.ts
 // HTTP helper is imported from lib/http.ts — unified fetch for the whole app
 
 import { Schema } from 'effect'
 import { apiFetch, apiFetchVoid, endpoint } from '@/lib/http.ts'
-import type { RoutingRule, RuleFormValues } from '../domain/types'
-import { RoutingRuleSchema } from '../domain/schema'
+import type { RoutingRule, RuleFormValues } from '../domain/routing-rules.types'
+import { RoutingRuleSchema } from '../domain/routing-rules.dto'
 
 // ── Query keys ───────────────────────────────────────────────────────────────
 

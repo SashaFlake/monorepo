@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { RegistryStats } from './types'
+import type { RegistryStats } from './registry.types'
 
 const makeStats = (overrides: Partial<RegistryStats> = {}): RegistryStats => ({
   totalServices: 0,
