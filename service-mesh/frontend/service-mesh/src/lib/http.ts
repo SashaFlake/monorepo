@@ -60,14 +60,27 @@ export const makeApiError = (
 })
 
 /**
+ * Schema describing the runtime shape of {@link ApiError}.
+ *
+ * Used for safe type narrowing without unsafe `as` casts.
+ */
+const ApiErrorSchema = Schema.Struct({
+  _tag:       Schema.Literal('ApiError'),
+  status:     Schema.Number,
+  statusText: Schema.String,
+  path:       Schema.String,
+  message:    Schema.String,
+})
+
+/**
  * Type guard that narrows an unknown value to {@link ApiError}.
  *
  * @param e - Value to inspect
- * @returns `true` when `e` is an object whose `_tag` equals `'ApiError'`
+ * @returns `true` when `e` matches the {@link ApiErrorSchema} shape
  * @sideEffects none
  */
 export const isApiError = (e: unknown): e is ApiError =>
-  typeof e === 'object' && e !== null && (e as ApiError)._tag === 'ApiError'
+  Schema.is(ApiErrorSchema)(e)
 
 // ── Effect-based fetch (primary) ─────────────────────────────────────────────
 
