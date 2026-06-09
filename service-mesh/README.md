@@ -126,10 +126,12 @@ npm install && npm run dev       # http://localhost:5173
 | HTTP framework | Fastify v5 |
 | Валидация | Zod |
 | Result type | neverthrow |
-| Frontend | React 19 + Vite |
-| Роутинг | TanStack Router |
+| Frontend | React 19 + Vite 6 |
+| Роутинг | TanStack Router (file-based) |
 | Стейт / кеш | TanStack Query + Zustand |
-| CSS | Tailwind v4 |
+| CSS | CSS Modules + CSS custom properties |
+| Validation | Effect Schema (frontend) / Zod (backend) |
+| Result type | neverthrow |
 | Контейнеры | Docker + k3s (k8s) |
 | Облако | Cloud.ru (2 VM: master + worker) |
 
@@ -161,9 +163,13 @@ npm install && npm run dev       # http://localhost:5173
 
 ### Frontend
 
-- [ ] Dashboard — KPIs: кол-во сервисов, нод, health overview
-- [ ] Services экран — список инстансов, статус, uptime
-- [ ] Routes экран — CRUD правил маршрутизации
+- [x] Dashboard — KPIs: кол-во сервисов, инстансов, health overview
+- [x] Services экран — список сервисов, детальная страница, версии, OpenAPI
+- [x] Routes экран — CRUD правил маршрутизации (вкладка в Service Detail)
+- [x] DDD слои — `domain/` / `application/` / `infrastructure/` / `ui/`
+- [x] Local-first cache — TanStack Query persist в IndexedDB
+- [x] Runtime validation — Effect Schema на границе HTTP
+- [x] Tests — 151/151 passing, coverage 84%+
 
 ### Infra
 

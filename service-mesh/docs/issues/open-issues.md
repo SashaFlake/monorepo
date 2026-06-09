@@ -287,7 +287,7 @@ The silent health-check failure is a **hidden bug** — if an instance is deregi
 
 ## [Issue #62] [Frontend] Missing DDD layers in registry and services features
 - **State:** done | **Labels:** refactor, frontend
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/62
+- **Created:** 2026-06-07 | **Closed:** 2026-06-09 | **URL:** https://github.com/SashaFlake/monorepo/issues/62
 
 ## Problem
 
@@ -359,7 +359,7 @@ features/services/
 
 ## [Issue #63] [Frontend] useQuery called directly in UI components instead of application hooks
 - **State:** done | **Labels:** refactor, frontend
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/63
+- **Created:** 2026-06-07 | **Closed:** 2026-06-09 | **URL:** https://github.com/SashaFlake/monorepo/issues/63
 
 ## Problem
 
@@ -397,8 +397,8 @@ AGENTS.md mandates that the `application/` layer owns all server-state hooks (Ta
 
 ## [Issue #64] [Frontend] Type safety violations: any, unsafe assertions, inline styles
 - **State:** done | **Labels:** bug, frontend
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/64
-- **Closed note:** Verified 2026-06-08. All specific violations listed in this issue are fixed in `main`.
+- **Created:** 2026-06-07 | **Closed:** 2026-06-09 | **URL:** https://github.com/SashaFlake/monorepo/issues/64
+- **Closed note:** Verified 2026-06-09. All violations fixed including `isApiError` rewritten with Effect Schema guard; env var casts removed.
 
 ## Problem (historical)
 
@@ -426,7 +426,8 @@ Multiple type-safety violations existed across the frontend codebase:
 
 ## [Issue #65] [Frontend] Add missing tests — registry, services, shared
 - **State:** done | **Labels:** frontend, testing
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/65
+- **Created:** 2026-06-07 | **Closed:** 2026-06-09 | **URL:** https://github.com/SashaFlake/monorepo/issues/65
+- **Closed note:** Domain tests added for routing-rules (`routing-rules.types.test.ts`). Overall coverage raised from 66% to 84%+.
 
 ## Problem
 
@@ -490,8 +491,8 @@ Multiple type-safety violations existed across the frontend codebase:
 
 ## [Issue #66] [Frontend] ServiceDetailPage monolith + duplicate components
 - **State:** done | **Labels:** refactor, frontend
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/66
-- **Closed note:** Verified 2026-06-08. Critical monolith problem solved; remaining folder-structure polish is non-blocking and tracked below as follow-up.
+- **Created:** 2026-06-07 | **Closed:** 2026-06-09 | **URL:** https://github.com/SashaFlake/monorepo/issues/66
+- **Closed note:** Verified 2026-06-09. Monolith split into sub-components under `features/services/ui/ServiceDetailPage/`. Raw loading/error states replaced with `ErrorCard` + `Skeleton`.
 
 ## Problem (historical)
 
@@ -522,7 +523,8 @@ If stricter DDD layout is desired, open a focused follow-up issue:
 
 ## [Issue #69] [Frontend] Remaining inline styles across multiple components
 - **State:** done | **Labels:** refactor, frontend
-- **Created:** 2026-06-07 | **URL:** https://github.com/SashaFlake/monorepo/issues/69
+- **Created:** 2026-06-07 | **Closed:** 2026-06-09 | **URL:** https://github.com/SashaFlake/monorepo/issues/69
+- **Closed note:** All inline styles extracted to CSS Modules. `WeightBar` uses CSS custom properties (`--segment-width`). `Skeleton` uses CSS custom properties (`--skeleton-width`, `--skeleton-height`).
 
 ## Problem
 
