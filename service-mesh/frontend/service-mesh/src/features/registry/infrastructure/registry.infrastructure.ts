@@ -8,4 +8,4 @@
  *
  * @sideEffects none at import time; delegated HTTP I/O to the re-exported client.
  */
-export { servicesApi as registryApi, servicesKeys as registryKeys } from '@/features/services/infrastructure/services.infrastructure'
+export { servicesApi as registryApi, servicesKeys as registryKeys } from '@/features/services'

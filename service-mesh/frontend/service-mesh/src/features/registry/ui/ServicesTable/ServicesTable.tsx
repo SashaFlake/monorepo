@@ -1,5 +1,5 @@
 import {Badge} from '@/shared/ui'
-import type {ServiceView, InstanceStatus} from '@/features/services/domain/types'
+import type {ServiceView, InstanceStatus} from '@/features/services'
 import s from './ServicesTable.module.css'
 import {ReactElement} from "react";
 import {createColumnHelper} from "@tanstack/react-table";

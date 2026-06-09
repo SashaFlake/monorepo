@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { registryApi, registryKeys } from '../infrastructure/registry.infrastructure'
-import type { ServiceView } from '@/features/services/domain/types'
-import type { RegistryStats, UseRegistryStatsResult } from '../domain/types'
+import type { ServiceView } from '@/features/services'
+import type { RegistryStats, UseRegistryStatsResult } from '../domain/registry.types'
 
 /**
  * Zero-valued {@link RegistryStats} used as a safe fallback while loading.
