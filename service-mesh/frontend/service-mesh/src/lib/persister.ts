@@ -30,8 +30,12 @@ const CACHE_KEY = 'sm-query-cache-v2'
  *
  * @sideEffects Reads `import.meta.env` at module evaluation.
  */
-const useIdb: boolean =
-  (import.meta.env.VITE_IDB_PERSIST as string | undefined) !== 'false'
+const rawIdb: string | undefined =
+  typeof import.meta.env.VITE_IDB_PERSIST === 'string'
+    ? import.meta.env.VITE_IDB_PERSIST
+    : undefined
+
+const useIdb: boolean = rawIdb !== 'false'
 
 /**
  * IDB-backed async persister.

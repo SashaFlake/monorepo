@@ -11,7 +11,8 @@ import { Effect, Schema } from 'effect'
  * @sideEffects Reads `import.meta.env` at module evaluation.
  */
 export const BASE: string =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4000'
+  (typeof import.meta.env.VITE_API_URL === 'string' ? import.meta.env.VITE_API_URL : undefined) ??
+  'http://localhost:4000'
 
 /**
  * Prefixes a relative API path with the versioned REST root.
