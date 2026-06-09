@@ -15,7 +15,7 @@ vi.mock('@/features/services', () => ({
 
 describe('services.index route', () => {
   it('renders ServicesPage component', () => {
-    const Component = Route.component as React.ComponentType
+    const Component = (Route as unknown as { component: React.ComponentType }).component
     render(<Component />)
     expect(screen.getByTestId('services-page')).toBeInTheDocument()
   })

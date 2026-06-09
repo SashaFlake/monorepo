@@ -25,7 +25,7 @@ const { Route } = await import('./__root')
 
 describe('__root route', () => {
   it('renders sidebar, outlet and toaster', () => {
-    const Component = Route.component as React.ComponentType
+    const Component = (Route as unknown as { component: React.ComponentType }).component
     render(<Component />)
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()
     expect(screen.getByTestId('outlet')).toBeInTheDocument()

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import type { ReactNode, ReactElement } from 'react'
 import { useServiceDetail } from './useServiceDetail.application'
 import type { ServiceVersionsResponse } from '../domain/services.types'
 

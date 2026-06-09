@@ -37,10 +37,10 @@ describe('http utilities', () => {
 })
 
 describe('apiFetchEffect', () => {
-  const mockFetch = vi.fn<typeof global.fetch>()
+  const mockFetch = vi.fn<typeof globalThis.fetch>()
 
   beforeEach(() => {
-    Object.defineProperty(global, 'fetch', {
+    Object.defineProperty(globalThis, 'fetch', {
       value: mockFetch,
       writable: true,
       configurable: true,
@@ -55,7 +55,7 @@ describe('apiFetchEffect', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ name: 'test' }),
-    })
+    } as Response)
 
     const result = await Effect.runPromise(apiFetchEffect('/test', TestSchema))
     expect(result).toEqual({ name: 'test' })
@@ -66,7 +66,7 @@ describe('apiFetchEffect', () => {
       ok: false,
       status: 404,
       statusText: 'Not Found',
-    })
+    } as Response)
 
     const result = await Effect.runPromise(Effect.either(apiFetchEffect('/test', TestSchema)))
     expect(result._tag).toBe('Left')
@@ -76,7 +76,7 @@ describe('apiFetchEffect', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ wrong: 'shape' }),
-    })
+    } as Response)
 
     const result = await Effect.runPromise(Effect.either(apiFetchEffect('/test', TestSchema)))
     expect(result._tag).toBe('Left')
@@ -90,10 +90,10 @@ describe('apiFetchEffect', () => {
 })
 
 describe('apiFetchVoidEffect', () => {
-  const mockFetch = vi.fn<typeof global.fetch>()
+  const mockFetch = vi.fn<typeof globalThis.fetch>()
 
   beforeEach(() => {
-    Object.defineProperty(global, 'fetch', {
+    Object.defineProperty(globalThis, 'fetch', {
       value: mockFetch,
       writable: true,
       configurable: true,
@@ -105,13 +105,13 @@ describe('apiFetchVoidEffect', () => {
   })
 
   it('succeeds on ok response', async () => {
-    mockFetch.mockResolvedValue({ ok: true })
+    mockFetch.mockResolvedValue({ ok: true } as Response)
     const result = await Effect.runPromise(apiFetchVoidEffect('/test'))
     expect(result).toBeUndefined()
   })
 
   it('fails on non-ok response', async () => {
-    mockFetch.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' })
+    mockFetch.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' } as Response)
     const result = await Effect.runPromise(Effect.either(apiFetchVoidEffect('/test')))
     expect(result._tag).toBe('Left')
   })

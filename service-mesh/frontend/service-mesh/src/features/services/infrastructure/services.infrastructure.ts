@@ -61,7 +61,7 @@ export const servicesApi = {
    * @sideEffects HTTP GET `/api/v1/services`
    */
   listServices: (): Promise<ServiceView[]> =>
-    apiFetch(endpoint('/services'), Schema.Array(ServiceViewSchema)),
+    apiFetch(endpoint('/services'), Schema.mutable(Schema.Array(ServiceViewSchema))),
 
   /**
    * Fetches a single service by ID.

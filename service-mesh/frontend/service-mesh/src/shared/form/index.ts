@@ -3,5 +3,5 @@
  *
  * Prefer importing from `@/shared/form` over deep paths.
  */
-export { schemaValidator } from './schemaResolver'
-export type { SchemaValidationError } from './schemaResolver'
+export { schemaValidator } from './schemaResolver.domain'
+export type { SchemaValidationError } from './schemaResolver.domain'

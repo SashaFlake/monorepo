@@ -24,14 +24,14 @@ const mockedUseServiceDetail = vi.mocked(useServiceDetail)
 
 describe('ServiceDetailPage', () => {
   it('renders loading state', () => {
-    mockedUseServiceDetail.mockReturnValue({ data: undefined, isLoading: true, isError: false, error: null } as ReturnType<typeof useServiceDetail>)
+    mockedUseServiceDetail.mockReturnValue({ data: undefined, isLoading: true, isError: false, error: null } as unknown as ReturnType<typeof useServiceDetail>)
     render(<ServiceDetailPage serviceId="svc-1" />)
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
     expect(screen.getAllByText('svc-1').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders error state', () => {
-    mockedUseServiceDetail.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('fail') } as ReturnType<typeof useServiceDetail>)
+    mockedUseServiceDetail.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('fail') } as unknown as ReturnType<typeof useServiceDetail>)
     render(<ServiceDetailPage serviceId="svc-1" />)
     expect(screen.getByText(/Could not load service/i)).toBeInTheDocument()
   })
@@ -42,7 +42,7 @@ describe('ServiceDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useServiceDetail>)
+    } as unknown as ReturnType<typeof useServiceDetail>)
     render(<ServiceDetailPage serviceId="svc-1" />)
     expect(screen.getByText(/No instances registered/i)).toBeInTheDocument()
   })
@@ -60,7 +60,7 @@ describe('ServiceDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useServiceDetail>)
+    } as unknown as ReturnType<typeof useServiceDetail>)
     render(<ServiceDetailPage serviceId="svc-1" />)
     expect(screen.getAllByTestId('version-card').length).toBe(2)
     expect(screen.getAllByText('auth').length).toBeGreaterThanOrEqual(1)
@@ -72,7 +72,7 @@ describe('ServiceDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useServiceDetail>)
+    } as unknown as ReturnType<typeof useServiceDetail>)
     render(<ServiceDetailPage serviceId="svc-1" />)
     expect(screen.getByRole('tab', { name: 'Routing Rules' })).toBeInTheDocument()
   })
