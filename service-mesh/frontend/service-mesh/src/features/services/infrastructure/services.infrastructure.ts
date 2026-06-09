@@ -1,6 +1,6 @@
 // ── Services domain API ───────────────────────────────────────────────────────
 // HTTP-клиент и query keys для домена services/instances/openapi.
-// Типы домена — в ../domain/types.ts
+// Типы домена — в ../domain/services.types.ts
 // HTTP-helper — из lib/http.ts
 
 import { Schema } from 'effect'
@@ -11,13 +11,13 @@ import type {
   InstanceView,
   OpenApiDoc,
   Labels,
-} from '../domain/types'
+} from '../domain/services.types'
 import {
   ServiceViewSchema,
   ServiceVersionsResponseSchema,
   InstanceViewSchema,
   OpenApiDocSchema,
-} from '../domain/schema'
+} from '../domain/services.dto'
 
 /**
  * TanStack Query keys for the services bounded context.
@@ -48,7 +48,7 @@ export const servicesKeys = {
  * REST client for the services / instances endpoints.
  *
  * All methods decode responses through Effect schemas defined in
- * {@link ../domain/schema} so that runtime validation is enforced at the
+ * {@link ../domain/services.dto} so that runtime validation is enforced at the
  * infrastructure boundary.
  *
  * @sideEffects Performs HTTP requests when called.

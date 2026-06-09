@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { servicesApi, servicesKeys } from '../infrastructure/services.infrastructure'
-import type { OpenApiDoc } from '../domain/types'
+import type { OpenApiDoc } from '../domain/services.types'
 
 /**
  * Loads the OpenAPI document published by a specific service version.

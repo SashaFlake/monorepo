@@ -1,6 +1,6 @@
 import { Activity, Server, Cpu, AlertTriangle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardValue, Tooltip } from '@/shared/ui'
-import type { RegistryStats } from '../../domain/types'
+import type { RegistryStats } from '../../domain/registry.types'
 import s from './StatsGrid.module.css'
 import { ReactElement } from 'react'
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { InstancesPanel } from './InstancesPanel'
-import type { ServiceVersion } from '../../domain/types'
+import type { ServiceVersion } from '../../domain/services.types'
 
 const version = (): ServiceVersion => ({
   version:       'v1',

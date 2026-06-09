@@ -1,5 +1,5 @@
 import { ReactElement } from 'react'
-import type { ServiceVersion } from '../../domain/types'
+import type { ServiceVersion } from '../../domain/services.types'
 import { SpecCard, KV } from './SharedComponents'
 import s from './ServiceDetailPage.module.css'
 

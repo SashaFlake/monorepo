@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { servicesApi, servicesKeys } from '../infrastructure/services.infrastructure'
-import type { ServiceView } from '../domain/types'
+import type { ServiceView } from '../domain/services.types'
 
 /**
  * Loads the full list of registered services.

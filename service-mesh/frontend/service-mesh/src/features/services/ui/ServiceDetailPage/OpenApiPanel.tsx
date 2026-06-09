@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Schema } from 'effect'
 import { useServiceOpenApi } from '../../application/useServiceOpenApi.application'
-import { OpenApiDocSchema, OpenApiOperationSchema } from '../../domain/schema'
+import { OpenApiDocSchema, OpenApiOperationSchema } from '../../domain/services.dto'
 import s from './ServiceDetailPage.module.css'
 
 /**

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { VersionCard } from './VersionCard'
-import type { ServiceVersion } from '../../domain/types'
+import type { ServiceVersion } from '../../domain/services.types'
 
 const version = (overrides: Partial<ServiceVersion> = {}): ServiceVersion => ({
   version:       'v1',

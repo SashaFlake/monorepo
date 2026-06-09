@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { Array as A } from 'effect'
-import type { DestinationDraft } from '../../domain/types'
+import type { DestinationDraft } from '../../domain/routing-rules.types'
 import { Tooltip } from '@/shared/ui'
 import styles from './WeightBar.module.css'
 

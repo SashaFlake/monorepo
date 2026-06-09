@@ -6,7 +6,7 @@
  */
 export { ServicesPage } from './ui/ServicesPage/ServicesPage'
 export { ServiceDetailPage } from './ui/ServiceDetailPage/ServiceDetailPage'
-export type { ServiceView, InstanceStatus } from './domain/types'
+export type { ServiceView, InstanceStatus } from './domain/services.types'
 export { servicesApi, servicesKeys } from './infrastructure/services.infrastructure'
 export { useServices } from './application/useServices.application'
 export { useServiceDetail } from './application/useServiceDetail.application'

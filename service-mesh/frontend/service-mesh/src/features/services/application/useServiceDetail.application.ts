@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { servicesApi, servicesKeys } from '../infrastructure/services.infrastructure'
-import type { ServiceVersionsResponse } from '../domain/types'
+import type { ServiceVersionsResponse } from '../domain/services.types'
 
 /**
  * Loads version-grouped details for a single service.

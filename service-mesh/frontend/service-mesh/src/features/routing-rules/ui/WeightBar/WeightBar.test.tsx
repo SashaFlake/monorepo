@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@/test/render'
 import { WeightBar } from './WeightBar'
-import type { DestinationDraft } from '../../domain/types'
+import type { DestinationDraft } from '../../domain/routing-rules.types'
 
 const dest = (version: string, weightPct: number): DestinationDraft => ({
   id: crypto.randomUUID(),

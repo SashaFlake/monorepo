@@ -1,6 +1,6 @@
 import { ReactElement } from 'react'
 import { Badge } from '@/shared/ui'
-import type { ServiceVersion } from '../../domain/types'
+import type { ServiceVersion } from '../../domain/services.types'
 import { STATUS_VARIANT } from './ServiceDetailPage'
 import s from './ServiceDetailPage.module.css'
 

@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui'
 import { ManifestPanel } from './ManifestPanel'
 import { OpenApiPanel } from './OpenApiPanel'
 import { InstancesPanel } from './InstancesPanel'
-import type { ServiceVersion } from '../../domain/types'
+import type { ServiceVersion } from '../../domain/services.types'
 import s from './ServiceDetailPage.module.css'
 
 /**

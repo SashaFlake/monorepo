@@ -11,7 +11,7 @@ import {
   AlertDialogAction,
   Button,
 } from '@/shared/ui'
-import type { RoutingRule } from '../../domain/types'
+import type { RoutingRule } from '../../domain/routing-rules.types'
 import s from './DeleteRuleDialog.module.css'
 
 /**

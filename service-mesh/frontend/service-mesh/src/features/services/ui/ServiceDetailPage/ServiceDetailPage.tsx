@@ -5,7 +5,7 @@ import { Card } from '@/shared/ui'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui'
 import { RoutingRulesPage } from '@/features/routing-rules'
 import { useServiceDetail } from '../../application/useServiceDetail.application'
-import type { InstanceStatus } from '../../domain/types'
+import type { InstanceStatus } from '../../domain/services.types'
 import { VersionCard } from './VersionCard'
 import s from './ServiceDetailPage.module.css'
 
