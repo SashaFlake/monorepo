@@ -2,6 +2,10 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ServicesPage } from './ServicesPage'
 
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: (): (() => void) => vi.fn(),
+}))
+
 vi.mock('../../application/useServices.application', () => ({
   useServices: vi.fn(),
 }))

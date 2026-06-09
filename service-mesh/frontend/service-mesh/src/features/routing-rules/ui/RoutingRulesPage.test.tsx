@@ -36,7 +36,7 @@ describe('RoutingRulesPage', () => {
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
   })
 
   it('renders error state', () => {
@@ -51,7 +51,7 @@ describe('RoutingRulesPage', () => {
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
-    expect(screen.getByRole('alert')).toHaveTextContent('Failed to load routing rules')
+    expect(screen.getByText('Failed to load routing rules.')).toBeInTheDocument()
   })
 
   it('renders rules table and new rule button', () => {

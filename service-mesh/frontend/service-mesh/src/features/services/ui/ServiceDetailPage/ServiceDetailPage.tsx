@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import {ReactElement} from 'react'
 import { Header } from '@/components/layout/Header'
-import { Card } from '@/shared/ui'
+import { Card, ErrorCard, Skeleton } from '@/shared/ui'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui'
 import { RoutingRulesPage } from '@/features/routing-rules'
 import { useServiceDetail } from '../../application/useServiceDetail.application'
@@ -57,8 +57,13 @@ export function ServiceDetailPage({ serviceId }: { serviceId: string }): ReactEl
 
         <TabsContent value="overview">
           <main className={s.main}>
-            {isError && <Card className={`${s.stateCard} ${s.errorCard}`}>⚠️ Could not load service</Card>}
-            {isLoading && <Card className={`${s.stateCard} ${s.loadingCard}`}>Loading…</Card>}
+            {isError && <ErrorCard message="Could not load service" />}
+            {isLoading && (
+              <div className={s.loadingState}>
+                <Skeleton width="100%" height="60px" />
+                <Skeleton width="100%" height="60px" />
+              </div>
+            )}
             {!isLoading && !isError && (data?.versions.length ?? 0) === 0 && (
               <Card className={s.emptyCard}>No instances registered — no versions to show.</Card>
             )}

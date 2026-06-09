@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { Button } from '@/shared/ui'
+import { Button, ErrorCard, Skeleton } from '@/shared/ui'
 import { useRoutingRules } from '@/features/routing-rules'
 import { RulesTable } from './RulesTable/RulesTable'
 import { RuleFormModal } from './RuleFormModal/RuleFormModal'
@@ -42,8 +42,8 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
         <Button onClick={openCreate}>New rule</Button>
       </div>
 
-      {isError   && <div role="alert" className={s.error}>Failed to load routing rules.</div>}
-      {isLoading && <div role="status" className={s.loading}>Loading…</div>}
+      {isError   && <ErrorCard message="Failed to load routing rules." />}
+      {isLoading && <Skeleton width="100%" height="200px" />}
 
       <RulesTable
         rules={rules}

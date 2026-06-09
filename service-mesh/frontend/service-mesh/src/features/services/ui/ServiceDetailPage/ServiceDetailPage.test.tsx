@@ -26,7 +26,7 @@ describe('ServiceDetailPage', () => {
   it('renders loading state', () => {
     mockedUseServiceDetail.mockReturnValue({ data: undefined, isLoading: true, isError: false, error: null } as ReturnType<typeof useServiceDetail>)
     render(<ServiceDetailPage serviceId="svc-1" />)
-    expect(screen.getByText(/Loading/i)).toBeInTheDocument()
+    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
     expect(screen.getAllByText('svc-1').length).toBeGreaterThanOrEqual(1)
   })
 

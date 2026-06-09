@@ -24,6 +24,8 @@ export function Skeleton({ width, height, className }: SkeletonProps): ReactElem
   return (
     <div
       className={`${s.skeleton} ${className ?? ''}`}
+      role="status"
+      aria-busy="true"
       style={{ '--skeleton-width': width, '--skeleton-height': height } as React.CSSProperties}
     />
   )

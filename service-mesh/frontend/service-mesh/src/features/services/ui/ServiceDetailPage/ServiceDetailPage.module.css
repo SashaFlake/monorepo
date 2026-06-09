@@ -367,5 +367,11 @@
   overflow: hidden;
 }
 
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 .healthOk   { color: var(--color-success); }
 .healthFail { color: var(--color-error); }
