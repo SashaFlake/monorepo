@@ -101,6 +101,37 @@ async function deregister(): Promise<void> {
   app.log.info({ instanceId }, 'Instance deregistered')
 }
 
+// ── OpenAPI self-description ─────────────────────────────────────────────────
+
+app.get('/openapi.json', async () => ({
+  openapi: '3.0.0',
+  info: {
+    title: SERVICE_NAME,
+    version: VERSION,
+    description: `Mock service instance (${SERVICE_HOST}:${PORT})`,
+  },
+  paths: {
+    '/hello-world': {
+      get: {
+        summary: 'Hello World endpoint',
+        operationId: 'helloWorld',
+        tags: ['demo'],
+      },
+    },
+    '/health': {
+      get: {
+        summary: 'Health check',
+        operationId: 'healthCheck',
+        tags: ['system'],
+      },
+    },
+  },
+  tags: [
+    { name: 'demo', description: 'Demo endpoints' },
+    { name: 'system', description: 'System endpoints' },
+  ],
+}))
+
 // ── Startup ──────────────────────────────────────────────────────────────────
 await app.listen({ port: PORT, host: HOST })
 

@@ -72,7 +72,18 @@ describe('ServiceVersionsResponseSchema', () => {
         version: 'v1',
         instanceCount: 2,
         instances: [],
-        manifest: {},
+        manifest: {
+          apiVersion: 'mesh/v1alpha1',
+          kind: 'ServiceManifest',
+          metadata: { name: 'auth', version: 'v1', generatedAt: '2026-01-01T00:00:00Z' },
+          spec: {
+            exposure: 'internal',
+            protocol: 'http',
+            ports: [{ name: 'http', port: 8080, targetPort: 8080, protocol: 'TCP' }],
+            routing: { loadBalancing: 'round-robin', retries: 2, timeoutMs: 5000 },
+            health: { path: '/health', intervalMs: 10000, ttlMs: 30000 },
+          },
+        },
       },
     ],
   }

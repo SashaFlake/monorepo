@@ -7,9 +7,9 @@ import {
   DialogDescription,
   DialogActions,
   DialogCloseIconButton,
-  Button,
+  Button, ErrorCard,
 } from '@/shared/ui'
-import type { RoutingRule, RuleFormValues } from '../../domain/routing-rules.types'
+import type { RoutingRule, RuleFormValues } from '@/features/routing-rules'
 import { useRuleForm } from '../../application/useRuleForm.application'
 import { RuleNameField } from './RuleNameField'
 import { RuleMatchFields } from './RuleMatchFields'
@@ -28,6 +28,8 @@ export interface RuleFormModalProps {
   onSubmit:  (values: RuleFormValues) => void
   /** Called when the user closes the modal (confirm or cancel). */
   onClose:   () => void
+  /** Error message to display, or null if no error. */
+  error?: Error | null
 }
 
 const DISCARD_MESSAGE = 'You have unsaved changes. Discard them?'
@@ -39,7 +41,7 @@ const DISCARD_MESSAGE = 'You have unsaved changes. Discard them?'
  * @returns RuleFormModal React element
  * @sideEffects Calls `window.confirm` on dirty close.
  */
-export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFormModalProps): ReactElement {
+export function RuleFormModal({ initial, isPending, onSubmit, onClose, error }: RuleFormModalProps): ReactElement {
   const { form, isDirty } = useRuleForm(initial, onSubmit)
 
   const requestClose = (): void => {
@@ -96,6 +98,8 @@ export function RuleFormModal({ initial, isPending, onSubmit, onClose }: RuleFor
               )}
             </form.Field>
           </fieldset>
+
+          {error && <ErrorCard message={error.message} />}
 
           <DialogActions>
             <Button type="button" variant="ghost" onClick={requestClose} disabled={isPending}>

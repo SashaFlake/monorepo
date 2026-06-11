@@ -24,6 +24,25 @@ type OpenApiRoute = OpenApiOperation & { method: string; path: string }
 const isOpenApiOperation = Schema.is(OpenApiOperationSchema)
 
 /**
+ * Inspects a TanStack Query error and returns user-facing copy.
+ *
+ * @param error - The raw error from useQuery
+ * @returns Object with title and body text
+ * @sideEffects none
+ */
+function getErrorCopy(error: unknown): { title: string; body: string } {
+    const msg = error instanceof Error ? error.message : String(error)
+    const is502 = msg.includes('502')
+    if(is502) {
+        return {
+            title: 'Instance does not expose OpenAPI',
+            body: 'The service instance returned 502 Bad Gateway. It may not serve an OpenAPI specification at /openapi.json.',
+        }
+    }
+    return { title: 'Could not fetch OpenAPI', body: msg }
+}
+
+/**
  * Renders the OpenAPI document exposed by a service version.
  *
  * Fetches `/services/{serviceId}/openapi?version={version}`, decodes the
@@ -40,13 +59,16 @@ export function OpenApiPanel({ serviceId, version }: { serviceId: string; versio
   const { data, isLoading, isError, error } = useServiceOpenApi(serviceId, version)
 
   if (isLoading) return <div className={s.openapiLoading}>Fetching OpenAPI from instance…</div>
-  if (isError) return (
-    <div className={s.openapiError}>
-      <div className={s.openapiErrorTitle}>Could not fetch OpenAPI</div>
-      <div className={s.openapiErrorMsg}>{error instanceof Error ? error.message : String(error)}</div>
-      <div className={s.openapiErrorHint}>Make sure the instance exposes <code>/openapi.json</code></div>
-    </div>
-  )
+  if (isError) {
+    const { title, body } = getErrorCopy(error)
+    return (
+            <div className={s.openapiError}>
+                <div className={s.openapiErrorTitle}>{title}</div>
+                <div className={s.openapiErrorMsg}>{body}</div>
+                <div className={s.openapiErrorHint}>Make sure the instance exposes <code>/openapi.json</code></div>
+            </div>
+        )
+}
 
   const doc = Schema.decodeUnknownSync(OpenApiDocSchema)(data)
   const paths = doc?.paths ?? {}

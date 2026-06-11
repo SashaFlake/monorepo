@@ -5,6 +5,7 @@ import { RulesTable } from './RulesTable/RulesTable'
 import { RuleFormModal } from './RuleFormModal/RuleFormModal'
 import { DeleteRuleDialog } from './DeleteRuleDialog/DeleteRuleDialog'
 import s from './RoutingRulesPage.module.css'
+import { Plus } from 'lucide-react'
 
 /**
  * Props for {@link RoutingRulesPage}.
@@ -34,12 +35,18 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
     openDelete, closeDelete,
     create, update, remove,
     isCreating, isUpdating, isDeleting,
+    createError,
+    updateError
   } = useRoutingRules(serviceId)
 
   return (
     <div className={s.page}>
       <div className={s.toolbar}>
-        <Button onClick={openCreate}>New rule</Button>
+          <h2 className={s.title}>Routing rules</h2>
+          <Button variant="primary" onClick={openCreate}>
+              <Plus size={16} />
+              New rule
+          </Button>
       </div>
 
       {isError   && <ErrorCard message="Failed to load routing rules." />}
@@ -57,6 +64,7 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
           isPending={isCreating}
           onSubmit={create}
           onClose={closeCreate}
+          error={createError}
         />
       )}
 
@@ -66,6 +74,7 @@ export function RoutingRulesPage({ serviceId }: Props): ReactElement {
           isPending={isUpdating}
           onSubmit={update}
           onClose={closeEdit}
+          error={updateError}
         />
       )}
 

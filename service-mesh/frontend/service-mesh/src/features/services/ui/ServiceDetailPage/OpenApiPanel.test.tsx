@@ -55,4 +55,17 @@ describe('OpenApiPanel', () => {
     expect(screen.getByText('Test API')).toBeInTheDocument()
     expect(screen.getByText('Health check')).toBeInTheDocument()
   })
+
+  it('renders specific copy for 502 Bad Gateway', () => {
+    mockedUseServiceOpenApi.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('502 Bad Gateway: /api/v1/services/svc-1/openapi?version=v1'),
+    } as unknown as ReturnType<typeof useServiceOpenApi>)
+
+    render(<OpenApiPanel serviceId="svc-1" version="v1" />)
+    expect(screen.getByText(/Instance does not expose OpenAPI/i)).toBeInTheDocument()
+    expect(screen.getByText(/returned 502 Bad Gateway/i)).toBeInTheDocument()
+  })
 })

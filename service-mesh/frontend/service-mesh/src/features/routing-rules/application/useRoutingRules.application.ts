@@ -28,6 +28,9 @@ export type RoutingRulesState = {
   isCreating: boolean
   isUpdating: boolean
   isDeleting: boolean
+
+  createError: Error | null
+  updateError: Error | null
 }
 
 /**
@@ -96,5 +99,7 @@ export function useRoutingRules(serviceId: string): RoutingRulesState {
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    createError: createMutation.error,
+    updateError: updateMutation.error,
   }
 }

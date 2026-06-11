@@ -33,6 +33,8 @@ describe('RoutingRulesPage', () => {
       openDelete: vi.fn(), closeDelete: vi.fn(),
       create: vi.fn(), update: vi.fn(), remove: vi.fn(),
       isCreating: false, isUpdating: false, isDeleting: false,
+      createError: null,
+      updateError: null,
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
@@ -48,6 +50,7 @@ describe('RoutingRulesPage', () => {
       openDelete: vi.fn(), closeDelete: vi.fn(),
       create: vi.fn(), update: vi.fn(), remove: vi.fn(),
       isCreating: false, isUpdating: false, isDeleting: false,
+      createError: null, updateError: null,
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
@@ -63,11 +66,13 @@ describe('RoutingRulesPage', () => {
       openDelete: vi.fn(), closeDelete: vi.fn(),
       create: vi.fn(), update: vi.fn(), remove: vi.fn(),
       isCreating: false, isUpdating: false, isDeleting: false,
+      createError: null, updateError: null,
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
     expect(screen.getByRole('button', { name: 'New rule' })).toBeInTheDocument()
     expect(screen.getByText('rule-a')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Routing rules' })).toBeInTheDocument()
   })
 
   it('opens create modal on button click', () => {
@@ -80,6 +85,7 @@ describe('RoutingRulesPage', () => {
       openDelete: vi.fn(), closeDelete: vi.fn(),
       create: vi.fn(), update: vi.fn(), remove: vi.fn(),
       isCreating: false, isUpdating: false, isDeleting: false,
+      createError: null, updateError: null,
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
@@ -96,6 +102,7 @@ describe('RoutingRulesPage', () => {
       openDelete: vi.fn(), closeDelete: vi.fn(),
       create: vi.fn(), update: vi.fn(), remove: vi.fn(),
       isCreating: false, isUpdating: false, isDeleting: false,
+      createError: null, updateError: null,
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
@@ -111,6 +118,7 @@ describe('RoutingRulesPage', () => {
       openDelete: vi.fn(), closeDelete: vi.fn(),
       create: vi.fn(), update: vi.fn(), remove: vi.fn(),
       isCreating: false, isUpdating: false, isDeleting: false,
+      createError: null, updateError: null,
     })
 
     render(<RoutingRulesPage serviceId="svc-1" />)
